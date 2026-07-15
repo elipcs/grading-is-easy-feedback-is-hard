@@ -1,0 +1,323 @@
+{
+  "submission_id": "S83",
+  "evaluator_type": "llm",
+  "criteria": [
+    {
+      "criterion_id": "basic_functionality",
+      "criterion_name": "Basic Functionality",
+      "score": 7.0,
+      "max_score": 10,
+      "justification": "O sistema implementa a maior parte das funcionalidades exigidas, incluindo cadastro, listagem e detalhamento. No entanto, apresenta falhas l\u00f3gicas na manipula\u00e7\u00e3o da HotList (remo\u00e7\u00e3o incorreta e falta de valida\u00e7\u00e3o) e utiliza compara\u00e7\u00e3o de Strings com '=='.",
+      "success_evidence": [
+        "Cadastro de filmes com verifica\u00e7\u00e3o de limites e duplicidade.",
+        "Listagem e detalhamento de filmes funcionais.",
+        "L\u00f3gica de substitui\u00e7\u00e3o de filmes na HotList implementada."
+      ],
+      "evidence_refs": [
+        "FilmNow.cadastraFilme",
+        "FilmNow.detalhar",
+        "MainFilmNow.mostrarFilmes",
+        "FilmNow.removeHotList",
+        "FilmNow.adicionaHotList",
+        "MainFilmNow.atribuirHot",
+        "Filmes.toString"
+      ],
+      "non_penalized_observations": [
+        "Pequenas diverg\u00eancias cosm\u00e9ticas nas mensagens impressas (ex: 'Dados do filme:\\n' ao detalhar ou retornar null ao inv\u00e9s de vazio) n\u00e3o foram penalizadas severamente."
+      ],
+      "deductions": [
+        {
+          "problem": "Erro l\u00f3gico ao remover filme da HotList: o m\u00e9todo utiliza o \u00edndice da HotList para acessar o array principal de filmes.",
+          "consequence": "Remove o status 'hot' de um filme incorreto (baseado no \u00edndice da HotList, n\u00e3o do filme) ou lan\u00e7a NullPointerException se a posi\u00e7\u00e3o correspondente no array principal estiver vazia.",
+          "how_to_fix": "Utilizar a refer\u00eancia do filme armazenada na pr\u00f3pria HotList para remover o status: `hotList[posicao-1].removeHot();`.",
+          "points_lost": 1.0,
+          "severity": "moderate",
+          "confidence": "high",
+          "rubric_anchor": "HotList",
+          "evidence_refs": [
+            "FilmNow.removeHotList",
+            "FilmNow.cadastraFilme",
+            "FilmNow.detalhar",
+            "MainFilmNow.mostrarFilmes"
+          ]
+        },
+        {
+          "problem": "Falta de valida\u00e7\u00e3o de posi\u00e7\u00f5es vazias ao adicionar na HotList e mensagens divergentes.",
+          "consequence": "Pode causar NullPointerException ao tentar acessar `filmes[filme-1]` se a posi\u00e7\u00e3o informada estiver vazia. Al\u00e9m disso, n\u00e3o exibe 'FILME J\u00c1 ADICIONADO' quando o filme j\u00e1 est\u00e1 na HotList (retorna string vazia).",
+          "how_to_fix": "Adicionar verifica\u00e7\u00e3o `if (filmes[filme-1] == null)` antes de acessar o filme e retornar a mensagem correta conforme a especifica\u00e7\u00e3o.",
+          "points_lost": 1.0,
+          "severity": "moderate",
+          "confidence": "high",
+          "rubric_anchor": "HotList",
+          "evidence_refs": [
+            "FilmNow.adicionaHotList",
+            "MainFilmNow.atribuirHot",
+            "FilmNow.cadastraFilme",
+            "FilmNow.detalhar",
+            "MainFilmNow.mostrarFilmes"
+          ]
+        },
+        {
+          "problem": "Compara\u00e7\u00e3o de Strings utilizando o operador `==` ao inv\u00e9s do m\u00e9todo `.equals()` ou `.isEmpty()`.",
+          "consequence": "Em Java, `==` compara refer\u00eancias de mem\u00f3ria, n\u00e3o o conte\u00fado. Isso pode causar falhas na valida\u00e7\u00e3o de strings vazias dependendo de como a string foi instanciada em tempo de execu\u00e7\u00e3o.",
+          "how_to_fix": "Substituir `nome == \"\"` por `nome.isEmpty()` ou `nome.equals(\"\")`.",
+          "points_lost": 1.0,
+          "severity": "moderate",
+          "confidence": "high",
+          "rubric_anchor": "Adicionar Filme",
+          "evidence_refs": [
+            "FilmNow.cadastraFilme",
+            "Filmes.toString",
+            "FilmNow.detalhar",
+            "MainFilmNow.mostrarFilmes"
+          ]
+        }
+      ]
+    },
+    {
+      "criterion_id": "unit_tests",
+      "criterion_name": "Unit Tests",
+      "score": 7.5,
+      "max_score": 10,
+      "justification": "A su\u00edte de testes cobre bem a classe FilmNow, mas os testes da classe Filmes possuem um erro estrutural grave que invalida as asser\u00e7\u00f5es de igualdade.",
+      "success_evidence": [
+        "Testes abrangentes para cadastraFilme, cobrindo limites e valida\u00e7\u00f5es.",
+        "Testes para o m\u00e9todo detalhar, incluindo o comportamento com a HotList."
+      ],
+      "evidence_refs": [
+        "FilmNowTeste.java",
+        "FilmNowDetalhar.java",
+        "FilmesTeste.assertboolean",
+        "FilmesTeste.testEqualsObject1"
+      ],
+      "non_penalized_observations": [
+        "A divis\u00e3o dos testes de FilmNow em duas classes (FilmNowTeste e FilmNowDetalhar) \u00e9 incomum, mas funcional."
+      ],
+      "deductions": [
+        {
+          "problem": "O m\u00e9todo auxiliar `assertboolean` utilizado nos testes de `equals` est\u00e1 vazio.",
+          "consequence": "Os testes `testEqualsObject1` a `testEqualsObject4` n\u00e3o realizam nenhuma verifica\u00e7\u00e3o real e passam silenciosamente (falso positivo), mascarando poss\u00edveis erros na implementa\u00e7\u00e3o.",
+          "how_to_fix": "Implementar a asser\u00e7\u00e3o dentro do m\u00e9todo auxiliar (ex: `assertEquals(b, equals);`) ou utilizar `assertTrue`/`assertFalse` diretamente nos testes.",
+          "points_lost": 2.5,
+          "severity": "major",
+          "confidence": "high",
+          "rubric_anchor": "Testes da classe Filme",
+          "evidence_refs": [
+            "FilmesTeste.assertboolean",
+            "FilmesTeste.testEqualsObject1",
+            "FilmNowTeste.java",
+            "FilmNowDetalhar.java"
+          ]
+        }
+      ]
+    },
+    {
+      "criterion_id": "class_design",
+      "criterion_name": "Class Design",
+      "score": 10.0,
+      "max_score": 10,
+      "justification": "O design de classes atende perfeitamente aos requisitos, com a cria\u00e7\u00e3o de uma classe de dom\u00ednio para o filme e a classe gerenciadora do sistema.",
+      "success_evidence": [
+        "Cria\u00e7\u00e3o da classe Filmes com atributos adequados.",
+        "Classe FilmNow atuando como gerenciadora da cole\u00e7\u00e3o de filmes.",
+        "Modulariza\u00e7\u00e3o do MainFilmNow com m\u00e9todos est\u00e1ticos."
+      ],
+      "evidence_refs": [
+        "Filmes.java",
+        "FilmNow.java",
+        "MainFilmNow.java"
+      ],
+      "non_penalized_observations": [],
+      "deductions": []
+    },
+    {
+      "criterion_id": "object_references",
+      "criterion_name": "Object References and Composition",
+      "score": 10.0,
+      "max_score": 10,
+      "justification": "Excelente uso de refer\u00eancias e composi\u00e7\u00e3o. A classe FilmNow comp\u00f5e corretamente objetos da classe Filmes.",
+      "success_evidence": [
+        "Instancia\u00e7\u00e3o correta de objetos Filmes dentro de FilmNow.",
+        "Uso adequado de refer\u00eancias para manipular a HotList.",
+        "Aus\u00eancia de uso indevido de modificadores static fora do Main."
+      ],
+      "evidence_refs": [
+        "FilmNow.cadastraFilme",
+        "FilmNow.adicionaHotList"
+      ],
+      "non_penalized_observations": [],
+      "deductions": []
+    },
+    {
+      "criterion_id": "collections_and_arrays",
+      "criterion_name": "Collections and Arrays",
+      "score": 10.0,
+      "max_score": 10,
+      "justification": "As estruturas de dados foram utilizadas corretamente, respeitando os limites estabelecidos na especifica\u00e7\u00e3o.",
+      "success_evidence": [
+        "Uso de array de tamanho 100 para armazenar os filmes.",
+        "Uso de array de tamanho 10 para a HotList.",
+        "Mapeamento correto entre a posi\u00e7\u00e3o informada pelo usu\u00e1rio (1-based) e o \u00edndice do array (0-based)."
+      ],
+      "evidence_refs": [
+        "FilmNow.java (construtor)",
+        "FilmNow.cadastraFilme"
+      ],
+      "non_penalized_observations": [],
+      "deductions": []
+    },
+    {
+      "criterion_id": "separation_of_concerns",
+      "criterion_name": "Separation of Concerns",
+      "score": 10.0,
+      "max_score": 10,
+      "justification": "Boa separa\u00e7\u00e3o de responsabilidades entre a interface de usu\u00e1rio, a classe gerenciadora e a classe de dom\u00ednio.",
+      "success_evidence": [
+        "MainFilmNow concentra a intera\u00e7\u00e3o com o usu\u00e1rio (Scanner, System.out).",
+        "FilmNow concentra a l\u00f3gica de neg\u00f3cio e valida\u00e7\u00f5es.",
+        "Filmes encapsula seus pr\u00f3prios dados e a formata\u00e7\u00e3o de exibi\u00e7\u00e3o (toString)."
+      ],
+      "evidence_refs": [
+        "MainFilmNow.comando",
+        "FilmNow.cadastraFilme",
+        "Filmes.toString"
+      ],
+      "non_penalized_observations": [],
+      "deductions": []
+    },
+    {
+      "criterion_id": "readability_and_documentation",
+      "criterion_name": "Readability and Documentation",
+      "score": 9.5,
+      "max_score": 10,
+      "justification": "O c\u00f3digo \u00e9 leg\u00edvel e possui boa documenta\u00e7\u00e3o Javadoc, com apenas um pequeno desvio sem\u00e2ntico na nomenclatura da classe de dom\u00ednio.",
+      "success_evidence": [
+        "Presen\u00e7a de Javadoc claro e objetivo na maioria dos m\u00e9todos.",
+        "Nomenclatura de vari\u00e1veis e m\u00e9todos compreens\u00edvel.",
+        "C\u00f3digo bem indentado e organizado."
+      ],
+      "evidence_refs": [
+        "Filmes.java",
+        "FilmNow.java"
+      ],
+      "non_penalized_observations": [],
+      "deductions": [
+        {
+          "problem": "A classe de dom\u00ednio foi nomeada no plural (`Filmes`), embora represente uma \u00fanica entidade.",
+          "consequence": "Causa uma leve confus\u00e3o sem\u00e2ntica, pois nomes no plural geralmente indicam cole\u00e7\u00f5es ou gerenciadores.",
+          "how_to_fix": "Renomear a classe para o singular (`Filme`).",
+          "points_lost": 0.5,
+          "severity": "minor",
+          "confidence": "high",
+          "rubric_anchor": "Legibilidade e Documenta\u00e7\u00e3o",
+          "evidence_refs": [
+            "Filmes.java",
+            "FilmNow.java"
+          ]
+        }
+      ]
+    }
+  ],
+  "total_score": 8.825,
+  "total_max_score": 10.0,
+  "feedback_items": [
+    {
+      "criterion_id": "basic_functionality",
+      "criterion_name": "Basic Functionality",
+      "problem": "Erro l\u00f3gico ao remover filme da HotList: o m\u00e9todo utiliza o \u00edndice da HotList para acessar o array principal de filmes.",
+      "consequence": "Remove o status 'hot' de um filme incorreto (baseado no \u00edndice da HotList, n\u00e3o do filme) ou lan\u00e7a NullPointerException se a posi\u00e7\u00e3o correspondente no array principal estiver vazia.",
+      "how_to_fix": "Utilizar a refer\u00eancia do filme armazenada na pr\u00f3pria HotList para remover o status: `hotList[posicao-1].removeHot();`.",
+      "severity": "moderate",
+      "confidence": "high",
+      "evidence_refs": [
+        "FilmNow.removeHotList",
+        "FilmNow.cadastraFilme",
+        "FilmNow.detalhar",
+        "MainFilmNow.mostrarFilmes",
+        "FilmNow.adicionaHotList",
+        "MainFilmNow.atribuirHot",
+        "Filmes.toString"
+      ]
+    },
+    {
+      "criterion_id": "basic_functionality",
+      "criterion_name": "Basic Functionality",
+      "problem": "Falta de valida\u00e7\u00e3o de posi\u00e7\u00f5es vazias ao adicionar na HotList e mensagens divergentes.",
+      "consequence": "Pode causar NullPointerException ao tentar acessar `filmes[filme-1]` se a posi\u00e7\u00e3o informada estiver vazia. Al\u00e9m disso, n\u00e3o exibe 'FILME J\u00c1 ADICIONADO' quando o filme j\u00e1 est\u00e1 na HotList (retorna string vazia).",
+      "how_to_fix": "Adicionar verifica\u00e7\u00e3o `if (filmes[filme-1] == null)` antes de acessar o filme e retornar a mensagem correta conforme a especifica\u00e7\u00e3o.",
+      "severity": "moderate",
+      "confidence": "high",
+      "evidence_refs": [
+        "FilmNow.adicionaHotList",
+        "MainFilmNow.atribuirHot",
+        "FilmNow.cadastraFilme",
+        "FilmNow.detalhar",
+        "MainFilmNow.mostrarFilmes",
+        "FilmNow.removeHotList",
+        "Filmes.toString"
+      ]
+    },
+    {
+      "criterion_id": "basic_functionality",
+      "criterion_name": "Basic Functionality",
+      "problem": "Compara\u00e7\u00e3o de Strings utilizando o operador `==` ao inv\u00e9s do m\u00e9todo `.equals()` ou `.isEmpty()`.",
+      "consequence": "Em Java, `==` compara refer\u00eancias de mem\u00f3ria, n\u00e3o o conte\u00fado. Isso pode causar falhas na valida\u00e7\u00e3o de strings vazias dependendo de como a string foi instanciada em tempo de execu\u00e7\u00e3o.",
+      "how_to_fix": "Substituir `nome == \"\"` por `nome.isEmpty()` ou `nome.equals(\"\")`.",
+      "severity": "moderate",
+      "confidence": "high",
+      "evidence_refs": [
+        "FilmNow.cadastraFilme",
+        "Filmes.toString",
+        "FilmNow.detalhar",
+        "MainFilmNow.mostrarFilmes",
+        "FilmNow.removeHotList",
+        "FilmNow.adicionaHotList",
+        "MainFilmNow.atribuirHot"
+      ]
+    },
+    {
+      "criterion_id": "unit_tests",
+      "criterion_name": "Unit Tests",
+      "problem": "O m\u00e9todo auxiliar `assertboolean` utilizado nos testes de `equals` est\u00e1 vazio.",
+      "consequence": "Os testes `testEqualsObject1` a `testEqualsObject4` n\u00e3o realizam nenhuma verifica\u00e7\u00e3o real e passam silenciosamente (falso positivo), mascarando poss\u00edveis erros na implementa\u00e7\u00e3o.",
+      "how_to_fix": "Implementar a asser\u00e7\u00e3o dentro do m\u00e9todo auxiliar (ex: `assertEquals(b, equals);`) ou utilizar `assertTrue`/`assertFalse` diretamente nos testes.",
+      "severity": "major",
+      "confidence": "high",
+      "evidence_refs": [
+        "FilmesTeste.assertboolean",
+        "FilmesTeste.testEqualsObject1",
+        "FilmNowTeste.java",
+        "FilmNowDetalhar.java"
+      ]
+    },
+    {
+      "criterion_id": "readability_and_documentation",
+      "criterion_name": "Readability and Documentation",
+      "problem": "A classe de dom\u00ednio foi nomeada no plural (`Filmes`), embora represente uma \u00fanica entidade.",
+      "consequence": "Causa uma leve confus\u00e3o sem\u00e2ntica, pois nomes no plural geralmente indicam cole\u00e7\u00f5es ou gerenciadores.",
+      "how_to_fix": "Renomear a classe para o singular (`Filme`).",
+      "severity": "minor",
+      "confidence": "high",
+      "evidence_refs": [
+        "Filmes.java",
+        "FilmNow.java"
+      ]
+    }
+  ],
+  "student_feedback": "No geral, a solu\u00e7\u00e3o demonstra um excelente entendimento da modelagem de classes e separa\u00e7\u00e3o de responsabilidades, com um \u00f3timo uso de refer\u00eancias entre `FilmNow` e `Filmes`. O design est\u00e1 muito bem estruturado. O ponto que precisa de mais aten\u00e7\u00e3o agora \u00e9 a l\u00f3gica de manipula\u00e7\u00e3o da HotList e a estrutura dos testes.\n\n[FilmNow.removeHotList] Problema: O m\u00e9todo utiliza o \u00edndice da HotList para acessar o array principal de filmes. Consequ\u00eancia: Isso remove o status 'hot' de um filme incorreto ou causa NullPointerException se a posi\u00e7\u00e3o no array principal estiver vazia. Como consertar: Utilize a refer\u00eancia do filme armazenada na pr\u00f3pria HotList para remover o status: `hotList[posicao-1].removeHot();`.\n[FilmNow.adicionaHotList] Problema: Falta valida\u00e7\u00e3o de posi\u00e7\u00f5es vazias antes de acessar o filme e a mensagem de retorno diverge quando o filme j\u00e1 est\u00e1 na HotList. Consequ\u00eancia: Pode causar NullPointerException ao tentar acessar um filme inexistente e n\u00e3o exibe 'FILME J\u00c1 ADICIONADO' conforme especificado. Como consertar: Adicione uma verifica\u00e7\u00e3o `if (filmes[filme-1] == null)` antes de acessar o filme e ajuste o retorno para a mensagem correta.\n[FilmNow.cadastraFilme / Filmes.toString] Problema: Compara\u00e7\u00e3o de Strings utilizando o operador `==` (ex: `nome == \"\"`). Consequ\u00eancia: Em Java, `==` compara refer\u00eancias de mem\u00f3ria, n\u00e3o o conte\u00fado, o que pode causar falhas na valida\u00e7\u00e3o. Como consertar: Substitua por `nome.isEmpty()` ou `nome.equals(\"\")`.\n[FilmesTeste.assertboolean] Problema: O m\u00e9todo auxiliar `assertboolean` est\u00e1 vazio. Consequ\u00eancia: Os testes de `equals` n\u00e3o realizam nenhuma verifica\u00e7\u00e3o real e passam silenciosamente (falso positivo), mascarando poss\u00edveis erros. Como consertar: Implemente a asser\u00e7\u00e3o dentro do m\u00e9todo auxiliar (ex: `assertEquals(b, equals);`) ou utilize `assertTrue`/`assertFalse` diretamente nos testes.\n[Filmes.java] Problema: A classe de dom\u00ednio foi nomeada no plural (`Filmes`). Consequ\u00eancia: Causa uma leve confus\u00e3o sem\u00e2ntica, pois nomes no plural geralmente indicam cole\u00e7\u00f5es ou gerenciadores, enquanto a classe representa uma \u00fanica entidade. Como consertar: Renomeie a classe para o singular (`Filme`).\n\nEsses ajustes s\u00e3o importantes, mas n\u00e3o apagam os acertos que j\u00e1 aparecem no restante da solu\u00e7\u00e3o. O caminho est\u00e1 certo!",
+  "reviewer_audit": {
+    "requires_human_review": false,
+    "grading_basis": "Avalia\u00e7\u00e3o baseada na leitura est\u00e1tica do c\u00f3digo e na an\u00e1lise da l\u00f3gica dos testes fornecidos.",
+    "main_uncertainties": [],
+    "potential_false_positive_risks": [
+      "Os testes de equals na classe FilmesTeste passam silenciosamente devido ao m\u00e9todo assertboolean vazio. Isso foi identificado e penalizado."
+    ]
+  },
+  "feedback_reviewer_notes": {
+    "requires_human_review": false,
+    "synthesis_rationale": "Foram selecionados todos os 5 apontamentos da Fase 1, pois todos possuem alta confian\u00e7a e abordam desde erros l\u00f3gicos na HotList e falsos positivos nos testes at\u00e9 boas pr\u00e1ticas de Java (compara\u00e7\u00e3o de strings e nomenclatura).",
+    "omitted_stage1_deductions": [],
+    "low_confidence_items": []
+  },
+  "confidence": "high"
+}

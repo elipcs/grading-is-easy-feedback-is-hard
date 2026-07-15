@@ -1,0 +1,130 @@
+% Semantic Problem Mapping Figure - Simplified
+\scalebox{0.65}{
+\begin{tikzpicture}[
+    node distance=0.5cm and 0.8cm,
+    box/.style={rectangle, draw, thick, minimum width=2.5cm, minimum height=0.6cm, align=center, font=\tiny},
+    llmbox/.style={rectangle, draw, thick, fill=blue!10, minimum width=2.5cm, minimum height=0.6cm, align=left, font=\tiny},
+    goldbox/.style={rectangle, draw, thick, fill=green!10, minimum width=2.5cm, minimum height=0.6cm, align=left, font=\tiny},
+    matchbox/.style={rectangle, draw, thick, fill=yellow!10, minimum width=2cm, minimum height=0.5cm, align=center, font=\tiny},
+    arrow/.style={->, >=stealth, thick},
+    label/.style={font=\tiny\bfseries}
+]
+
+% ============================================================================
+% TITLE
+% ============================================================================
+
+\node[font=\small\bfseries] (title) at (0,0) {Semantic Problem Mapping};
+
+% ============================================================================
+% LLM OUTPUT (Left)
+% ============================================================================
+
+\node[below=0.6cm of title, font=\tiny\bfseries] (llm-title) {LLM-Detected};
+
+\node[llmbox, below=0.2cm of llm-title] (llm1) {
+    "All logic in\\
+    Main class"
+};
+
+\node[llmbox, below=0.1cm of llm1] (llm2) {
+    "Public fields\\
+    should be private"
+};
+
+\node[llmbox, below=0.1cm of llm2] (llm3) {
+    "Missing input\\
+    validation"
+};
+
+% ============================================================================
+% GOLD STANDARD (Right)
+% ============================================================================
+
+\node[right=3.5cm of llm-title, font=\tiny\bfseries] (gold-title) {Gold Standard};
+
+\node[goldbox, below=0.2cm of gold-title] (gold1) {
+    \texttt{class\_modeling}:\\
+    "Poor separation"
+};
+
+\node[goldbox, below=0.1cm of gold1] (gold2) {
+    \texttt{encapsulation}:\\
+    "Exposed state"
+};
+
+\node[goldbox, below=0.1cm of gold2] (gold3) {
+    \texttt{input\_handling}:\\
+    "No validation"
+};
+
+% ============================================================================
+% MAPPING ARROWS AND LABELS
+% ============================================================================
+
+% Exact match
+\draw[arrow, green!60!black, line width=1.2pt] (llm1.east) -- 
+    node[above, matchbox, fill=green!20] {TP} (gold1.west);
+
+% Semantic match
+\draw[arrow, green!60!black, line width=1.2pt] (llm2.east) -- 
+    node[above, matchbox, fill=green!20] {TP} (gold2.west);
+
+% Partial match
+\draw[arrow, orange, line width=1.2pt] (llm3.east) -- 
+    node[above, matchbox, fill=orange!20] {Partial} (gold3.west);
+
+% ============================================================================
+% FALSE POSITIVE EXAMPLE (Below LLM)
+% ============================================================================
+
+\node[llmbox, below=0.6cm of llm3, fill=red!10] (llm-fp) {
+    "Poor naming"
+};
+
+\node[right=0.3cm of llm-fp, font=\tiny, align=left, text width=2cm] (fp-label) {
+    \textbf{FP:} Not in\\
+    gold standard
+};
+
+\draw[arrow, red, line width=1.2pt] (llm-fp.east) -- (fp-label.west);
+
+% ============================================================================
+% FALSE NEGATIVE EXAMPLE (Below Gold)
+% ============================================================================
+
+\node[goldbox, below=0.6cm of gold3, fill=red!10] (gold-fn) {
+    \texttt{reference}:\\
+    "Using =="
+};
+
+\node[left=0.3cm of gold-fn, font=\tiny, align=right, text width=2cm] (fn-label) {
+    \textbf{FN:} Not\\
+    detected by LLM
+};
+
+\draw[arrow, red, line width=1.2pt] (fn-label.east) -- (gold-fn.west);
+
+% ============================================================================
+% METRICS BOX (Bottom)
+% ============================================================================
+
+\node[below=0.8cm of llm-fp, draw, thick, fill=purple!10, 
+      minimum width=6.5cm, minimum height=1cm, align=left, font=\tiny] (metrics) {
+    \textbf{Metrics:}\\
+    • \textbf{TP:} LLM detects problem in gold standard\\
+    • \textbf{FP:} LLM detects problem NOT in gold standard\\
+    • \textbf{FN:} Gold standard problem NOT detected\\[0.05cm]
+    $\text{Precision} = \frac{TP}{TP + FP}$ \quad $\text{Recall} = \frac{TP}{TP + FN}$ \quad $\text{F1} = \frac{2PR}{P+R}$
+};
+
+% ============================================================================
+% INTER-RATER AGREEMENT NOTE
+% ============================================================================
+
+\node[below=0.2cm of metrics, font=\tiny, align=center, text width=6.5cm] (ira-note) {
+\textbf{Protocol:} Automated semantic mapping based on problem category and code location
+};
+
+\end{tikzpicture}
+}

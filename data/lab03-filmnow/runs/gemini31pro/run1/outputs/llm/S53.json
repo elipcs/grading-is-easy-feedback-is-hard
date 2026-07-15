@@ -1,0 +1,170 @@
+{
+  "submission_id": "S53",
+  "evaluator_type": "llm",
+  "criteria": [
+    {
+      "criterion_id": "basic_functionality",
+      "criterion_name": "Basic Functionality",
+      "score": 7.0,
+      "max_score": 10,
+      "justification": "O fluxo principal de cadastro, listagem e detalhamento foi implementado e funciona para casos normais. No entanto, há falhas na validação de strings vazias (uso de `==` em vez de `.equals()`), o programa quebra ao receber um ano vazio, e a regra de duplicidade na HotList não retorna a mensagem esperada.",
+      "evidence_refs": [
+        "FilmNow.java: cadastraFilme",
+        "MainFilmNow.java: detalharFilme",
+        "FilmNow.java: adicionarHot",
+        "MainFilmNow.java: adicionaFilme"
+      ],
+      "deductions": [
+        {
+          "problem": "Uso do operador `==` para comparar strings (`nome == \"\"`), o que compara referências de memória e falha ao validar strings vazias vindas do Scanner.",
+          "consequence": "O sistema permite o cadastro de filmes com nome ou local vazios na execução real, violando a regra de validação.",
+          "how_to_fix": "Utilizar o método `.equals(\"\")` ou `.isEmpty()` para verificar se a string está vazia.",
+          "points_lost": 1.5,
+          "severity": "moderate",
+          "confidence": "high",
+          "rubric_anchor": "Validação de entradas",
+          "evidence_refs": [
+            "FilmNow.java: cadastraFilme",
+            "MainFilmNow.java: detalharFilme",
+            "FilmNow.java: adicionarHot"
+          ]
+        },
+        {
+          "problem": "O sistema tenta converter o ano diretamente com `Integer.parseInt(ano)` sem verificar se a string está vazia.",
+          "consequence": "Se o usuário deixar o ano vazio (comportamento permitido no fluxo básico), o programa quebra com `NumberFormatException`.",
+          "how_to_fix": "Verificar se a string do ano está vazia antes de fazer o parse, atribuindo um valor padrão (como 0) ou tratando a exceção.",
+          "points_lost": 1.0,
+          "severity": "minor",
+          "confidence": "high",
+          "rubric_anchor": "Fluxo alternativo (ano vazio)",
+          "evidence_refs": [
+            "MainFilmNow.java: adicionaFilme",
+            "FilmNow.java: cadastraFilme",
+            "MainFilmNow.java: detalharFilme",
+            "FilmNow.java: adicionarHot"
+          ]
+        },
+        {
+          "problem": "Ao tentar adicionar um filme que já está na HotList, o sistema o remove da posição antiga e adiciona na nova, em vez de bloquear e avisar.",
+          "consequence": "O sistema não exibe a mensagem `FILME JA ADICIONADO` exigida pelo enunciado para a HotList.",
+          "how_to_fix": "Verificar se o filme já existe na HotList antes de removê-lo/adicioná-lo e retornar a mensagem correta.",
+          "points_lost": 0.5,
+          "severity": "minor",
+          "confidence": "high",
+          "rubric_anchor": "Regras da HotList",
+          "evidence_refs": [
+            "FilmNow.java: adicionarHot",
+            "FilmNow.java: cadastraFilme",
+            "MainFilmNow.java: detalharFilme"
+          ]
+        }
+      ]
+    },
+    {
+      "criterion_id": "unit_tests",
+      "criterion_name": "Unit Tests",
+      "score": 10.0,
+      "max_score": 10,
+      "justification": "Excelente conjunto de testes, cobrindo tanto a classe Filme (getters, equals, hashCode, toString) quanto a classe FilmNow (cenários de sucesso e erro no cadastro e na HotList).",
+      "evidence_refs": [
+        "testes/FilmeTest.java",
+        "testes/FilmNowTest.java"
+      ],
+      "deductions": []
+    },
+    {
+      "criterion_id": "class_design",
+      "criterion_name": "Class Design",
+      "score": 10.0,
+      "max_score": 10,
+      "justification": "As classes Filme e FilmNow foram criadas e modeladas corretamente, com atributos e métodos adequados para representar o domínio do problema.",
+      "evidence_refs": [
+        "Filme.java: equals",
+        "Filme.java: hashCode"
+      ],
+      "deductions": []
+    },
+    {
+      "criterion_id": "object_references",
+      "criterion_name": "Object References and Composition",
+      "score": 10.0,
+      "max_score": 10,
+      "justification": "O sistema utiliza corretamente a composição, com FilmNow gerenciando instâncias de Filme de forma coerente.",
+      "evidence_refs": [
+        "FilmNow.java: construtor",
+        "FilmNow.java: getFilme"
+      ],
+      "deductions": []
+    },
+    {
+      "criterion_id": "collections_and_arrays",
+      "criterion_name": "Collections and Arrays",
+      "score": 8.0,
+      "max_score": 10,
+      "justification": "Os arrays foram declarados e utilizados para o acervo e HotList. Contudo, há um erro de limite de índice (off-by-one) no array principal que causa exceção na posição máxima.",
+      "evidence_refs": [
+        "FilmNow.java: construtor",
+        "FilmNow.java: comparaFilme",
+        "FilmNow.java: cadastraFilme"
+      ],
+      "deductions": [
+        {
+          "problem": "O array `filmes` tem tamanho 100 (índices de 0 a 99). O método `cadastraFilme` aceita `posicao` até 100 e tenta acessar `this.filmes[posicao]` diretamente sem subtrair 1.",
+          "consequence": "Tentar cadastrar um filme na posição 100 causará um `ArrayIndexOutOfBoundsException`.",
+          "how_to_fix": "Subtrair 1 da posição ao acessar o array (`this.filmes[posicao - 1]`) ou alocar o array com tamanho 101.",
+          "points_lost": 2.0,
+          "severity": "moderate",
+          "confidence": "high",
+          "rubric_anchor": "Manipulação de índices",
+          "evidence_refs": [
+            "FilmNow.java: cadastraFilme",
+            "FilmNow.java: construtor",
+            "FilmNow.java: comparaFilme"
+          ]
+        }
+      ]
+    },
+    {
+      "criterion_id": "separation_of_concerns",
+      "criterion_name": "Separation of Concerns",
+      "score": 9.0,
+      "max_score": 10,
+      "justification": "Boa separação geral entre a interface (MainFilmNow) e as regras de negócio (FilmNow). Houve apenas um pequeno vazamento de lógica de domínio para a Main.",
+      "evidence_refs": [
+        "MainFilmNow.java: comando",
+        "FilmNow.java: cadastraFilme",
+        "MainFilmNow.java: isHot"
+      ],
+      "deductions": [
+        {
+          "problem": "A lógica para verificar se um filme está na HotList (`isHot`) foi implementada na classe `MainFilmNow`.",
+          "consequence": "Vazamento de responsabilidade do domínio (FilmNow) para a classe de interface com o usuário.",
+          "how_to_fix": "Mover o método `isHot` para a classe `FilmNow`.",
+          "points_lost": 1.0,
+          "severity": "minor",
+          "confidence": "high",
+          "rubric_anchor": "Encapsulamento de regras de negócio",
+          "evidence_refs": [
+            "MainFilmNow.java: isHot",
+            "MainFilmNow.java: comando",
+            "FilmNow.java: cadastraFilme"
+          ]
+        }
+      ]
+    },
+    {
+      "criterion_id": "readability_and_documentation",
+      "criterion_name": "Readability and Documentation",
+      "score": 10.0,
+      "max_score": 10,
+      "justification": "Código limpo, bem indentado, com nomes de variáveis claros e presença de Javadoc nos métodos principais.",
+      "evidence_refs": [
+        "FilmNow.java",
+        "MainFilmNow.java"
+      ],
+      "deductions": []
+    }
+  ],
+  "total_score": 9.0,
+  "total_max_score": 10.0
+}

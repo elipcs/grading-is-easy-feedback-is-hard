@@ -1,0 +1,162 @@
+{
+  "submission_id": "S82",
+  "evaluator_type": "llm",
+  "criteria": [
+    {
+      "criterion_id": "basic_functionality",
+      "criterion_name": "Basic Functionality",
+      "score": 4.5,
+      "max_score": 10,
+      "justification": "O fluxo principal de cadastro, listagem e HotList foi implementado e funciona para os caminhos felizes. No entanto, faltam validações cruciais exigidas pelo enunciado, como impedir filmes duplicados no acervo, validar posições e tratar campos vazios. Além disso, detalhar uma posição vazia causa erro de execução (NPE).",
+      "evidence_refs": [
+        "FilmNow.cadastraFilme",
+        "MainFilmNow.mostrarFilmes",
+        "FilmNow.cadastraHot",
+        "FilmNow.adicionadoHot",
+        "MainFilmNow.adicionaFilme",
+        "MainFilmNow.detalharFilme"
+      ],
+      "deductions": [
+        {
+          "problem": "Ausência de validações obrigatórias no cadastro de filmes. O sistema não impede filmes duplicados (mesmo nome e ano) no acervo principal, não valida se a posição fornecida é válida (podendo causar ArrayIndexOutOfBoundsException) e não verifica se nome ou local são vazios.",
+          "consequence": "O sistema permite estados inválidos e não exibe as mensagens de erro esperadas ('FILME JA ADICIONADO', 'POSICAO INVALIDA', 'FILME INVALIDO').",
+          "how_to_fix": "Adicionar verificações no método de cadastro em `FilmNow` para checar duplicidade iterando sobre o acervo, validar os limites da posição e checar se as strings de nome e local são vazias.",
+          "points_lost": 4.0,
+          "severity": "major",
+          "confidence": "high",
+          "rubric_anchor": "Validações do acervo principal",
+          "evidence_refs": [
+            "FilmNow.cadastraFilme",
+            "MainFilmNow.adicionaFilme",
+            "MainFilmNow.mostrarFilmes",
+            "FilmNow.cadastraHot",
+            "FilmNow.adicionadoHot"
+          ]
+        },
+        {
+          "problem": "Erro de execução (NullPointerException) ao detalhar posição vazia.",
+          "consequence": "Se o usuário tentar detalhar uma posição que não possui filme cadastrado, o programa quebra ao tentar chamar `toString()` em um objeto nulo.",
+          "how_to_fix": "Verificar se o objeto retornado por `getFilmeOBJ` é nulo antes de tentar acessar seus métodos ou formatar a saída.",
+          "points_lost": 1.5,
+          "severity": "moderate",
+          "confidence": "high",
+          "rubric_anchor": "Detalhamento de filme",
+          "evidence_refs": [
+            "MainFilmNow.detalharFilme",
+            "FilmNow.cadastraFilme",
+            "MainFilmNow.mostrarFilmes",
+            "FilmNow.cadastraHot",
+            "FilmNow.adicionadoHot"
+          ]
+        }
+      ]
+    },
+    {
+      "criterion_id": "unit_tests",
+      "criterion_name": "Unit Tests",
+      "score": 0,
+      "max_score": 10,
+      "justification": "Não há evidências de testes automatizados (JUnit) na submissão.",
+      "evidence_refs": [
+        "Pacote da submissão"
+      ],
+      "deductions": [
+        {
+          "problem": "Ausência total de arquivos de teste JUnit.",
+          "consequence": "Não é possível verificar a corretude das classes de domínio de forma automatizada, descumprindo um requisito central do laboratório.",
+          "how_to_fix": "Criar classes de teste (ex: `FilmeTest`, `FilmNowTest`) utilizando JUnit para cobrir os cenários normais e limites dos métodos implementados.",
+          "points_lost": 10.0,
+          "severity": "blocking",
+          "confidence": "high",
+          "rubric_anchor": "Testes",
+          "evidence_refs": [
+            "Pacote da submissão"
+          ]
+        }
+      ]
+    },
+    {
+      "criterion_id": "class_design",
+      "criterion_name": "Class Design",
+      "score": 10,
+      "max_score": 10,
+      "justification": "As classes principais (`Filme` e `FilmNow`) foram criadas e modeladas adequadamente, demonstrando bom entendimento dos conceitos de orientação a objetos para o nível esperado.",
+      "evidence_refs": [
+        "Filme.java",
+        "FilmNow.java"
+      ],
+      "deductions": []
+    },
+    {
+      "criterion_id": "object_references",
+      "criterion_name": "Object References and Composition",
+      "score": 10,
+      "max_score": 10,
+      "justification": "O sistema utiliza corretamente a composição, com `FilmNow` armazenando e gerenciando referências para objetos da classe `Filme`.",
+      "evidence_refs": [
+        "FilmNow.filmes",
+        "FilmNow.filmesHot",
+        "FilmNow.cadastraFilme",
+        "FilmNow.cadastraHot"
+      ],
+      "deductions": []
+    },
+    {
+      "criterion_id": "collections_and_arrays",
+      "criterion_name": "Collections and Arrays",
+      "score": 10,
+      "max_score": 10,
+      "justification": "Arrays foram utilizados de forma coerente para armazenar o acervo principal e a HotList, respeitando os tamanhos definidos.",
+      "evidence_refs": [
+        "FilmNow.TAMANHO",
+        "FilmNow.TAMANHOHOT",
+        "FilmNow.FilmNow()",
+        "FilmNow.adicionadoHot"
+      ],
+      "deductions": []
+    },
+    {
+      "criterion_id": "separation_of_concerns",
+      "criterion_name": "Separation of Concerns",
+      "score": 9.0,
+      "max_score": 10,
+      "justification": "Boa separação geral entre a interface de usuário (`MainFilmNow`) e a lógica de negócio (`FilmNow`). Há apenas um pequeno vazamento de lógica de formatação na classe Main.",
+      "evidence_refs": [
+        "MainFilmNow.java",
+        "FilmNow.java",
+        "MainFilmNow.detalharFilme"
+      ],
+      "deductions": [
+        {
+          "problem": "A lógica de formatação do detalhamento do filme (adicionar o emoji de fogo) está na classe `MainFilmNow`.",
+          "consequence": "A interface de usuário está tomando decisões sobre como representar o estado de negócio de um filme (ser hot ou não), o que idealmente deveria ser fornecido pelo sistema.",
+          "how_to_fix": "Criar um método em `FilmNow` (ex: `detalharFilme(int posicao)`) que retorne a String já formatada com ou sem o emoji, centralizando a regra de apresentação do domínio.",
+          "points_lost": 1.0,
+          "severity": "minor",
+          "confidence": "high",
+          "rubric_anchor": "Separação de responsabilidades",
+          "evidence_refs": [
+            "MainFilmNow.detalharFilme",
+            "MainFilmNow.java",
+            "FilmNow.java"
+          ]
+        }
+      ]
+    },
+    {
+      "criterion_id": "readability_and_documentation",
+      "criterion_name": "Readability and Documentation",
+      "score": 10,
+      "max_score": 10,
+      "justification": "O código é muito legível, bem organizado e possui excelente documentação Javadoc para as classes e métodos.",
+      "evidence_refs": [
+        "Filme.java",
+        "FilmNow.java",
+        "MainFilmNow.java"
+      ],
+      "deductions": []
+    }
+  ],
+  "total_score": 7.075,
+  "total_max_score": 10.0
+}

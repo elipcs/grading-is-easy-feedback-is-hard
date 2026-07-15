@@ -1,0 +1,283 @@
+{
+  "submission_id": "S78",
+  "stage1_parsed": {
+    "criteria": [
+      {
+        "criterion_id": "basic_functionality",
+        "criterion_name": "Basic Functionality",
+        "score": 7.0,
+        "max_score": 10,
+        "justification": "A maior parte das funcionalidades foi implementada corretamente, incluindo a adi\u00e7\u00e3o e listagem de filmes. No entanto, h\u00e1 falhas l\u00f3gicas importantes: o sistema n\u00e3o impede de fato a adi\u00e7\u00e3o de um filme j\u00e1 existente (apenas retorna a mensagem, mas insere no array), a HotList n\u00e3o verifica se o filme j\u00e1 foi adicionado, e h\u00e1 erros de \u00edndice (ArrayIndexOutOfBoundsException) ao sobrescrever um filme na HotList e ao remover o \u00faltimo elemento da HotList.",
+        "success_evidence": [
+          "Adi\u00e7\u00e3o de filmes com valida\u00e7\u00e3o de campos vazios e limites de posi\u00e7\u00e3o.",
+          "Listagem e detalhamento de filmes funcionando corretamente.",
+          "Identifica\u00e7\u00e3o de filmes da HotList com o \u00edcone '\ud83d\udd25' no detalhamento."
+        ],
+        "evidence_refs": [
+          "FilmNow.java:cadastraFilme",
+          "FilmNow.java:detalharFilmeNow",
+          "MainFilmNow.java:mostrarFilmes"
+        ],
+        "non_penalized_observations": [
+          "A estrat\u00e9gia de usar a string '0' para representar um ano vazio funciona e foi bem tratada no toString da classe Filme, embora o uso de tipos que aceitam null pudesse ser uma alternativa mais robusta."
+        ],
+        "deductions": [
+          {
+            "points_lost": 1.0,
+            "severity": "moderate",
+            "confidence": "high",
+            "rubric_anchor": "Adicionar Filme",
+            "problem": "Quando um filme j\u00e1 existe, o m\u00e9todo cadastraFilme retorna 'FILME JA ADICIONADO', mas incorretamente adiciona/sobrescreve o filme no array filmes.",
+            "consequence": "A regra de neg\u00f3cio de negar a adi\u00e7\u00e3o \u00e9 violada, corrompendo o estado do sistema ao permitir a inser\u00e7\u00e3o.",
+            "how_to_fix": "Remover a linha 'this.filmes[filme.getPosicao()] = filme;' de dentro do bloco 'if (inFilmes(filme))'.",
+            "evidence_refs": [
+              "FilmNow.java:cadastraFilme",
+              "linha 66"
+            ]
+          },
+          {
+            "points_lost": 1.0,
+            "severity": "major",
+            "confidence": "high",
+            "rubric_anchor": "HotList",
+            "problem": "Ao tentar sobrescrever uma posi\u00e7\u00e3o j\u00e1 ocupada na HotList, o m\u00e9todo cadastraHot chama removerHot(posicaoHot) passando um \u00edndice baseado em 0, mas removerHot subtrai 1 novamente, resultando em acesso ao \u00edndice -1 e causando ArrayIndexOutOfBoundsException.",
+            "consequence": "O programa quebra (crash) ao tentar substituir um filme na HotList.",
+            "how_to_fix": "Passar 'posicaoHot + 1' para removerHot, ou padronizar o uso de \u00edndices (0-based ou 1-based) entre os m\u00e9todos.",
+            "evidence_refs": [
+              "FilmNow.java:cadastraHot",
+              "linha 88"
+            ]
+          },
+          {
+            "points_lost": 1.0,
+            "severity": "moderate",
+            "confidence": "high",
+            "rubric_anchor": "HotList",
+            "problem": "O m\u00e9todo cadastraHot n\u00e3o verifica se o filme j\u00e1 est\u00e1 na HotList antes de adicionar. Al\u00e9m disso, removerHot causa ArrayIndexOutOfBoundsException ao remover o \u00faltimo elemento (posi\u00e7\u00e3o 10), pois avalia 'filmesHot[posicao + 1] == null' antes de verificar se 'posicao >= 9'.",
+            "consequence": "Filmes podem ser duplicados na HotList e a remo\u00e7\u00e3o do \u00faltimo elemento quebra o programa.",
+            "how_to_fix": "Adicionar uma verifica\u00e7\u00e3o inHot no cadastraHot. No removerHot, inverter a ordem da condi\u00e7\u00e3o no if para 'posicao >= 9 || filmesHot[posicao + 1] == null' para aproveitar o short-circuit do Java.",
+            "evidence_refs": [
+              "FilmNow.java:cadastraHot",
+              "FilmNow.java:removerHot",
+              "linha 152"
+            ]
+          }
+        ]
+      },
+      {
+        "criterion_id": "unit_tests",
+        "criterion_name": "Unit Tests",
+        "score": 8.5,
+        "max_score": 10,
+        "justification": "Excelente conjunto de testes cobrindo a maioria dos casos de uso e limites. Faltaram apenas testes mais rigorosos para verificar o estado do sistema ap\u00f3s opera\u00e7\u00f5es negadas e testes para os casos limites da HotList.",
+        "success_evidence": [
+          "Testes de limites de posi\u00e7\u00e3o (0, 100, 101).",
+          "Testes de campos vazios.",
+          "Testes do m\u00e9todo equals e toString da classe Filme."
+        ],
+        "evidence_refs": [
+          "FilmNowTest.java"
+        ],
+        "non_penalized_observations": [],
+        "deductions": [
+          {
+            "points_lost": 1.5,
+            "severity": "minor",
+            "confidence": "high",
+            "rubric_anchor": "Testes da classe FilmNow",
+            "problem": "O teste adicionaFilme03 verifica apenas a mensagem de retorno, mas n\u00e3o verifica se o filme foi de fato bloqueado de entrar no array. Al\u00e9m disso, faltam testes para a adi\u00e7\u00e3o de filmes duplicados na HotList e sobrescrita na HotList.",
+            "consequence": "Os testes n\u00e3o detectaram os bugs presentes no cadastraFilme e no cadastraHot, pois n\u00e3o validaram o estado final do array.",
+            "how_to_fix": "Adicionar asser\u00e7\u00f5es (ex: assertNull(fn.getFilme(3))) ap\u00f3s tentar adicionar um filme duplicado. Criar testes para os cen\u00e1rios de erro da HotList.",
+            "evidence_refs": [
+              "FilmNowTest.java:adicionaFilme03"
+            ]
+          }
+        ]
+      },
+      {
+        "criterion_id": "class_design",
+        "criterion_name": "Class Design",
+        "score": 10.0,
+        "max_score": 10,
+        "justification": "As classes foram bem modeladas, com a classe Filme encapsulando seus dados e FilmNow gerenciando a cole\u00e7\u00e3o, conforme esperado.",
+        "success_evidence": [
+          "Cria\u00e7\u00e3o da classe Filme com atributos corretos.",
+          "Uso adequado de construtores e m\u00e9todos de acesso.",
+          "Implementa\u00e7\u00e3o correta do equals e hashCode em Filme."
+        ],
+        "evidence_refs": [
+          "Filme.java",
+          "FilmNow.java"
+        ],
+        "non_penalized_observations": [],
+        "deductions": []
+      },
+      {
+        "criterion_id": "object_references",
+        "criterion_name": "Object References and Composition",
+        "score": 10.0,
+        "max_score": 10,
+        "justification": "O uso de refer\u00eancias e a composi\u00e7\u00e3o entre FilmNow e Filme foram implementados corretamente.",
+        "success_evidence": [
+          "FilmNow mant\u00e9m arrays de refer\u00eancias para objetos Filme.",
+          "Instancia\u00e7\u00e3o correta de objetos.",
+          "Aus\u00eancia de uso indevido de modificadores static."
+        ],
+        "evidence_refs": [
+          "FilmNow.java:20",
+          "FilmNow.java:21"
+        ],
+        "non_penalized_observations": [],
+        "deductions": []
+      },
+      {
+        "criterion_id": "collections_and_arrays",
+        "criterion_name": "Collections and Arrays",
+        "score": 10.0,
+        "max_score": 10,
+        "justification": "O uso de arrays atende \u00e0s restri\u00e7\u00f5es do laborat\u00f3rio. O mapeamento entre as posi\u00e7\u00f5es informadas pelo usu\u00e1rio (1 a 100) e os \u00edndices do array (0 a 99) foi feito de forma consistente na maior parte do c\u00f3digo.",
+        "success_evidence": [
+          "Arrays dimensionados corretamente (TAMANHO = 100 e 10 para HotList).",
+          "Uso de clone() ao retornar os arrays para evitar vazamento de refer\u00eancias."
+        ],
+        "evidence_refs": [
+          "FilmNow.java:20",
+          "FilmNow.java:30"
+        ],
+        "non_penalized_observations": [
+          "A l\u00f3gica de deslocamento (shift) no removerHot \u00e9 incomum para uma lista de posi\u00e7\u00f5es fixas, mas o uso do array em si est\u00e1 correto."
+        ],
+        "deductions": []
+      },
+      {
+        "criterion_id": "separation_of_concerns",
+        "criterion_name": "Separation of Concerns",
+        "score": 10.0,
+        "max_score": 10,
+        "justification": "Excelente separa\u00e7\u00e3o de responsabilidades. A interface com o usu\u00e1rio est\u00e1 isolada no MainFilmNow, enquanto a l\u00f3gica de neg\u00f3cio reside no FilmNow.",
+        "success_evidence": [
+          "MainFilmNow lida exclusivamente com Scanner e System.out.",
+          "FilmNow retorna Strings com os resultados das opera\u00e7\u00f5es em vez de imprimir diretamente.",
+          "Filme \u00e9 respons\u00e1vel por sua pr\u00f3pria formata\u00e7\u00e3o via toString."
+        ],
+        "evidence_refs": [
+          "MainFilmNow.java",
+          "FilmNow.java",
+          "Filme.java:68"
+        ],
+        "non_penalized_observations": [],
+        "deductions": []
+      },
+      {
+        "criterion_id": "readability_and_documentation",
+        "criterion_name": "Readability and Documentation",
+        "score": 10.0,
+        "max_score": 10,
+        "justification": "O c\u00f3digo \u00e9 muito leg\u00edvel, bem organizado e possui documenta\u00e7\u00e3o Javadoc clara e objetiva para as classes e m\u00e9todos p\u00fablicos.",
+        "success_evidence": [
+          "Javadoc presente e descritivo em Filme e FilmNow.",
+          "Nomes de vari\u00e1veis e m\u00e9todos expressivos (inFilmes, inHot, cadastraHot)."
+        ],
+        "evidence_refs": [
+          "Filme.java",
+          "FilmNow.java"
+        ],
+        "non_penalized_observations": [],
+        "deductions": []
+      }
+    ],
+    "reviewer_audit": {
+      "requires_human_review": false,
+      "grading_basis": "An\u00e1lise est\u00e1tica do c\u00f3digo e da su\u00edte de testes fornecida.",
+      "main_uncertainties": [],
+      "potential_false_positive_risks": [
+        "A penaliza\u00e7\u00e3o por ArrayIndexOutOfBoundsException no removerHot assume a avalia\u00e7\u00e3o estrita da ordem dos operadores l\u00f3gicos (short-circuit), o que de fato causar\u00e1 erro em tempo de execu\u00e7\u00e3o."
+      ]
+    },
+    "confidence": "high"
+  },
+  "stage2_parsed": {
+    "feedback_items": [
+      {
+        "criterion_id": "basic_functionality",
+        "criterion_name": "Basic Functionality",
+        "severity": "moderate",
+        "confidence": "high",
+        "problem": "O m\u00e9todo cadastraFilme identifica que o filme j\u00e1 existe e retorna a mensagem correta, mas incorretamente adiciona/sobrescreve o filme no array.",
+        "consequence": "A regra de neg\u00f3cio de negar a adi\u00e7\u00e3o \u00e9 violada, corrompendo o estado do sistema ao permitir a inser\u00e7\u00e3o indevida.",
+        "how_to_fix": "Remova a linha 'this.filmes[filme.getPosicao()] = filme;' de dentro do bloco 'if (inFilmes(filme))'.",
+        "evidence_refs": [
+          "FilmNow.java:cadastraFilme",
+          "linha 66"
+        ]
+      },
+      {
+        "criterion_id": "basic_functionality",
+        "criterion_name": "Basic Functionality",
+        "severity": "major",
+        "confidence": "high",
+        "problem": "Ao tentar sobrescrever uma posi\u00e7\u00e3o na HotList, o m\u00e9todo cadastraHot chama removerHot passando um \u00edndice j\u00e1 ajustado para base 0, mas removerHot subtrai 1 novamente.",
+        "consequence": "O programa tenta acessar o \u00edndice -1 do array, causando um ArrayIndexOutOfBoundsException e quebrando a execu\u00e7\u00e3o.",
+        "how_to_fix": "Padronize o uso de \u00edndices (0-based ou 1-based) entre os m\u00e9todos, ou passe 'posicaoHot + 1' ao chamar removerHot.",
+        "evidence_refs": [
+          "FilmNow.java:cadastraHot",
+          "linha 88"
+        ]
+      },
+      {
+        "criterion_id": "basic_functionality",
+        "criterion_name": "Basic Functionality",
+        "severity": "moderate",
+        "confidence": "high",
+        "problem": "No m\u00e9todo removerHot, a condi\u00e7\u00e3o 'filmesHot[posicao + 1] == null' \u00e9 avaliada antes de verificar se 'posicao >= 9'.",
+        "consequence": "Ao tentar remover o \u00faltimo elemento da HotList (posi\u00e7\u00e3o 9), o c\u00f3digo tenta acessar a posi\u00e7\u00e3o 10, causando ArrayIndexOutOfBoundsException.",
+        "how_to_fix": "Inverta a ordem da condi\u00e7\u00e3o no if para 'posicao >= 9 || filmesHot[posicao + 1] == null' para aproveitar a avalia\u00e7\u00e3o de curto-circuito (short-circuit) do Java.",
+        "evidence_refs": [
+          "FilmNow.java:removerHot",
+          "linha 152"
+        ]
+      },
+      {
+        "criterion_id": "basic_functionality",
+        "criterion_name": "Basic Functionality",
+        "severity": "moderate",
+        "confidence": "high",
+        "problem": "O m\u00e9todo cadastraHot n\u00e3o verifica se o filme j\u00e1 est\u00e1 presente na HotList antes de realizar a adi\u00e7\u00e3o.",
+        "consequence": "O mesmo filme pode ser adicionado m\u00faltiplas vezes na HotList, gerando duplicatas.",
+        "how_to_fix": "Adicione uma verifica\u00e7\u00e3o utilizando o m\u00e9todo 'inHot' antes de inserir o filme no array filmesHot.",
+        "evidence_refs": [
+          "FilmNow.java:cadastraHot"
+        ]
+      },
+      {
+        "criterion_id": "unit_tests",
+        "criterion_name": "Unit Tests",
+        "severity": "minor",
+        "confidence": "high",
+        "problem": "Os testes de adi\u00e7\u00e3o negada (como adicionaFilme03) verificam apenas a mensagem de retorno, mas n\u00e3o checam o estado final do array.",
+        "consequence": "Bugs l\u00f3gicos, como o filme ser inserido mesmo quando a mensagem diz que n\u00e3o foi, passam despercebidos pelos testes.",
+        "how_to_fix": "Adicione asser\u00e7\u00f5es para verificar o estado do sistema ap\u00f3s a opera\u00e7\u00e3o (ex: garantir que a posi\u00e7\u00e3o continua nula ou com o filme anterior).",
+        "evidence_refs": [
+          "FilmNowTest.java:adicionaFilme03"
+        ]
+      }
+    ],
+    "student_feedback": "No geral, a solu\u00e7\u00e3o demonstra um excelente entendimento de orienta\u00e7\u00e3o a objetos, com classes muito bem modeladas, \u00f3tima separa\u00e7\u00e3o de responsabilidades e c\u00f3digo bastante leg\u00edvel. O ponto que precisa de mais aten\u00e7\u00e3o agora \u00e9 a manipula\u00e7\u00e3o dos \u00edndices e a valida\u00e7\u00e3o de estado nos arrays, especialmente na HotList, para evitar que o programa quebre.\n\n[FilmNow.java/cadastraFilme] Problema: O m\u00e9todo retorna que o filme j\u00e1 existe, mas o insere no array mesmo assim. Consequ\u00eancia: A regra de neg\u00f3cio \u00e9 violada. Como consertar: Remova a atribui\u00e7\u00e3o 'this.filmes[...]' de dentro do 'if (inFilmes(filme))'.\n[FilmNow.java/cadastraHot] Problema: Ao sobrescrever na HotList, chama 'removerHot' passando um \u00edndice j\u00e1 ajustado (base 0), mas 'removerHot' subtrai 1 novamente. Consequ\u00eancia: Acesso ao \u00edndice -1 (ArrayIndexOutOfBoundsException). Como consertar: Padronize o uso de \u00edndices (0-based ou 1-based) entre os m\u00e9todos.\n[FilmNow.java/removerHot] Problema: Avalia 'filmesHot[posicao + 1] == null' antes de 'posicao >= 9'. Consequ\u00eancia: Erro de limite de array ao remover o \u00faltimo elemento. Como consertar: Inverta a ordem das condi\u00e7\u00f5es no 'if' para usar o short-circuit do Java.\n[FilmNow.java/cadastraHot] Problema: Falta verificar se o filme j\u00e1 est\u00e1 na HotList. Consequ\u00eancia: Filmes podem ser duplicados. Como consertar: Use o m\u00e9todo 'inHot' antes de adicionar.\n[FilmNowTest.java/adicionaFilme03] Problema: O teste checa apenas a mensagem de retorno, n\u00e3o o estado do array. Consequ\u00eancia: Bugs de inser\u00e7\u00e3o indevida passam despercebidos. Como consertar: Adicione asser\u00e7\u00f5es para garantir que o filme n\u00e3o foi inserido no array.",
+    "reviewer_notes": {
+      "requires_human_review": false,
+      "synthesis_rationale": "Os itens selecionados focam nos erros de l\u00f3gica de inser\u00e7\u00e3o e nos erros de limite de array (ArrayIndexOutOfBoundsException) que causam quebra do programa. Tamb\u00e9m foi inclu\u00eddo um feedback sobre como os testes poderiam ter sido aprimorados para capturar essas falhas l\u00f3gicas. O tom reconhece o excelente trabalho de design e legibilidade (notas 10).",
+      "omitted_stage1_deductions": [],
+      "low_confidence_items": []
+    }
+  },
+  "parse_audit": {
+    "stage1": {
+      "parse_mode": "direct_json_loads"
+    },
+    "stage2": {
+      "parse_mode": "direct_json_loads"
+    },
+    "stage1_raw_text_chars": 9308,
+    "stage2_raw_text_chars": 5545
+  }
+}

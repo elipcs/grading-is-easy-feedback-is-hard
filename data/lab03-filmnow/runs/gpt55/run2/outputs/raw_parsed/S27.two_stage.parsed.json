@@ -1,0 +1,500 @@
+{
+  "submission_id": "S27",
+  "stage1_parsed": {
+    "criteria": [
+      {
+        "criterion_id": "basic_functionality",
+        "criterion_name": "Funcionalidade b\u00e1sica",
+        "score": 7,
+        "max_score": 10,
+        "justification": "A submiss\u00e3o implementa boa parte do fluxo principal: cadastro com limites e duplicidade por nome/ano, listagem simples pela interface, detalhamento com posi\u00e7\u00e3o inv\u00e1lida/vazia e marca\u00e7\u00e3o simples de filme hot. A principal perda funcional est\u00e1 na HotList, que funciona apenas em cen\u00e1rios simples e falha em v\u00e1rias regras obrigat\u00f3rias, al\u00e9m de aceitar filme com local vazio no cadastro.",
+        "success_evidence": [
+          "O cadastro usa posi\u00e7\u00f5es externas de 1 a 100 e armazena em `filmes[posicao - 1]`.",
+          "O cadastro impede nome vazio e filme duplicado pelo par nome/ano usando `equals` de `Filme`.",
+          "A listagem no menu percorre os filmes cadastrados e imprime posi\u00e7\u00e3o de usu\u00e1rio e nome do filme.",
+          "O detalhamento retorna vazio para posi\u00e7\u00e3o v\u00e1lida sem filme, mensagem para posi\u00e7\u00e3o inv\u00e1lida e inclui nome, ano e local quando h\u00e1 filme.",
+          "H\u00e1 uma tentativa funcional de marcar filme como hot e exibir o emoji no detalhamento quando o atributo `hot` est\u00e1 como `sim`."
+        ],
+        "evidence_refs": [
+          "src/filmnow/FilmNow.java: cadastraFilme(int,String,String,String)",
+          "src/filmnow/FilmNow.java: existeNaLista(String,String)",
+          "src/filmnow/FilmNow.java: detalharFilme(int)",
+          "src/filmnow/MainFilmNow.java: mostrarFilmes(FilmNow)",
+          "src/filmnow/FilmNow.java: adicionarParaHot(int,int), exibirHotList(), removerHot(int)"
+        ],
+        "non_penalized_observations": [
+          "Diferen\u00e7as de acento e pontua\u00e7\u00e3o em mensagens, como `J\u00c1` ou aus\u00eancia de exclama\u00e7\u00e3o em alguns textos, n\u00e3o foram consideradas desconto relevante.",
+          "O uso de `String` para o ano foi aceito, pois a especifica\u00e7\u00e3o permite varia\u00e7\u00f5es na representa\u00e7\u00e3o do ano."
+        ],
+        "deductions": [
+          {
+            "points_lost": 0.8,
+            "severity": "moderate",
+            "confidence": "high",
+            "rubric_anchor": "Adicionar Filme: rejeitar filme com local vazio",
+            "problem": "O cadastro valida posi\u00e7\u00e3o e nome vazio, mas n\u00e3o rejeita `plataforma`/local vazio ou composto apenas por espa\u00e7os.",
+            "consequence": "Um filme inv\u00e1lido segundo o enunciado pode ser cadastrado com sucesso, contrariando a regra `FILME INVALIDO` para local vazio.",
+            "how_to_fix": "Antes de criar o `Filme`, verificar se o local \u00e9 nulo ou `trim().isEmpty()` e retornar `FILME INVALIDO` nesse caso.",
+            "evidence_refs": [
+              "src/filmnow/FilmNow.java: cadastraFilme(int,String,String,String)",
+              "Test/filmnow/FilmNowTest.java: cadastraFilmeTestLocalVazio() espera incorretamente cadastro bem-sucedido"
+            ]
+          },
+          {
+            "points_lost": 2.2,
+            "severity": "major",
+            "confidence": "high",
+            "rubric_anchor": "HotList: exibir, atribuir, remover e respeitar regras da lista hot",
+            "problem": "A HotList est\u00e1 apenas parcialmente implementada: usa a posi\u00e7\u00e3o da HotList diretamente como \u00edndice, n\u00e3o aceita corretamente a posi\u00e7\u00e3o 10, aceita posi\u00e7\u00e3o 0, n\u00e3o impede filme duplicado na HotList, n\u00e3o informa posi\u00e7\u00e3o inv\u00e1lida quando n\u00e3o h\u00e1 filme, n\u00e3o remove corretamente em todos os casos, n\u00e3o desmarca o filme antigo ao sobrescrever uma posi\u00e7\u00e3o e a exibi\u00e7\u00e3o mostra s\u00f3 o nome, sem o ano.",
+            "consequence": "A funcionalidade obrigat\u00f3ria de HotList quebra ou produz resultados incorretos em v\u00e1rios casos de uso especificados, embora um caso simples de marcar e detalhar um filme possa funcionar.",
+            "how_to_fix": "Tratar posi\u00e7\u00f5es da HotList como 1 a 10 usando `posicao - 1`, validar limites e exist\u00eancia de filme, retornar mensagens de resultado, verificar duplicidade na HotList, desmarcar o filme substitu\u00eddo e implementar remo\u00e7\u00e3o sem la\u00e7o infinito, preferencialmente retornando uma string para a interface imprimir.",
+            "evidence_refs": [
+              "src/filmnow/FilmNow.java: adicionarParaHot(int,int)",
+              "src/filmnow/FilmNow.java: exibirHotList()",
+              "src/filmnow/FilmNow.java: removerHot(int)",
+              "src/filmnow/MainFilmNow.java: atribuirHot(FilmNow,Scanner)"
+            ]
+          }
+        ]
+      },
+      {
+        "criterion_id": "unit_tests",
+        "criterion_name": "Testes de unidade",
+        "score": 4,
+        "max_score": 10,
+        "justification": "H\u00e1 uma su\u00edte JUnit real para `FilmNow` cobrindo v\u00e1rios casos de cadastro e detalhamento, incluindo duplicidade e limites. Entretanto, n\u00e3o h\u00e1 testes da classe `Filme`, a cobertura da HotList \u00e9 muito pequena e h\u00e1 pelo menos um teste que contradiz a especifica\u00e7\u00e3o ao aceitar local vazio.",
+        "success_evidence": [
+          "Existe uma classe de teste JUnit 5 com `@BeforeEach` criando um `FilmNow` novo por teste.",
+          "Os testes de cadastro cobrem cadastro v\u00e1lido, substitui\u00e7\u00e3o, duplicidade por nome/ano, posi\u00e7\u00e3o 100, posi\u00e7\u00e3o acima do limite, posi\u00e7\u00e3o abaixo do limite, nome vazio e ano vazio.",
+          "Os testes de detalhamento cobrem filme com dados completos, filme sem ano, posi\u00e7\u00e3o vazia e posi\u00e7\u00f5es inv\u00e1lidas.",
+          "H\u00e1 um teste simples verificando que um filme marcado como hot aparece com emoji no detalhamento."
+        ],
+        "evidence_refs": [
+          "Test/filmnow/FilmNowTest.java: objetos()",
+          "Test/filmnow/FilmNowTest.java: cadastraFilmeTest(), cadastraFilmeTestAdicionado(), cadastraFilmeTestMesmoAnoNomeLocalDiferente(), cadastraFilmeTestPosicaoLimite()",
+          "Test/filmnow/FilmNowTest.java: detalhaFilmeTest(), detalhaFilmeTestSemAno(), detalhaFilmeLimiteInferior(), detalhaFilmeLimiteSuperior(), detalhaFilmeAvatar()"
+        ],
+        "non_penalized_observations": [
+          "O nome da vari\u00e1vel `Test` n\u00e3o interfere diretamente na execu\u00e7\u00e3o dos testes.",
+          "O uso de mensagens com acento nos testes n\u00e3o foi penalizado por si s\u00f3."
+        ],
+        "deductions": [
+          {
+            "points_lost": 4,
+            "severity": "major",
+            "confidence": "high",
+            "rubric_anchor": "Testes da classe Filme",
+            "problem": "N\u00e3o h\u00e1 uma classe de testes para `Filme` cobrindo construtor, `toString`, m\u00e9todos de exibi\u00e7\u00e3o/dados e `equals`.",
+            "consequence": "A unidade b\u00e1sica composta pelo sistema n\u00e3o \u00e9 verificada isoladamente, e erros em igualdade ou representa\u00e7\u00e3o textual de filmes podem passar despercebidos.",
+            "how_to_fix": "Criar testes espec\u00edficos para `Filme`, com casos de constru\u00e7\u00e3o, getters ou m\u00e9todos de exibi\u00e7\u00e3o, `toString`, detalhamento com/sem ano e igualdade por nome/ano ignorando local.",
+            "evidence_refs": [
+              "\u00c1rvore de testes cont\u00e9m apenas Test/filmnow/FilmNowTest.java",
+              "src/filmnow/Filme.java: equals(Object), toString(), toStringDetalhado(), toStringHotList()"
+            ]
+          },
+          {
+            "points_lost": 1.5,
+            "severity": "moderate",
+            "confidence": "high",
+            "rubric_anchor": "Testes de HotList em FilmNow",
+            "problem": "A HotList quase n\u00e3o \u00e9 testada: h\u00e1 apenas um caso de detalhar filme hot, sem cobrir exibi\u00e7\u00e3o da HotList, remo\u00e7\u00e3o, filme ex-hot, duplicidade, posi\u00e7\u00f5es inv\u00e1lidas e posi\u00e7\u00e3o limite 10.",
+            "consequence": "Justamente a parte mais fr\u00e1gil da implementa\u00e7\u00e3o fica sem testes capazes de revelar os erros principais.",
+            "how_to_fix": "Adicionar testes independentes para adicionar hot em posi\u00e7\u00e3o v\u00e1lida e limite, tentar adicionar filme inexistente, impedir duplicidade, remover hot, detalhar ap\u00f3s remo\u00e7\u00e3o e exibir a HotList com nome e ano.",
+            "evidence_refs": [
+              "Test/filmnow/FilmNowTest.java: detalhaFilmeAvatar()",
+              "src/filmnow/FilmNow.java: adicionarParaHot(int,int), exibirHotList(), removerHot(int)"
+            ]
+          },
+          {
+            "points_lost": 0.5,
+            "severity": "minor",
+            "confidence": "high",
+            "rubric_anchor": "Testes de FilmNow: ader\u00eancia aos casos especificados",
+            "problem": "H\u00e1 lacunas e um caso com expectativa contr\u00e1ria ao enunciado: o teste de local vazio espera `FILME ADICIONADO`, e n\u00e3o h\u00e1 teste direto de mostrar/listar todos os filmes.",
+            "consequence": "A su\u00edte d\u00e1 falsa confian\u00e7a para um comportamento inv\u00e1lido e n\u00e3o verifica completamente uma das funcionalidades b\u00e1sicas do laborat\u00f3rio.",
+            "how_to_fix": "Corrigir o teste de local vazio para esperar `FILME INVALIDO` e criar teste para a listagem de filmes, idealmente por um m\u00e9todo de `FilmNow` que retorne a representa\u00e7\u00e3o da lista.",
+            "evidence_refs": [
+              "Test/filmnow/FilmNowTest.java: cadastraFilmeTestLocalVazio()",
+              "Aus\u00eancia de teste para m\u00e9todo de listagem/mostrar todos"
+            ]
+          }
+        ]
+      },
+      {
+        "criterion_id": "class_design",
+        "criterion_name": "Cria\u00e7\u00e3o e modelagem de classes",
+        "score": 9,
+        "max_score": 10,
+        "justification": "A solu\u00e7\u00e3o demonstra a modelagem central esperada: h\u00e1 uma classe `Filme`, uma classe `FilmNow` que comp\u00f5e filmes por refer\u00eancia e uma interface `MainFilmNow` modularizada em m\u00e9todos auxiliares. A perda \u00e9 pequena e se concentra na modelagem fr\u00e1gil do estado hot dentro de `Filme` combinada com a lista separada.",
+        "success_evidence": [
+          "`Filme` foi criado como entidade pr\u00f3pria com nome, ano de lan\u00e7amento, local/plataforma, `equals`, `hashCode` e representa\u00e7\u00f5es textuais.",
+          "`FilmNow` mant\u00e9m um array de `Filme` e um array separado para a HotList, representando composi\u00e7\u00e3o entre o sistema e os filmes.",
+          "`MainFilmNow` cont\u00e9m o `main` e divide o menu em m\u00e9todos est\u00e1ticos auxiliares como `menu`, `comando`, `adicionaFilme`, `mostrarFilmes` e `detalharFilme`.",
+          "A leitura CSV foi ajustada para chamar o cadastro com ano como `String`, compat\u00edvel com a nova assinatura."
+        ],
+        "evidence_refs": [
+          "src/filmnow/Filme.java",
+          "src/filmnow/FilmNow.java: atributos `Filme[] filmes` e `Filme[] hots`",
+          "src/filmnow/MainFilmNow.java: main(String[]), menu(Scanner), comando(String,FilmNow,Scanner)",
+          "src/filmnow/LeitorFilmNow.java: processaLinhaCsvFilmes(String[],FilmNow)"
+        ],
+        "non_penalized_observations": [
+          "O erro de digita\u00e7\u00e3o `platafoma` foi considerado principalmente em legibilidade, n\u00e3o como falha central de cria\u00e7\u00e3o de classes.",
+          "N\u00e3o foi exigida uma classe espec\u00edfica para HotList; usar array dentro de `FilmNow` \u00e9 uma escolha aceit\u00e1vel se as regras forem mantidas."
+        ],
+        "deductions": [
+          {
+            "points_lost": 1,
+            "severity": "minor",
+            "confidence": "high",
+            "rubric_anchor": "Modelagem de Filme/FilmNow e HotList",
+            "problem": "O status hot \u00e9 armazenado como uma `String` dentro de `Filme` ao mesmo tempo em que existe o array `hots`, criando duas fontes de verdade para a mesma informa\u00e7\u00e3o.",
+            "consequence": "A modelagem facilita inconsist\u00eancias, como um filme continuar marcado como hot mesmo ap\u00f3s substitui\u00e7\u00e3o ou remo\u00e7\u00e3o incorreta da HotList.",
+            "how_to_fix": "Modelar o status hot a partir da presen\u00e7a do objeto na HotList, ou usar um atributo booleano bem encapsulado e mantido de forma consistente em todos os m\u00e9todos que alteram a HotList.",
+            "evidence_refs": [
+              "src/filmnow/Filme.java: atributo `private String hot`",
+              "src/filmnow/FilmNow.java: atributo `private Filme[] hots`",
+              "src/filmnow/FilmNow.java: adicionarParaHot(int,int), removerHot(int)"
+            ]
+          }
+        ]
+      },
+      {
+        "criterion_id": "object_references",
+        "criterion_name": "Refer\u00eancias de objetos e composi\u00e7\u00e3o",
+        "score": 8.5,
+        "max_score": 10,
+        "justification": "A composi\u00e7\u00e3o principal est\u00e1 presente: `FilmNow` armazena objetos `Filme`, cria novos filmes no cadastro e a HotList reutiliza refer\u00eancias aos filmes existentes. A dedu\u00e7\u00e3o reflete a manuten\u00e7\u00e3o inconsistente dessas refer\u00eancias e o encapsulamento fr\u00e1gil da HotList.",
+        "success_evidence": [
+          "`FilmNow` cria objetos `Filme` no cadastro, em vez de manter apenas strings soltas.",
+          "A compara\u00e7\u00e3o de duplicidade delega a igualdade para `Filme.equals`, mostrando uso de objetos e delega\u00e7\u00e3o.",
+          "A HotList guarda refer\u00eancias aos mesmos objetos `Filme`, permitindo que o detalhamento do filme reflita a marca\u00e7\u00e3o hot em casos simples.",
+          "O uso de `static` fica concentrado em constantes e m\u00e9todos da classe de interface, sem transformar o dom\u00ednio em vari\u00e1veis globais."
+        ],
+        "evidence_refs": [
+          "src/filmnow/FilmNow.java: cadastraFilme(int,String,String,String)",
+          "src/filmnow/FilmNow.java: existeNaLista(String,String)",
+          "src/filmnow/Filme.java: equals(Object)",
+          "src/filmnow/FilmNow.java: adicionarParaHot(int,int)",
+          "src/filmnow/MainFilmNow.java: m\u00e9todos est\u00e1ticos de interface"
+        ],
+        "non_penalized_observations": [
+          "M\u00e9todos est\u00e1ticos auxiliares em `MainFilmNow` s\u00e3o compat\u00edveis com a estrutura do laborat\u00f3rio e n\u00e3o foram tratados como mau uso de refer\u00eancia por si s\u00f3.",
+          "O uso de array em vez de cole\u00e7\u00e3o de Java \u00e9 adequado ao enunciado."
+        ],
+        "deductions": [
+          {
+            "points_lost": 1.5,
+            "severity": "moderate",
+            "confidence": "high",
+            "rubric_anchor": "Composi\u00e7\u00e3o e manuten\u00e7\u00e3o correta de refer\u00eancias",
+            "problem": "As refer\u00eancias da HotList n\u00e3o s\u00e3o mantidas com invariantes claros: o array interno `hots` \u00e9 exposto diretamente, h\u00e1 setters para substituir arrays inteiros, filmes duplicados podem ser referenciados na HotList e o filme substitu\u00eddo em uma posi\u00e7\u00e3o hot n\u00e3o \u00e9 desmarcado.",
+            "consequence": "O sistema pode ficar com estado incoerente entre a lista principal, a HotList e o atributo `hot` do objeto `Filme`, prejudicando o entendimento de composi\u00e7\u00e3o por refer\u00eancia.",
+            "how_to_fix": "Encapsular os arrays, retornar c\u00f3pias defensivas quando necess\u00e1rio, remover setters amplos e centralizar a altera\u00e7\u00e3o da HotList em m\u00e9todos que preservem duplicidade, substitui\u00e7\u00e3o e remo\u00e7\u00e3o de refer\u00eancias corretamente.",
+            "evidence_refs": [
+              "src/filmnow/FilmNow.java: getHots(), setHots(Filme[]), setFilmes(Filme[])",
+              "src/filmnow/FilmNow.java: adicionarParaHot(int,int)",
+              "src/filmnow/FilmNow.java: removerHot(int)"
+            ]
+          }
+        ]
+      },
+      {
+        "criterion_id": "collections_and_arrays",
+        "criterion_name": "Uso de arrays e cole\u00e7\u00f5es",
+        "score": 7,
+        "max_score": 10,
+        "justification": "A estrutura principal de filmes respeita o limite de 100 posi\u00e7\u00f5es e usa corretamente `posicao - 1` no cadastro e detalhamento. A estrutura da HotList, por\u00e9m, tem problemas importantes de indexa\u00e7\u00e3o e limites, e h\u00e1 inconsist\u00eancia em m\u00e9todos auxiliares que usam posi\u00e7\u00e3o externa como \u00edndice interno.",
+        "success_evidence": [
+          "A lista principal \u00e9 um `Filme[100]`, compat\u00edvel com o limite especificado.",
+          "O cadastro e o detalhamento da lista principal validam posi\u00e7\u00f5es de 1 a 100 e acessam `filmes[posicao - 1]`.",
+          "A HotList foi representada por um `Filme[10]`, o que corresponde ao limite de 10 posi\u00e7\u00f5es exigido.",
+          "A listagem percorre o array e ignora posi\u00e7\u00f5es nulas, exibindo somente filmes cadastrados."
+        ],
+        "evidence_refs": [
+          "src/filmnow/FilmNow.java: constantes `TAMANHO` e `TAMANHOHOT`",
+          "src/filmnow/FilmNow.java: atributos `filmes` e `hots`",
+          "src/filmnow/FilmNow.java: cadastraFilme(int,String,String,String), detalharFilme(int)",
+          "src/filmnow/MainFilmNow.java: mostrarFilmes(FilmNow)"
+        ],
+        "non_penalized_observations": [
+          "N\u00e3o h\u00e1 penaliza\u00e7\u00e3o por ter usado arrays em vez de `ArrayList`, pois arrays s\u00e3o adequados e esperados neste laborat\u00f3rio.",
+          "Ignorar posi\u00e7\u00f5es nulas na listagem \u00e9 compat\u00edvel com o requisito de listar apenas filmes cadastrados."
+        ],
+        "deductions": [
+          {
+            "points_lost": 3,
+            "severity": "major",
+            "confidence": "high",
+            "rubric_anchor": "Uso correto da estrutura de dados e limites da HotList",
+            "problem": "A HotList usa a posi\u00e7\u00e3o recebida diretamente como \u00edndice do array, sem converter de 1-10 para 0-9. Assim, posi\u00e7\u00e3o 0 \u00e9 aceita, posi\u00e7\u00e3o 10 causa acesso fora do array em `adicionarParaHot`, e `removerHot`/`exibirHotList` seguem a mesma conven\u00e7\u00e3o inconsistente. Al\u00e9m disso, `getFilme(int)` acessa `filmes[posicao]`, destoando do restante da API p\u00fablica.",
+            "consequence": "As restri\u00e7\u00f5es de armazenamento exigidas pelo laborat\u00f3rio n\u00e3o s\u00e3o obedecidas corretamente na HotList, e m\u00e9todos p\u00fablicos podem induzir erro de uso por misturar posi\u00e7\u00e3o de usu\u00e1rio e \u00edndice interno.",
+            "how_to_fix": "Padronizar todos os m\u00e9todos p\u00fablicos para receber posi\u00e7\u00f5es de usu\u00e1rio, validar 1 a 100 ou 1 a 10 conforme o caso, converter internamente com `posicao - 1` e nunca expor diretamente \u00edndices internos como se fossem posi\u00e7\u00f5es do sistema.",
+            "evidence_refs": [
+              "src/filmnow/FilmNow.java: adicionarParaHot(int,int) usa `hots[posicaoHotlist]`",
+              "src/filmnow/FilmNow.java: removerHot(int) valida `posicaoHot >= hots.length` e usa `hots[posicaoHot]`",
+              "src/filmnow/FilmNow.java: exibirHotList() imprime `i + \" - \"`",
+              "src/filmnow/FilmNow.java: getFilme(int)"
+            ]
+          }
+        ]
+      },
+      {
+        "criterion_id": "separation_of_concerns",
+        "criterion_name": "Divis\u00e3o de responsabilidades",
+        "score": 7,
+        "max_score": 10,
+        "justification": "Existe separa\u00e7\u00e3o b\u00e1sica entre interface, gerenciador e entidade: `MainFilmNow` recebe entradas e imprime, `FilmNow` gerencia cadastro/detalhamento e `Filme` representa dados e igualdade. Ainda assim, parte da l\u00f3gica de apresenta\u00e7\u00e3o/listagem fica no `Main`, e `FilmNow` imprime diretamente a HotList, misturando dom\u00ednio com sa\u00edda de console.",
+        "success_evidence": [
+          "`MainFilmNow` concentra o menu, leitura via `Scanner` e impress\u00e3o das respostas do sistema.",
+          "`FilmNow` \u00e9 respons\u00e1vel por criar objetos `Filme`, armazen\u00e1-los e aplicar regras de cadastro, detalhamento e HotList.",
+          "`Filme` encapsula dados do filme e define `equals`, `hashCode` e representa\u00e7\u00e3o textual simples para listagem.",
+          "Os m\u00e9todos de cadastro e detalhamento em `FilmNow` retornam strings, permitindo que a interface decida imprimir."
+        ],
+        "evidence_refs": [
+          "src/filmnow/MainFilmNow.java: menu(Scanner), comando(String,FilmNow,Scanner), adicionaFilme(FilmNow,Scanner)",
+          "src/filmnow/FilmNow.java: cadastraFilme(int,String,String,String), detalharFilme(int)",
+          "src/filmnow/Filme.java: equals(Object), toString()"
+        ],
+        "non_penalized_observations": [
+          "N\u00e3o foi exigida uma classe `Menu` separada; usar m\u00e9todos est\u00e1ticos auxiliares em `MainFilmNow` \u00e9 aceit\u00e1vel.",
+          "A classe `LeitorFilmNow` permanecer separada para leitura CSV \u00e9 compat\u00edvel com a estrutura inicial."
+        ],
+        "deductions": [
+          {
+            "points_lost": 1.5,
+            "severity": "moderate",
+            "confidence": "high",
+            "rubric_anchor": "Main/interface respons\u00e1vel por entrada e sa\u00edda",
+            "problem": "`FilmNow.exibirHotList()` imprime diretamente no console com `System.out.println`, em vez de retornar uma representa\u00e7\u00e3o para a interface imprimir.",
+            "consequence": "A classe de dom\u00ednio passa a depender de sa\u00edda textual, dificultando testes de unidade e violando a orienta\u00e7\u00e3o do enunciado de evitar impress\u00e3o fora do `main`/interface.",
+            "how_to_fix": "Alterar `exibirHotList` para retornar uma `String` com a HotList formatada, e deixar `MainFilmNow` respons\u00e1vel por chamar `System.out.println`.",
+            "evidence_refs": [
+              "src/filmnow/FilmNow.java: exibirHotList()",
+              "src/filmnow/MainFilmNow.java: comando(String,FilmNow,Scanner) caso `E`"
+            ]
+          },
+          {
+            "points_lost": 1,
+            "severity": "moderate",
+            "confidence": "high",
+            "rubric_anchor": "FilmNow respons\u00e1vel por gerenciar e exibir/listar filmes",
+            "problem": "A listagem de todos os filmes \u00e9 feita no `MainFilmNow` acessando o array de filmes e formatando posi\u00e7\u00e3o/nome, em vez de `FilmNow` oferecer uma opera\u00e7\u00e3o de listagem pronta.",
+            "consequence": "A interface conhece detalhes da estrutura interna do gerenciador e assume parte da l\u00f3gica da funcionalidade `Mostrar todos`.",
+            "how_to_fix": "Criar em `FilmNow` um m\u00e9todo como `listarFilmes()` que percorra o armazenamento e retorne a string formatada, mantendo o `Main` apenas como camada de entrada/sa\u00edda.",
+            "evidence_refs": [
+              "src/filmnow/MainFilmNow.java: mostrarFilmes(FilmNow)",
+              "src/filmnow/FilmNow.java: getFilmes()"
+            ]
+          },
+          {
+            "points_lost": 0.5,
+            "severity": "minor",
+            "confidence": "high",
+            "rubric_anchor": "Comunica\u00e7\u00e3o clara entre dom\u00ednio e interface",
+            "problem": "Os m\u00e9todos de HotList s\u00e3o `void`, e `MainFilmNow.atribuirHot` imprime mensagem de sucesso independentemente de a opera\u00e7\u00e3o realmente ter ocorrido.",
+            "consequence": "A interface n\u00e3o consegue refletir corretamente erros ou resultados do dom\u00ednio, como posi\u00e7\u00e3o inv\u00e1lida ou filme inexistente.",
+            "how_to_fix": "Fazer os m\u00e9todos de HotList retornarem mensagens ou valores de status e imprimir no `Main` apenas o resultado retornado pelo dom\u00ednio.",
+            "evidence_refs": [
+              "src/filmnow/FilmNow.java: adicionarParaHot(int,int), removerHot(int)",
+              "src/filmnow/MainFilmNow.java: atribuirHot(FilmNow,Scanner)"
+            ]
+          }
+        ]
+      },
+      {
+        "criterion_id": "readability_and_documentation",
+        "criterion_name": "Legibilidade e documenta\u00e7\u00e3o",
+        "score": 7.5,
+        "max_score": 10,
+        "justification": "O c\u00f3digo \u00e9 em geral compreens\u00edvel, usa nomes de classes adequados e possui Javadocs em v\u00e1rias classes e m\u00e9todos p\u00fablicos relevantes. As perdas v\u00eam de documenta\u00e7\u00e3o com artefatos, nomes inconsistentes/errados e trechos de controle de fluxo dif\u00edceis de entender, especialmente na remo\u00e7\u00e3o da HotList.",
+        "success_evidence": [
+          "As classes principais t\u00eam coment\u00e1rios Javadoc explicando sua finalidade geral.",
+          "Muitos m\u00e9todos p\u00fablicos relevantes possuem descri\u00e7\u00e3o de par\u00e2metros e retorno.",
+          "Os nomes das classes `Filme`, `FilmNow` e `MainFilmNow` comunicam bem seus pap\u00e9is.",
+          "A maior parte dos m\u00e9todos \u00e9 relativamente curta e separada por funcionalidade."
+        ],
+        "evidence_refs": [
+          "src/filmnow/Filme.java: Javadocs da classe, construtor, equals, toStringDetalhado",
+          "src/filmnow/FilmNow.java: Javadocs da classe, construtor, cadastraFilme, detalharFilme",
+          "src/filmnow/MainFilmNow.java: Javadocs de main, menu, comando, mostrarFilmes, adicionaFilme",
+          "src/filmnow/LeitorFilmNow.java"
+        ],
+        "non_penalized_observations": [
+          "A presen\u00e7a de coment\u00e1rios herdados ou pr\u00f3ximos do c\u00f3digo inicial n\u00e3o foi contada como m\u00e9rito extra, mas tamb\u00e9m n\u00e3o foi penalizada quando n\u00e3o prejudica a compreens\u00e3o.",
+          "Pequenas diferen\u00e7as de capitaliza\u00e7\u00e3o e pontua\u00e7\u00e3o nas mensagens n\u00e3o foram tratadas como problema de legibilidade relevante."
+        ],
+        "deductions": [
+          {
+            "points_lost": 1,
+            "severity": "minor",
+            "confidence": "high",
+            "rubric_anchor": "Estilo Java e Javadoc",
+            "problem": "Os Javadocs t\u00eam artefatos de formata\u00e7\u00e3o como `* *`, alguns acessores p\u00fablicos n\u00e3o t\u00eam documenta\u00e7\u00e3o e m\u00e9todos sobrescritos como `equals`, `hashCode` e `toString` n\u00e3o usam `@Override`.",
+            "consequence": "A documenta\u00e7\u00e3o ainda \u00e9 \u00fatil, mas fica menos limpa e menos alinhada ao estilo Java esperado.",
+            "how_to_fix": "Revisar os blocos Javadoc, remover artefatos, documentar a API p\u00fablica relevante e adicionar `@Override` nos m\u00e9todos sobrescritos.",
+            "evidence_refs": [
+              "src/filmnow/Filme.java: Javadocs com `* *`; equals(Object), hashCode(), toString()",
+              "src/filmnow/FilmNow.java: getters/setters p\u00fablicos sem Javadoc"
+            ]
+          },
+          {
+            "points_lost": 0.8,
+            "severity": "minor",
+            "confidence": "high",
+            "rubric_anchor": "Nomes adequados e consist\u00eancia",
+            "problem": "H\u00e1 nomes com erros ou inconsist\u00eancias, como `platafoma`, `cadastraFilmeTestPosicaAbLimite`, `cadastraFilmeTestAnVazio`, vari\u00e1vel `FilmNow Test` n\u00e3o usada e m\u00e9todo `carregaContatos` em uma classe de filmes.",
+            "consequence": "Esses nomes n\u00e3o impedem a execu\u00e7\u00e3o, mas reduzem a clareza e dificultam a manuten\u00e7\u00e3o/leitura por outra pessoa.",
+            "how_to_fix": "Padronizar nomes descritivos e corrigidos, por exemplo `plataforma`, `posicaoAcimaDoLimite`, `anoVazio`, e remover vari\u00e1veis n\u00e3o utilizadas.",
+            "evidence_refs": [
+              "src/filmnow/Filme.java: atributo e m\u00e9todos `platafoma`/`getPlatafoma`",
+              "Test/filmnow/FilmNowTest.java: nomes de m\u00e9todos e vari\u00e1vel `FilmNow Test`",
+              "src/filmnow/LeitorFilmNow.java: carregaContatos(String,FilmNow)"
+            ]
+          },
+          {
+            "points_lost": 0.7,
+            "severity": "minor",
+            "confidence": "high",
+            "rubric_anchor": "Clareza de implementa\u00e7\u00e3o",
+            "problem": "H\u00e1 trechos de c\u00f3digo que dificultam a compreens\u00e3o, como o `while (true)` em `removerHot` com `cont` reiniciado a cada itera\u00e7\u00e3o, al\u00e9m de imports n\u00e3o usados.",
+            "consequence": "Mesmo antes de considerar o erro funcional, a inten\u00e7\u00e3o do algoritmo fica obscura e mais propensa a defeitos.",
+            "how_to_fix": "Substituir o la\u00e7o por uma busca clara com `for`, incrementar o \u00edndice corretamente quando necess\u00e1rio e remover imports n\u00e3o utilizados.",
+            "evidence_refs": [
+              "src/filmnow/FilmNow.java: removerHot(int)",
+              "src/filmnow/FilmNow.java: import java.util.Scanner n\u00e3o utilizado",
+              "Test/filmnow/FilmNowTest.java: import assertNotEquals n\u00e3o utilizado"
+            ]
+          }
+        ]
+      }
+    ],
+    "reviewer_audit": {
+      "requires_human_review": false,
+      "grading_basis": "A avalia\u00e7\u00e3o foi baseada em leitura est\u00e1tica dos arquivos-fonte e dos testes fornecidos. N\u00e3o h\u00e1 evid\u00eancia de execu\u00e7\u00e3o automatizada de build ou de testes nesta etapa.",
+      "main_uncertainties": [
+        "N\u00e3o foi verificado em ambiente real se a pasta `Test` seria reconhecida pela configura\u00e7\u00e3o de build do projeto.",
+        "Algumas falhas de compara\u00e7\u00e3o com string vazia por `==` podem ou n\u00e3o aparecer dependendo da origem exata da string em tempo de execu\u00e7\u00e3o; n\u00e3o foi aplicada dedu\u00e7\u00e3o funcional espec\u00edfica por esse ponto isolado.",
+        "A especifica\u00e7\u00e3o avalia principalmente por testes, mas a submiss\u00e3o n\u00e3o fornece um m\u00e9todo de listagem em `FilmNow`; a funcionalidade de mostrar todos foi considerada existente pela interface `MainFilmNow`."
+      ],
+      "potential_false_positive_risks": [
+        "Um avaliador que capture a sa\u00edda de console poderia considerar `exibirHotList()` funcional em alguns casos simples, apesar de ela n\u00e3o retornar string e ter problemas de indexa\u00e7\u00e3o.",
+        "A aus\u00eancia de teste separado para `Filme` \u00e9 clara pela \u00e1rvore enviada, mas pode existir configura\u00e7\u00e3o externa n\u00e3o inclu\u00edda no pacote; a avalia\u00e7\u00e3o considera apenas os arquivos apresentados.",
+        "Algumas mensagens diferem por acento, mai\u00fasculas ou pontua\u00e7\u00e3o; essas diferen\u00e7as n\u00e3o foram usadas como base de desconto material."
+      ]
+    },
+    "confidence": "high"
+  },
+  "stage2_parsed": {
+    "feedback_items": [
+      {
+        "criterion_id": "basic_functionality",
+        "criterion_name": "Funcionalidade b\u00e1sica",
+        "severity": "major",
+        "confidence": "high",
+        "problem": "A HotList est\u00e1 apenas parcialmente correta: usa a posi\u00e7\u00e3o recebida como \u00edndice interno, aceita posi\u00e7\u00e3o 0, falha na posi\u00e7\u00e3o 10, n\u00e3o impede duplicidade, n\u00e3o trata todos os casos de filme inexistente/posi\u00e7\u00e3o inv\u00e1lida, remove e substitui de forma inconsistente e exibe s\u00f3 o nome do filme.",
+        "consequence": "A funcionalidade obrigat\u00f3ria da HotList funciona em um caso simples, mas quebra ou produz resultados incorretos em v\u00e1rios usos previstos pelo laborat\u00f3rio.",
+        "how_to_fix": "Padronizar as posi\u00e7\u00f5es p\u00fablicas como 1 a 10, converter internamente com `posicao - 1`, validar limites e exist\u00eancia do filme, impedir duplicidade, desmarcar filmes removidos ou substitu\u00eddos e exibir a HotList com as informa\u00e7\u00f5es exigidas.",
+        "evidence_refs": [
+          "src/filmnow/FilmNow.java: adicionarParaHot(int,int)",
+          "src/filmnow/FilmNow.java: exibirHotList()",
+          "src/filmnow/FilmNow.java: removerHot(int)",
+          "src/filmnow/MainFilmNow.java: atribuirHot(FilmNow,Scanner)"
+        ]
+      },
+      {
+        "criterion_id": "basic_functionality",
+        "criterion_name": "Funcionalidade b\u00e1sica",
+        "severity": "moderate",
+        "confidence": "high",
+        "problem": "O cadastro valida posi\u00e7\u00e3o e nome vazio, mas n\u00e3o rejeita local/plataforma vazio ou composto apenas por espa\u00e7os.",
+        "consequence": "Um filme inv\u00e1lido segundo o enunciado pode ser cadastrado com sucesso.",
+        "how_to_fix": "Antes de criar o `Filme`, verificar se a plataforma \u00e9 nula ou se `plataforma.trim().isEmpty()` e retornar `FILME INVALIDO` nesses casos.",
+        "evidence_refs": [
+          "src/filmnow/FilmNow.java: cadastraFilme(int,String,String,String)",
+          "Test/filmnow/FilmNowTest.java: cadastraFilmeTestLocalVazio() espera incorretamente cadastro bem-sucedido"
+        ]
+      },
+      {
+        "criterion_id": "unit_tests",
+        "criterion_name": "Testes de unidade",
+        "severity": "major",
+        "confidence": "high",
+        "problem": "N\u00e3o h\u00e1 uma classe de testes para `Filme` cobrindo construtor, representa\u00e7\u00f5es textuais, m\u00e9todos de dados e igualdade.",
+        "consequence": "A unidade b\u00e1sica do sistema n\u00e3o \u00e9 verificada isoladamente, ent\u00e3o erros em `equals`, `hashCode`, `toString` ou detalhamento do filme podem passar despercebidos.",
+        "how_to_fix": "Criar uma classe `FilmeTest` com casos para constru\u00e7\u00e3o, dados do filme, `toString`, detalhamento com e sem ano e igualdade por nome/ano ignorando o local.",
+        "evidence_refs": [
+          "\u00c1rvore de testes cont\u00e9m apenas Test/filmnow/FilmNowTest.java",
+          "src/filmnow/Filme.java: equals(Object), toString(), toStringDetalhado(), toStringHotList()"
+        ]
+      },
+      {
+        "criterion_id": "unit_tests",
+        "criterion_name": "Testes de unidade",
+        "severity": "moderate",
+        "confidence": "high",
+        "problem": "A HotList quase n\u00e3o \u00e9 testada e h\u00e1 um teste com expectativa contr\u00e1ria ao enunciado para local vazio.",
+        "consequence": "A parte mais fr\u00e1gil da implementa\u00e7\u00e3o fica sem testes capazes de revelar os principais erros, e a su\u00edte d\u00e1 falsa confian\u00e7a para um cadastro inv\u00e1lido.",
+        "how_to_fix": "Adicionar testes para adicionar hot em posi\u00e7\u00e3o v\u00e1lida e limite, tentar filme inexistente, impedir duplicidade, remover hot, detalhar ap\u00f3s remo\u00e7\u00e3o, exibir HotList com nome e ano, e corrigir o teste de local vazio para esperar `FILME INVALIDO`.",
+        "evidence_refs": [
+          "Test/filmnow/FilmNowTest.java: detalhaFilmeAvatar()",
+          "Test/filmnow/FilmNowTest.java: cadastraFilmeTestLocalVazio()",
+          "src/filmnow/FilmNow.java: adicionarParaHot(int,int), exibirHotList(), removerHot(int)"
+        ]
+      },
+      {
+        "criterion_id": "object_references",
+        "criterion_name": "Refer\u00eancias de objetos e composi\u00e7\u00e3o",
+        "severity": "moderate",
+        "confidence": "high",
+        "problem": "O estado de hot fica guardado em dois lugares diferentes, no atributo `hot` de `Filme` e no array `hots` de `FilmNow`, al\u00e9m de haver acesso amplo aos arrays por getters/setters.",
+        "consequence": "O sistema pode ficar incoerente entre lista principal, HotList e detalhamento, por exemplo com filme ainda marcado como hot ap\u00f3s remo\u00e7\u00e3o ou substitui\u00e7\u00e3o incorreta.",
+        "how_to_fix": "Centralizar as altera\u00e7\u00f5es da HotList em m\u00e9todos de `FilmNow`, evitar setters que substituem arrays inteiros e manter uma \u00fanica regra clara para saber se um filme \u00e9 hot, seja pela presen\u00e7a na HotList ou por um booleano atualizado de forma consistente.",
+        "evidence_refs": [
+          "src/filmnow/Filme.java: atributo `private String hot`",
+          "src/filmnow/FilmNow.java: atributo `private Filme[] hots`",
+          "src/filmnow/FilmNow.java: getHots(), setHots(Filme[]), setFilmes(Filme[])",
+          "src/filmnow/FilmNow.java: adicionarParaHot(int,int), removerHot(int)"
+        ]
+      },
+      {
+        "criterion_id": "separation_of_concerns",
+        "criterion_name": "Divis\u00e3o de responsabilidades",
+        "severity": "moderate",
+        "confidence": "high",
+        "problem": "Algumas responsabilidades ficam misturadas: `FilmNow.exibirHotList()` imprime diretamente no console, `MainFilmNow` percorre e formata a lista de filmes, e os m\u00e9todos de HotList n\u00e3o retornam resultado para a interface.",
+        "consequence": "Fica mais dif\u00edcil testar as regras do sistema e a interface pode imprimir sucesso mesmo quando a opera\u00e7\u00e3o n\u00e3o ocorreu.",
+        "how_to_fix": "Fazer `FilmNow` retornar strings ou valores de status para listagem e HotList, deixando `MainFilmNow` apenas respons\u00e1vel por ler entradas e imprimir as respostas retornadas pelo dom\u00ednio.",
+        "evidence_refs": [
+          "src/filmnow/FilmNow.java: exibirHotList()",
+          "src/filmnow/MainFilmNow.java: mostrarFilmes(FilmNow)",
+          "src/filmnow/FilmNow.java: adicionarParaHot(int,int), removerHot(int)",
+          "src/filmnow/MainFilmNow.java: atribuirHot(FilmNow,Scanner)"
+        ]
+      }
+    ],
+    "student_feedback": "[src/filmnow/Filme.java e src/filmnow/FilmNow.java] Ponto positivo: a solu\u00e7\u00e3o modela `Filme` como classe pr\u00f3pria e `FilmNow` armazena objetos `Filme`, o que mostra compreens\u00e3o da separa\u00e7\u00e3o b\u00e1sica entre entidade e gerenciador.\n[src/filmnow/FilmNow.java::cadastraFilme e detalharFilme] Ponto positivo: cadastro e detalhamento da lista principal tratam v\u00e1rias posi\u00e7\u00f5es de 1 a 100 corretamente e usam `posicao - 1` na estrutura principal.\n[src/filmnow/FilmNow.java::adicionarParaHot/removerHot/exibirHotList] Problema: a HotList mistura posi\u00e7\u00e3o de usu\u00e1rio com \u00edndice interno e deixa regras obrigat\u00f3rias sem tratamento, como posi\u00e7\u00e3o 10, posi\u00e7\u00e3o 0, duplicidade, remo\u00e7\u00e3o/substitui\u00e7\u00e3o e exibi\u00e7\u00e3o com ano. Consequ\u00eancia: v\u00e1rios comandos da HotList d\u00e3o resultado errado, mesmo que marcar um filme simples funcione. Como consertar: validar 1 a 10, acessar com `posicao - 1`, verificar duplicidade/exist\u00eancia, desmarcar substitu\u00eddos/removidos e retornar a representa\u00e7\u00e3o correta.\n[src/filmnow/FilmNow.java::cadastraFilme] Problema: local/plataforma vazio ou s\u00f3 com espa\u00e7os \u00e9 aceito. Consequ\u00eancia: permite cadastrar filme inv\u00e1lido pela especifica\u00e7\u00e3o. Como consertar: antes de criar `Filme`, usar `plataforma == null || plataforma.trim().isEmpty()` para retornar `FILME INVALIDO`.\n[Test/filmnow/FilmNowTest.java] Problema: existem bons testes de cadastro/detalhamento, mas n\u00e3o h\u00e1 testes isolados para `Filme`. Consequ\u00eancia: erros em `equals`, `hashCode`, `toString` e detalhamento do filme podem passar sem ser percebidos. Como consertar: criar `FilmeTest` cobrindo constru\u00e7\u00e3o, representa\u00e7\u00f5es e igualdade por nome/ano.\n[Test/filmnow/FilmNowTest.java::detalhaFilmeAvatar/cadastraFilmeTestLocalVazio] Problema: a HotList quase n\u00e3o \u00e9 testada e o teste de local vazio espera o comportamento errado. Consequ\u00eancia: os principais erros da HotList e do cadastro inv\u00e1lido n\u00e3o aparecem na su\u00edte. Como consertar: testar adicionar/remover/exibir hot, posi\u00e7\u00e3o 10, posi\u00e7\u00f5es inv\u00e1lidas, duplicidade, filme inexistente e ajustar local vazio para `FILME INVALIDO`.\n[src/filmnow/Filme.java e src/filmnow/FilmNow.java] Problema: a informa\u00e7\u00e3o de que um filme \u00e9 hot fica guardada em dois lugares diferentes, `Filme.hot` e o array `hots`, e alguns arrays podem ser substitu\u00eddos por setters p\u00fablicos. Consequ\u00eancia: o sistema pode ficar incoerente entre lista principal, HotList e detalhamento. Como consertar: centralizar a altera\u00e7\u00e3o da HotList e manter uma \u00fanica regra clara para esse estado, com arrays protegidos por m\u00e9todos controlados.\n[src/filmnow/FilmNow.java::exibirHotList e src/filmnow/MainFilmNow.java::mostrarFilmes] Problema: responsabilidades ficam misturadas: `FilmNow` imprime no console e `MainFilmNow` percorre/formata o array de filmes. Consequ\u00eancia: fica mais dif\u00edcil testar e manter as regras do sistema. Como consertar: fazer `FilmNow` retornar strings ou status e deixar `MainFilmNow` apenas ler entradas e imprimir sa\u00eddas.",
+    "reviewer_notes": {
+      "requires_human_review": false,
+      "synthesis_rationale": "Foram selecionadas as dedu\u00e7\u00f5es de maior impacto e alta confian\u00e7a: falhas funcionais da HotList, valida\u00e7\u00e3o de local vazio, lacunas centrais de testes, inconsist\u00eancia no estado hot/refer\u00eancias e mistura de responsabilidades. Problemas repetidos de indexa\u00e7\u00e3o e regras da HotList foram consolidados em um \u00fanico item principal para evitar feedback duplicado.",
+      "omitted_stage1_deductions": [
+        "Uso de arrays e cole\u00e7\u00f5es: a dedu\u00e7\u00e3o espec\u00edfica sobre indexa\u00e7\u00e3o da HotList foi incorporada ao item principal de funcionalidade da HotList.",
+        "Cria\u00e7\u00e3o e modelagem de classes: o problema do atributo `hot` como `String` foi incorporado ao item de refer\u00eancias/estado da HotList.",
+        "Testes de unidade: a dedu\u00e7\u00e3o menor sobre local vazio foi incorporada ao item de cobertura/expectativa incorreta dos testes.",
+        "Divis\u00e3o de responsabilidades: os problemas de listagem no `Main`, impress\u00e3o em `FilmNow` e m\u00e9todos de HotList `void` foram agrupados em um \u00fanico item.",
+        "Legibilidade e documenta\u00e7\u00e3o: problemas de Javadoc, nomes inconsistentes, imports n\u00e3o usados e clareza do la\u00e7o em `removerHot` foram omitidos do feedback principal por serem menos determinantes que as falhas funcionais e de testes."
+      ],
+      "low_confidence_items": []
+    }
+  },
+  "parse_audit": {
+    "stage1": {
+      "parse_mode": "direct_json_loads"
+    },
+    "stage2": {
+      "parse_mode": "direct_json_loads"
+    },
+    "stage1_raw_text_chars": 23883,
+    "stage2_raw_text_chars": 9586
+  }
+}

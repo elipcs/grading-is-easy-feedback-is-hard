@@ -1,0 +1,199 @@
+{
+  "submission_id": "S33",
+  "evaluator_type": "llm",
+  "criteria": [
+    {
+      "criterion_id": "basic_functionality",
+      "criterion_name": "Basic Functionality",
+      "score": 6.5,
+      "max_score": 10,
+      "justification": "O sistema implementa com sucesso o fluxo principal do acervo (cadastro, listagem, bloqueio de duplicatas). No entanto, a funcionalidade da HotList apresenta falhas relevantes: a validação de posição impede a adição de filmes além da posição 10 do acervo, e faltam regras de duplicidade e sobrescrita na HotList.",
+      "evidence_refs": [
+        "src/filmnow/FilmNow.java (método cadastraFilme)",
+        "src/filmnow/MainFilmNow.java (métodos adicionaFilme, mostrarFilmes, detalharFilme)",
+        "src/filmnow/FilmNow.java (método cadastraHotList, linha 101: 'if (pos > 10 || pos < 0)')",
+        "src/filmnow/FilmNow.java (método cadastraHotList)"
+      ],
+      "deductions": [
+        {
+          "problem": "A validação de posição no método cadastraHotList verifica se a posição do filme no acervo (pos) é maior que 10, em vez de verificar o limite do acervo (100) ou validar a posição de destino na HotList (posHot). Isso impede que filmes das posições 11 a 100 sejam adicionados à HotList.",
+          "consequence": "Quebra funcional parcial da HotList, limitando severamente quais filmes podem ser destacados.",
+          "how_to_fix": "Corrigir a condição para validar se 'pos' está entre 1 e 100, e se 'posHot' está entre 1 e 10.",
+          "points_lost": 2.0,
+          "severity": "major",
+          "confidence": "high",
+          "rubric_anchor": "Manipulação da HotList",
+          "evidence_refs": [
+            "src/filmnow/FilmNow.java (método cadastraHotList, linha 101: 'if (pos > 10 || pos < 0)')",
+            "src/filmnow/FilmNow.java (método cadastraFilme)",
+            "src/filmnow/MainFilmNow.java (métodos adicionaFilme, mostrarFilmes, detalharFilme)"
+          ]
+        },
+        {
+          "problem": "O sistema não impede a adição de um filme que já está na HotList e não remove o status 'hot' do filme anterior quando uma posição da HotList é sobrescrita.",
+          "consequence": "Inconsistência no estado dos filmes, permitindo duplicatas lógicas na HotList e filmes marcados como 'hot' que não estão mais na lista.",
+          "how_to_fix": "Adicionar uma verificação de duplicidade antes de inserir na HotList e, em caso de sobrescrita, buscar o filme antigo na posição 'posHot' e alterar seu status para false.",
+          "points_lost": 1.5,
+          "severity": "moderate",
+          "confidence": "high",
+          "rubric_anchor": "Regras de negócio da HotList",
+          "evidence_refs": [
+            "src/filmnow/FilmNow.java (método cadastraHotList)",
+            "src/filmnow/FilmNow.java (método cadastraFilme)",
+            "src/filmnow/MainFilmNow.java (métodos adicionaFilme, mostrarFilmes, detalharFilme)"
+          ]
+        }
+      ]
+    },
+    {
+      "criterion_id": "unit_tests",
+      "criterion_name": "Unit Tests",
+      "score": 8.0,
+      "max_score": 10,
+      "justification": "A suíte de testes é muito boa para as classes Filme e para o fluxo principal de FilmNow (cadastraFilme), cobrindo cenários normais e limites. O desconto ocorre pela ausência de testes para as operações da HotList.",
+      "evidence_refs": [
+        "testes/lab3FilmNow/FilmeTest.java",
+        "testes/lab3FilmNow/FilmNowTest.java"
+      ],
+      "deductions": [
+        {
+          "problem": "Não há testes implementados para os métodos que manipulam a HotList (cadastraHotList, removeHotList).",
+          "consequence": "Comportamentos críticos do sistema (que inclusive contêm bugs) não foram validados automatizadamente.",
+          "how_to_fix": "Criar métodos de teste em FilmNowTest para validar a adição e remoção de filmes da HotList, incluindo cenários de erro.",
+          "points_lost": 2.0,
+          "severity": "moderate",
+          "confidence": "high",
+          "rubric_anchor": "Cobertura de cenários normais e alternativos",
+          "evidence_refs": [
+            "testes/lab3FilmNow/FilmNowTest.java",
+            "testes/lab3FilmNow/FilmeTest.java"
+          ]
+        }
+      ]
+    },
+    {
+      "criterion_id": "class_design",
+      "criterion_name": "Class Design",
+      "score": 9.0,
+      "max_score": 10,
+      "justification": "As classes centrais (Filme e FilmNow) foram bem modeladas, com atributos corretos e encapsulamento adequado. Há apenas um pequeno problema com um método não finalizado que deixou de cumprir seu papel no design.",
+      "evidence_refs": [
+        "src/filmnow/Filme.java",
+        "src/filmnow/FilmNow.java",
+        "src/filmnow/FilmNow.java (método detalharFilme, linha 123)"
+      ],
+      "deductions": [
+        {
+          "problem": "O método detalharFilme na classe FilmNow foi deixado como um 'stub' incompleto, não cumprindo seu papel no design da classe.",
+          "consequence": "A responsabilidade que deveria ser deste método acabou sendo absorvida pela classe MainFilmNow.",
+          "how_to_fix": "Implementar a lógica de busca e formatação do detalhamento dentro do método detalharFilme em FilmNow, retornando a String formatada ou null.",
+          "points_lost": 1.0,
+          "severity": "minor",
+          "confidence": "high",
+          "rubric_anchor": "Modelagem das classes centrais",
+          "evidence_refs": [
+            "src/filmnow/FilmNow.java (método detalharFilme, linha 123)",
+            "src/filmnow/Filme.java",
+            "src/filmnow/FilmNow.java"
+          ]
+        }
+      ]
+    },
+    {
+      "criterion_id": "object_references",
+      "criterion_name": "Object References and Composition",
+      "score": 10.0,
+      "max_score": 10,
+      "justification": "O uso de referências e composição está correto. A classe FilmNow compõe e gerencia objetos Filme adequadamente, e a comparação entre objetos utiliza o método equals de forma apropriada.",
+      "evidence_refs": [
+        "src/filmnow/FilmNow.java (método cadastraFilme, linha 82)",
+        "src/filmnow/FilmNow.java (método cadastraHotList, linha 104)"
+      ],
+      "deductions": []
+    },
+    {
+      "criterion_id": "collections_and_arrays",
+      "criterion_name": "Collections and Arrays",
+      "score": 9.0,
+      "max_score": 10,
+      "justification": "Os arrays foram declarados e utilizados corretamente para resolver o problema do acervo e da HotList. Há apenas uma pequena inconsistência no tratamento de índices da HotList.",
+      "evidence_refs": [
+        "src/filmnow/FilmNow.java (construtor e métodos getFilmes, getHotList)",
+        "src/filmnow/FilmNow.java (método getFilmeHot, linha 62)"
+      ],
+      "deductions": [
+        {
+          "problem": "Inconsistência no tratamento de índices da HotList: o método cadastraHotList usa 'posHot - 1', enquanto o método getFilmeHot usa 'posicao' diretamente sem subtrair 1.",
+          "consequence": "Risco de erro 'Off-By-One' (IndexOutOfBounds) se o método getFilmeHot for utilizado com a posição informada pelo usuário (1 a 10).",
+          "how_to_fix": "Padronizar o acesso aos arrays, subtraindo 1 da posição informada pelo usuário também no método getFilmeHot.",
+          "points_lost": 1.0,
+          "severity": "minor",
+          "confidence": "high",
+          "rubric_anchor": "Uso coerente da estrutura",
+          "evidence_refs": [
+            "src/filmnow/FilmNow.java (método getFilmeHot, linha 62)",
+            "src/filmnow/FilmNow.java (construtor e métodos getFilmes, getHotList)"
+          ]
+        }
+      ]
+    },
+    {
+      "criterion_id": "separation_of_concerns",
+      "criterion_name": "Separation of Concerns",
+      "score": 8.5,
+      "max_score": 10,
+      "justification": "A separação de responsabilidades é boa no geral, com a Main lidando com I/O e FilmNow com as regras. O desconto se deve ao vazamento da lógica de detalhamento para a Main.",
+      "evidence_refs": [
+        "src/filmnow/FilmNow.java",
+        "src/filmnow/MainFilmNow.java",
+        "src/filmnow/MainFilmNow.java (método detalharFilme, linhas 120-129)"
+      ],
+      "deductions": [
+        {
+          "problem": "A lógica de verificar se uma posição está vazia e montar a string de detalhamento do filme foi implementada na MainFilmNow, ignorando o método detalharFilme da classe FilmNow.",
+          "consequence": "Concentração indevida de regras de negócio (verificação de estado do acervo) na classe de interface com o usuário.",
+          "how_to_fix": "Mover a lógica de verificação de nulidade e formatação do detalhamento para o método detalharFilme em FilmNow, fazendo a Main apenas imprimir o retorno.",
+          "points_lost": 1.5,
+          "severity": "minor",
+          "confidence": "high",
+          "rubric_anchor": "Separação entre UI e classes de domínio",
+          "evidence_refs": [
+            "src/filmnow/MainFilmNow.java (método detalharFilme, linhas 120-129)",
+            "src/filmnow/FilmNow.java",
+            "src/filmnow/MainFilmNow.java"
+          ]
+        }
+      ]
+    },
+    {
+      "criterion_id": "readability_and_documentation",
+      "criterion_name": "Readability and Documentation",
+      "score": 9.0,
+      "max_score": 10,
+      "justification": "O código é bastante legível, bem indentado e possui Javadoc adequado na maioria dos métodos. O pequeno desconto reflete a presença de código gerado automaticamente e não limpo.",
+      "evidence_refs": [
+        "src/filmnow/Filme.java",
+        "src/filmnow/FilmNow.java",
+        "src/filmnow/FilmNow.java (linha 124)"
+      ],
+      "deductions": [
+        {
+          "problem": "Presença de comentários de código gerado automaticamente ('// TODO Auto-generated method stub') em métodos não finalizados.",
+          "consequence": "Reduz levemente a qualidade e o acabamento do código entregue.",
+          "how_to_fix": "Remover comentários gerados pela IDE e finalizar ou remover métodos não utilizados antes da entrega.",
+          "points_lost": 1.0,
+          "severity": "minor",
+          "confidence": "high",
+          "rubric_anchor": "Organização e comentários",
+          "evidence_refs": [
+            "src/filmnow/FilmNow.java (linha 124)",
+            "src/filmnow/Filme.java",
+            "src/filmnow/FilmNow.java"
+          ]
+        }
+      ]
+    }
+  ],
+  "total_score": 8.3,
+  "total_max_score": 10.0
+}

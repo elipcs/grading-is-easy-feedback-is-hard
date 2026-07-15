@@ -1,0 +1,180 @@
+{
+  "submission_id": "S18",
+  "evaluator_type": "llm",
+  "criteria": [
+    {
+      "criterion_id": "basic_functionality",
+      "criterion_name": "Basic Functionality",
+      "score": 7.0,
+      "max_score": 10,
+      "justification": "O sistema implementa a maior parte do fluxo principal, permitindo cadastro, listagem e detalhamento de filmes. No entanto, há uma falha crítica na adição de filmes à HotList que causa o travamento do sistema (NullPointerException) a partir da segunda inserção, além de um erro na formatação de filmes sem ano devido ao uso de '==' para comparar Strings.",
+      "evidence_refs": [
+        "FilmNow.cadastraFilme",
+        "FilmNow.getFilme",
+        "FilmNow.temFilme",
+        "MainFilmNow.adicionaHot",
+        "FilmNow.getFilmeHot",
+        "Filme.formataFilme"
+      ],
+      "deductions": [
+        {
+          "problem": "A adição de um segundo filme à HotList causa um NullPointerException, travando o sistema.",
+          "consequence": "O usuário não consegue adicionar mais de um filme à HotList. O erro ocorre porque o Main tenta acessar os detalhes de uma posição vazia da HotList durante a verificação de duplicidade.",
+          "how_to_fix": "Remova a verificação de duplicidade manual no `MainFilmNow.adicionaHot`, pois a classe `FilmNow` já possui o método `temFilmeHot` que faz isso de forma segura.",
+          "points_lost": 2.0,
+          "severity": "major",
+          "confidence": "high",
+          "rubric_anchor": "Manipulação da HotList",
+          "evidence_refs": [
+            "MainFilmNow.adicionaHot",
+            "FilmNow.getFilmeHot",
+            "FilmNow.cadastraFilme",
+            "FilmNow.getFilme",
+            "FilmNow.temFilme"
+          ]
+        },
+        {
+          "problem": "Uso do operador '==' para comparar o ano com uma string vazia ('ano == \"\"').",
+          "consequence": "Quando o ano é lido pelo Scanner, ele é um novo objeto String. A comparação com '==' falha, fazendo com que o filme seja formatado incorretamente (ex: 'Nome, \\nLocal').",
+          "how_to_fix": "Utilize o método `.equals(\"\")` ou `.isEmpty()` para comparar o conteúdo de Strings.",
+          "points_lost": 1.0,
+          "severity": "minor",
+          "confidence": "high",
+          "rubric_anchor": "Detalhamento de filme",
+          "evidence_refs": [
+            "Filme.formataFilme",
+            "FilmNow.cadastraFilme",
+            "FilmNow.getFilme",
+            "FilmNow.temFilme"
+          ]
+        }
+      ]
+    },
+    {
+      "criterion_id": "unit_tests",
+      "criterion_name": "Unit Tests",
+      "score": 9.5,
+      "max_score": 10,
+      "justification": "Excelente conjunto de testes, cobrindo a grande maioria dos cenários normais e limites para as classes Filme e FilmNow. Houve apenas um pequeno lapso com a ausência da anotação @Test em um dos métodos.",
+      "evidence_refs": [
+        "testes/filmnow/FilmeTest.java",
+        "testes/filmnow/FilmNowTest.java",
+        "FilmNowTest.testAtribuiHotDeDestinoAlem"
+      ],
+      "deductions": [
+        {
+          "problem": "O método 'testAtribuiHotDeDestinoAlem' não possui a anotação '@Test'.",
+          "consequence": "O framework JUnit não reconhece o método como um teste, e ele não é executado durante a suíte de testes.",
+          "how_to_fix": "Adicione a anotação '@Test' acima da assinatura do método.",
+          "points_lost": 0.5,
+          "severity": "minor",
+          "confidence": "high",
+          "rubric_anchor": "Cobertura de cenários",
+          "evidence_refs": [
+            "FilmNowTest.testAtribuiHotDeDestinoAlem",
+            "testes/filmnow/FilmeTest.java",
+            "testes/filmnow/FilmNowTest.java"
+          ]
+        }
+      ]
+    },
+    {
+      "criterion_id": "class_design",
+      "criterion_name": "Class Design",
+      "score": 10.0,
+      "max_score": 10,
+      "justification": "As classes principais foram bem modeladas, com atributos adequados e responsabilidades bem definidas para o escopo do laboratório.",
+      "evidence_refs": [
+        "Filme.java",
+        "FilmNow.java"
+      ],
+      "deductions": []
+    },
+    {
+      "criterion_id": "object_references",
+      "criterion_name": "Object References and Composition",
+      "score": 10.0,
+      "max_score": 10,
+      "justification": "O uso de referências e a composição entre FilmNow e Filme foram compreendidos e aplicados corretamente.",
+      "evidence_refs": [
+        "FilmNow.cadastraFilme",
+        "FilmNow.atribuiHot",
+        "FilmNow.temFilme"
+      ],
+      "deductions": []
+    },
+    {
+      "criterion_id": "collections_and_arrays",
+      "criterion_name": "Collections and Arrays",
+      "score": 8.5,
+      "max_score": 10,
+      "justification": "As estruturas de array foram bem utilizadas para armazenar os filmes, mas há falhas na verificação dos limites do array da HotList, permitindo acessos indevidos.",
+      "evidence_refs": [
+        "FilmNow.FilmNow()",
+        "FilmNow.getFilmes",
+        "FilmNow.atribuiHot",
+        "FilmNow.retiraHot"
+      ],
+      "deductions": [
+        {
+          "problem": "Validação incorreta dos limites do array da HotList.",
+          "consequence": "No método 'atribuiHot', a verificação permite posições até 100 para a HotList (que tem tamanho 10). No método 'retiraHot', o acesso ao array ocorre antes da verificação de limites. Ambos podem causar ArrayIndexOutOfBoundsException.",
+          "how_to_fix": "Corrija a condição em 'atribuiHot' para verificar se 'posicaoListaHot > 10'. Em 'retiraHot', faça a verificação dos limites da posição antes de tentar acessar 'hotList[posicaoListaHot - 1]'.",
+          "points_lost": 1.5,
+          "severity": "moderate",
+          "confidence": "high",
+          "rubric_anchor": "Uso de array/coleções",
+          "evidence_refs": [
+            "FilmNow.atribuiHot",
+            "FilmNow.retiraHot",
+            "FilmNow.FilmNow()",
+            "FilmNow.getFilmes"
+          ]
+        }
+      ]
+    },
+    {
+      "criterion_id": "separation_of_concerns",
+      "criterion_name": "Separation of Concerns",
+      "score": 8.5,
+      "max_score": 10,
+      "justification": "A separação de responsabilidades é boa na maior parte do sistema, mas a classe MainFilmNow assumiu indevidamente lógicas de validação de domínio que já existiam no FilmNow.",
+      "evidence_refs": [
+        "MainFilmNow.java",
+        "FilmNow.java",
+        "MainFilmNow.adicionaHot"
+      ],
+      "deductions": [
+        {
+          "problem": "Vazamento de regra de negócio para a classe Main.",
+          "consequence": "O método 'adicionaHot' no Main tenta verificar manualmente se o filme já está na HotList, duplicando uma responsabilidade que pertence ao FilmNow (e causando um bug no processo).",
+          "how_to_fix": "Remova a lógica de iteração e verificação de duplicidade do MainFilmNow e confie apenas no retorno do método 'atribuiHot' da classe FilmNow.",
+          "points_lost": 1.5,
+          "severity": "moderate",
+          "confidence": "high",
+          "rubric_anchor": "Divisão de funcionalidades",
+          "evidence_refs": [
+            "MainFilmNow.adicionaHot",
+            "MainFilmNow.java",
+            "FilmNow.java"
+          ]
+        }
+      ]
+    },
+    {
+      "criterion_id": "readability_and_documentation",
+      "criterion_name": "Readability and Documentation",
+      "score": 10.0,
+      "max_score": 10,
+      "justification": "O código apresenta excelente legibilidade, com nomes de variáveis claros e Javadoc abrangente em quase todos os métodos, incluindo os testes.",
+      "evidence_refs": [
+        "Filme.java",
+        "FilmNow.java",
+        "MainFilmNow.java"
+      ],
+      "deductions": []
+    }
+  ],
+  "total_score": 8.95,
+  "total_max_score": 10.0
+}

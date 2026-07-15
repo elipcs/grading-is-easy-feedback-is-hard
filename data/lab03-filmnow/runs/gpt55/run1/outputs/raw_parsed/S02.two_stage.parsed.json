@@ -1,0 +1,457 @@
+{
+  "submission_id": "S02",
+  "stage1_parsed": {
+    "criteria": [
+      {
+        "criterion_id": "basic_functionality",
+        "criterion_name": "Funcionalidade b\u00e1sica",
+        "score": 8.5,
+        "max_score": 10,
+        "justification": "A maior parte do fluxo funcional foi implementada: cadastro com valida\u00e7\u00f5es principais, detalhamento, listagem pela interface e opera\u00e7\u00f5es de HotList. As perdas v\u00eam de falhas localizadas, principalmente no retorno de posi\u00e7\u00e3o vazia em detalhamento, na aus\u00eancia de uma opera\u00e7\u00e3o clara de listagem em FilmNow e em uma verifica\u00e7\u00e3o de duplicidade baseada em strings formatadas que falha em caso com ano vazio.",
+        "success_evidence": [
+          "O cadastro valida posi\u00e7\u00f5es fora de 1 a 100, nome vazio e local vazio, permite ano vazio e substitui a posi\u00e7\u00e3o informada quando o novo filme n\u00e3o \u00e9 duplicado.",
+          "O detalhamento retorna nome/ano e local, e adiciona o marcador de fogo quando o filme est\u00e1 na HotList.",
+          "A HotList possui opera\u00e7\u00f5es para adicionar, exibir e remover, com limite de 10 posi\u00e7\u00f5es e preven\u00e7\u00e3o de filme repetido.",
+          "A interface principal inclui as op\u00e7\u00f5es adicionais de HotList e chama os m\u00e9todos correspondentes do sistema."
+        ],
+        "evidence_refs": [
+          "src/filmnow/FilmNow.java: cadastraFilme(int, String, String, String)",
+          "src/filmnow/FilmNow.java: detalhaFilme(int)",
+          "src/filmnow/FilmNow.java: atribuirHot(int, int), removerHot(int), exibirHot()",
+          "src/filmnow/MainFilmNow.java: comando(String, FilmNow, Scanner), mostrarFilmes(FilmNow)"
+        ],
+        "non_penalized_observations": [
+          "Diferen\u00e7as de acentua\u00e7\u00e3o e caixa em mensagens como \"POSICAO INVALIDA\" versus \"POSI\u00c7\u00c3O INV\u00c1LIDA\" n\u00e3o foram tratadas como perda funcional relevante.",
+          "O uso de String para o ano \u00e9 aceit\u00e1vel pela especifica\u00e7\u00e3o."
+        ],
+        "deductions": [
+          {
+            "points_lost": 0.7,
+            "severity": "minor",
+            "confidence": "high",
+            "rubric_anchor": "Detalhar Filme deve retornar vazio quando a posi\u00e7\u00e3o v\u00e1lida n\u00e3o cont\u00e9m filme",
+            "problem": "Quando a posi\u00e7\u00e3o \u00e9 v\u00e1lida, mas n\u00e3o h\u00e1 filme cadastrado, detalhaFilme retorna null; na interface, detalharFilme imprime diretamente esse retorno com println, o que exibiria \"null\" ao usu\u00e1rio.",
+            "consequence": "O comportamento observado pela interface n\u00e3o corresponde ao requisito de n\u00e3o exibir nada para posi\u00e7\u00e3o vazia.",
+            "how_to_fix": "Retornar string vazia em FilmNow.detalhaFilme para posi\u00e7\u00e3o v\u00e1lida sem filme, ou tratar null no Main antes de imprimir.",
+            "evidence_refs": [
+              "src/filmnow/FilmNow.java: detalhaFilme(int)",
+              "src/filmnow/MainFilmNow.java: detalharFilme(FilmNow, Scanner)"
+            ]
+          },
+          {
+            "points_lost": 0.5,
+            "severity": "minor",
+            "confidence": "high",
+            "rubric_anchor": "Mostrar Filmes",
+            "problem": "A listagem de todos os filmes n\u00e3o existe como opera\u00e7\u00e3o pr\u00f3pria de FilmNow; ela \u00e9 feita apenas no Main por parsing da string armazenada.",
+            "consequence": "A funcionalidade existe para a interface, mas fica menos test\u00e1vel e menos robusta como comportamento do sistema FilmNow.",
+            "how_to_fix": "Criar em FilmNow um m\u00e9todo de listagem que retorne a representa\u00e7\u00e3o dos filmes cadastrados, deixando o Main apenas imprimir o resultado.",
+            "evidence_refs": [
+              "src/filmnow/MainFilmNow.java: mostrarFilmes(FilmNow)",
+              "src/filmnow/FilmNow.java: aus\u00eancia de m\u00e9todo p\u00fablico espec\u00edfico para listar todos os filmes"
+            ]
+          },
+          {
+            "points_lost": 0.3,
+            "severity": "minor",
+            "confidence": "medium",
+            "rubric_anchor": "Adicionar Filme deve impedir filme j\u00e1 cadastrado por nome e ano",
+            "problem": "A verifica\u00e7\u00e3o de duplicidade compara strings formatadas no padr\u00e3o \"nome, ano\"; para filmes com ano vazio, o toString de Filme omite a v\u00edrgula e a compara\u00e7\u00e3o deixa de detectar duplicidade.",
+            "consequence": "Dois filmes com mesmo nome e ano vazio podem ser aceitos em posi\u00e7\u00f5es diferentes, contrariando a regra de igualdade por nome e ano.",
+            "how_to_fix": "Armazenar objetos Filme e comparar com equals, ou comparar nome e ano como dados estruturados em vez de strings formatadas.",
+            "evidence_refs": [
+              "src/filmnow/Filme.java: confereExistencia(FilmNow, String, String)",
+              "src/filmnow/Filme.java: getNomeAno()",
+              "src/filmnow/FilmNow.java: cadastraFilme(int, String, String, String)"
+            ]
+          }
+        ]
+      },
+      {
+        "criterion_id": "unit_tests",
+        "criterion_name": "Testes de unidade",
+        "score": 8,
+        "max_score": 10,
+        "justification": "H\u00e1 uma su\u00edte ampla para Filme e FilmNow, cobrindo cadastro, limites, duplicidade, detalhamento e HotList. A nota n\u00e3o \u00e9 m\u00e1xima porque faltam alguns casos relevantes de listagem/sobrescrita e porque h\u00e1 testes extras com fail expl\u00edcito, que quebrariam a execu\u00e7\u00e3o completa da su\u00edte se fossem inclu\u00eddos.",
+        "success_evidence": [
+          "FilmeTest cobre nome/ano, toString, getters, valida\u00e7\u00e3o de nome/local e equals com mesmo nome/ano e filmes diferentes.",
+          "FilmNowTest cobre cadastro em posi\u00e7\u00e3o v\u00e1lida, posi\u00e7\u00f5es 0/100/101, filme repetido, local/nome vazios, ano vazio, detalhamento e posi\u00e7\u00e3o inv\u00e1lida.",
+          "FilmNowTest cobre HotList: adicionar, duplicidade, posi\u00e7\u00f5es inv\u00e1lidas, remover e exibir lista vazia ou com filmes.",
+          "Os testes usam @BeforeEach para independ\u00eancia em FilmNowTest e FilmeTest."
+        ],
+        "evidence_refs": [
+          "filmnow/filmnow/FilmeTest.java",
+          "filmnow/filmnow/FilmNowTest.java",
+          "filmnow/filmnow/LeitorFilmNowTest.java",
+          "filmnow/filmnow/MainFilmNowTest.java"
+        ],
+        "non_penalized_observations": [
+          "N\u00e3o foi exigido testar MainFilmNow nem LeitorFilmNow; a penaliza\u00e7\u00e3o ocorre apenas porque os arquivos extras cont\u00eam falhas expl\u00edcitas, n\u00e3o por aus\u00eancia de testes dessas classes.",
+          "Pequenos erros de digita\u00e7\u00e3o em nomes de filmes dentro dos testes n\u00e3o prejudicam por si s\u00f3 a inten\u00e7\u00e3o dos casos."
+        ],
+        "deductions": [
+          {
+            "points_lost": 1,
+            "severity": "moderate",
+            "confidence": "high",
+            "rubric_anchor": "Testes de Filme e FilmNow devem cobrir funcionalidades principais e limites",
+            "problem": "A cobertura \u00e9 incompleta em alguns pontos: n\u00e3o h\u00e1 teste direto para a funcionalidade de mostrar todos/listagem completa, o teste de sobrescrita n\u00e3o verifica claramente o estado final da posi\u00e7\u00e3o substitu\u00edda, e FilmeTest n\u00e3o cobre a exibi\u00e7\u00e3o/toString sem ano.",
+            "consequence": "Algumas regress\u00f5es relevantes poderiam passar despercebidas, especialmente na listagem e em formatos alternativos de exibi\u00e7\u00e3o.",
+            "how_to_fix": "Adicionar testes para listagem vazia e com m\u00faltiplos filmes, verificar getFilme ap\u00f3s sobrescrita, e testar Filme com ano vazio em getNomeAno/toString.",
+            "evidence_refs": [
+              "filmnow/filmnow/FilmNowTest.java: testCadastraFilmeEmPosicaoOcupada()",
+              "filmnow/filmnow/FilmNowTest.java: aus\u00eancia de teste de mostrar todos",
+              "filmnow/filmnow/FilmeTest.java: aus\u00eancia de caso com ano vazio"
+            ]
+          },
+          {
+            "points_lost": 1,
+            "severity": "moderate",
+            "confidence": "high",
+            "rubric_anchor": "Testes devem ser execut\u00e1veis e confi\u00e1veis",
+            "problem": "H\u00e1 testes extras para LeitorFilmNow e MainFilmNow contendo fail(\"Not yet implemented\").",
+            "consequence": "A execu\u00e7\u00e3o completa da su\u00edte JUnit falharia, mesmo que os testes principais de Filme e FilmNow passem.",
+            "how_to_fix": "Remover esses testes placeholders ou substitu\u00ed-los por testes reais; como essas classes n\u00e3o eram exigidas para teste, tamb\u00e9m seria aceit\u00e1vel n\u00e3o inclu\u00ed-los.",
+            "evidence_refs": [
+              "filmnow/filmnow/LeitorFilmNowTest.java: test()",
+              "filmnow/filmnow/MainFilmNowTest.java: test()"
+            ]
+          }
+        ]
+      },
+      {
+        "criterion_id": "class_design",
+        "criterion_name": "Cria\u00e7\u00e3o e modelagem de classes",
+        "score": 7,
+        "max_score": 10,
+        "justification": "A classe Filme foi criada com atributos, m\u00e9todos de exibi\u00e7\u00e3o e equals/hashCode, e h\u00e1 uma classe FilmNow e uma Main modularizada. A principal perda \u00e9 que FilmNow n\u00e3o \u00e9 modelada como composi\u00e7\u00e3o real com Filme: os filmes s\u00e3o armazenados como String, e o objeto Filme \u00e9 criado apenas temporariamente no cadastro.",
+        "success_evidence": [
+          "Existe uma classe Filme com nome, ano, local, getters, toString, getNomeAno e equals baseado em nome e ano.",
+          "Existe uma classe FilmNow respons\u00e1vel por cadastro, detalhamento e HotList.",
+          "Existe uma classe MainFilmNow com main e m\u00e9todos auxiliares para as op\u00e7\u00f5es do menu.",
+          "A classe Filme implementa hashCode junto com equals, o que \u00e9 coerente com o contrato de igualdade em Java."
+        ],
+        "evidence_refs": [
+          "src/filmnow/Filme.java",
+          "src/filmnow/FilmNow.java",
+          "src/filmnow/MainFilmNow.java"
+        ],
+        "non_penalized_observations": [
+          "A escolha de representar ano como String \u00e9 compat\u00edvel com o enunciado e com os casos de ano vazio.",
+          "A exist\u00eancia de m\u00e9todos auxiliares no MainFilmNow \u00e9 adequada para evitar um main monol\u00edtico."
+        ],
+        "deductions": [
+          {
+            "points_lost": 3,
+            "severity": "major",
+            "confidence": "high",
+            "rubric_anchor": "FilmNow deve ter composi\u00e7\u00e3o com Filme",
+            "problem": "FilmNow armazena os filmes em String[] e a HotList tamb\u00e9m em String[]; o objeto Filme \u00e9 criado em cadastraFilme apenas para gerar toString e depois \u00e9 descartado.",
+            "consequence": "A modelagem central esperada do laborat\u00f3rio, FilmNow composto por objetos Filme, n\u00e3o \u00e9 efetivamente realizada, apesar da classe Filme existir.",
+            "how_to_fix": "Alterar FilmNow para manter Filme[] filmes e Filme[] hotlist, usando os m\u00e9todos de Filme para igualdade e exibi\u00e7\u00e3o em vez de armazenar strings formatadas.",
+            "evidence_refs": [
+              "src/filmnow/FilmNow.java: atributo filmes",
+              "src/filmnow/FilmNow.java: atributo hotlist",
+              "src/filmnow/FilmNow.java: cadastraFilme(int, String, String, String)"
+            ]
+          }
+        ]
+      },
+      {
+        "criterion_id": "object_references",
+        "criterion_name": "Refer\u00eancias de objetos e composi\u00e7\u00e3o",
+        "score": 5.5,
+        "max_score": 10,
+        "justification": "O c\u00f3digo cria objetos FilmNow e Filme, mas n\u00e3o mant\u00e9m refer\u00eancias de Filme dentro do sistema, o que compromete a composi\u00e7\u00e3o. Al\u00e9m disso, h\u00e1 uso de m\u00e9todos est\u00e1ticos em Filme para regras que dependem de FilmNow, aumentando o acoplamento e fugindo do uso esperado de refer\u00eancias de objetos.",
+        "success_evidence": [
+          "MainFilmNow instancia FilmNow para operar o sistema.",
+          "FilmNow instancia Filme ao cadastrar um filme.",
+          "A classe Filme possui equals para permitir compara\u00e7\u00e3o por nome e ano, ainda que esse mecanismo n\u00e3o seja aproveitado pelo armazenamento principal."
+        ],
+        "evidence_refs": [
+          "src/filmnow/MainFilmNow.java: main(String[])",
+          "src/filmnow/FilmNow.java: cadastraFilme(int, String, String, String)",
+          "src/filmnow/Filme.java: equals(Object)",
+          "src/filmnow/Filme.java: confereExistencia(FilmNow, String, String)"
+        ],
+        "non_penalized_observations": [
+          "M\u00e9todos est\u00e1ticos no MainFilmNow para organizar a interface s\u00e3o aceit\u00e1veis neste laborat\u00f3rio.",
+          "Constantes est\u00e1ticas para tamanhos e colunas n\u00e3o s\u00e3o problem\u00e1ticas."
+        ],
+        "deductions": [
+          {
+            "points_lost": 3,
+            "severity": "major",
+            "confidence": "high",
+            "rubric_anchor": "Uso de refer\u00eancias entre FilmNow e Filme",
+            "problem": "As refer\u00eancias para objetos Filme n\u00e3o s\u00e3o preservadas; FilmNow guarda apenas a representa\u00e7\u00e3o textual do filme.",
+            "consequence": "O sistema perde o benef\u00edcio pedag\u00f3gico de composi\u00e7\u00e3o e delega\u00e7\u00e3o, e precisa manipular strings para recuperar dados que deveriam estar nos objetos.",
+            "how_to_fix": "Declarar os arrays como Filme[] e guardar diretamente os objetos Filme criados no cadastro e na HotList.",
+            "evidence_refs": [
+              "src/filmnow/FilmNow.java: private String[] filmes",
+              "src/filmnow/FilmNow.java: private String[] hotlist",
+              "src/filmnow/FilmNow.java: filmes[posicao - 1] = filme.toString()"
+            ]
+          },
+          {
+            "points_lost": 1.5,
+            "severity": "moderate",
+            "confidence": "high",
+            "rubric_anchor": "Uso de static apenas no main ou em constantes",
+            "problem": "Filme cont\u00e9m m\u00e9todos est\u00e1ticos de valida\u00e7\u00e3o e, principalmente, confereExistencia recebe um FilmNow e percorre seus filmes, colocando uma regra do sistema dentro da entidade Filme.",
+            "consequence": "Isso cria acoplamento indevido de Filme para FilmNow e reduz a clareza sobre quem gerencia a cole\u00e7\u00e3o de filmes.",
+            "how_to_fix": "Mover a verifica\u00e7\u00e3o de exist\u00eancia para FilmNow e usar inst\u00e2ncias de Filme com equals para comparar os filmes cadastrados.",
+            "evidence_refs": [
+              "src/filmnow/Filme.java: entradasValidasNome(String)",
+              "src/filmnow/Filme.java: entradasValidasLocal(String)",
+              "src/filmnow/Filme.java: confereExistencia(FilmNow, String, String)"
+            ]
+          }
+        ]
+      },
+      {
+        "criterion_id": "collections_and_arrays",
+        "criterion_name": "Cole\u00e7\u00f5es e arrays",
+        "score": 10,
+        "max_score": 10,
+        "justification": "As estruturas de armazenamento respeitam os limites exigidos: 100 posi\u00e7\u00f5es para filmes e 10 para HotList, com convers\u00e3o correta entre posi\u00e7\u00f5es de usu\u00e1rio come\u00e7ando em 1 e \u00edndices de array come\u00e7ando em 0. N\u00e3o h\u00e1 penaliza\u00e7\u00e3o aqui pelo tipo armazenado, pois a quest\u00e3o de composi\u00e7\u00e3o j\u00e1 foi avaliada nos crit\u00e9rios de design e refer\u00eancias.",
+        "success_evidence": [
+          "FilmNow cria um array de tamanho 100 para a lista principal de filmes.",
+          "FilmNow cria um array de tamanho 10 para a HotList.",
+          "Os m\u00e9todos de cadastro, detalhamento e HotList validam os limites das posi\u00e7\u00f5es antes de acessar os arrays.",
+          "Os m\u00e9todos getFilmes e getHotList retornam clones, evitando exposi\u00e7\u00e3o direta dos arrays internos."
+        ],
+        "evidence_refs": [
+          "src/filmnow/FilmNow.java: TAMANHO",
+          "src/filmnow/FilmNow.java: construtor FilmNow()",
+          "src/filmnow/FilmNow.java: cadastraFilme(int, String, String, String)",
+          "src/filmnow/FilmNow.java: atribuirHot(int, int)",
+          "src/filmnow/FilmNow.java: getFilmes(), getHotList()"
+        ],
+        "non_penalized_observations": [
+          "Ignorar o \u00edndice 0 n\u00e3o ocorre; o c\u00f3digo converte posi\u00e7\u00f5es 1..100 para \u00edndices 0..99.",
+          "O uso de arrays, em vez de cole\u00e7\u00f5es de Java, \u00e9 compat\u00edvel com o caminho esperado do laborat\u00f3rio."
+        ],
+        "deductions": []
+      },
+      {
+        "criterion_id": "separation_of_concerns",
+        "criterion_name": "Divis\u00e3o de responsabilidades",
+        "score": 7,
+        "max_score": 10,
+        "justification": "H\u00e1 separa\u00e7\u00e3o razo\u00e1vel entre interface e sistema: MainFilmNow faz entrada/sa\u00edda e FilmNow concentra a maior parte das regras. Por\u00e9m, a listagem \u00e9 montada no Main por parsing de strings, e Filme cont\u00e9m uma verifica\u00e7\u00e3o est\u00e1tica de exist\u00eancia que depende de FilmNow, misturando responsabilidades.",
+        "success_evidence": [
+          "MainFilmNow concentra a intera\u00e7\u00e3o com Scanner e impress\u00e3o no console.",
+          "FilmNow concentra cadastro, detalhamento, atribui\u00e7\u00e3o/removal da HotList e exibi\u00e7\u00e3o da HotList.",
+          "Filme define representa\u00e7\u00f5es textuais como toString e getNomeAno.",
+          "O menu foi dividido em m\u00e9todos auxiliares, como comando, adicionaFilme, detalharFilme, atribuirHot e removerHot."
+        ],
+        "evidence_refs": [
+          "src/filmnow/MainFilmNow.java",
+          "src/filmnow/FilmNow.java",
+          "src/filmnow/Filme.java"
+        ],
+        "non_penalized_observations": [
+          "N\u00e3o era obrigat\u00f3rio criar uma classe Menu separada; manter m\u00e9todos est\u00e1ticos privados no Main \u00e9 aceit\u00e1vel.",
+          "O leitor CSV permanecer separado da l\u00f3gica principal \u00e9 compat\u00edvel com a estrutura do laborat\u00f3rio."
+        ],
+        "deductions": [
+          {
+            "points_lost": 1.5,
+            "severity": "moderate",
+            "confidence": "high",
+            "rubric_anchor": "Main deve ficar respons\u00e1vel por entrada e sa\u00edda, n\u00e3o por regras/representa\u00e7\u00e3o do dom\u00ednio",
+            "problem": "MainFilmNow.mostrarFilmes percorre o array e extrai o nome com split(\",\"), assumindo o formato interno das strings armazenadas.",
+            "consequence": "A interface passa a depender da representa\u00e7\u00e3o interna dos filmes, em vez de apenas imprimir um resultado preparado pelo dom\u00ednio.",
+            "how_to_fix": "Mover a gera\u00e7\u00e3o da listagem para FilmNow e/ou Filme, deixando Main apenas chamar o m\u00e9todo e imprimir a string retornada.",
+            "evidence_refs": [
+              "src/filmnow/MainFilmNow.java: mostrarFilmes(FilmNow)"
+            ]
+          },
+          {
+            "points_lost": 1.5,
+            "severity": "moderate",
+            "confidence": "high",
+            "rubric_anchor": "FilmNow deve gerenciar filmes; Filme deve representar um filme",
+            "problem": "Filme.confereExistencia recebe uma inst\u00e2ncia de FilmNow e percorre a cole\u00e7\u00e3o de filmes do sistema, embora essa seja uma regra de gerenciamento da classe FilmNow.",
+            "consequence": "A entidade Filme passa a conhecer o sistema que a cont\u00e9m, invertendo a dire\u00e7\u00e3o natural da depend\u00eancia em uma composi\u00e7\u00e3o.",
+            "how_to_fix": "Implementar a busca por filme repetido dentro de FilmNow e usar Filme.equals para comparar cada Filme armazenado.",
+            "evidence_refs": [
+              "src/filmnow/Filme.java: confereExistencia(FilmNow, String, String)",
+              "src/filmnow/FilmNow.java: cadastraFilme(int, String, String, String)"
+            ]
+          }
+        ]
+      },
+      {
+        "criterion_id": "readability_and_documentation",
+        "criterion_name": "Legibilidade e documenta\u00e7\u00e3o",
+        "score": 8,
+        "max_score": 10,
+        "justification": "O c\u00f3digo \u00e9 geralmente leg\u00edvel, com nomes compreens\u00edveis e Javadocs em quase todos os m\u00e9todos p\u00fablicos. A perda decorre de inconsist\u00eancias e duplica\u00e7\u00f5es na API de Filme e do uso frequente de strings formatadas e split, que tornam o c\u00f3digo mais fr\u00e1gil e menos claro do que uma solu\u00e7\u00e3o com objetos Filme armazenados.",
+        "success_evidence": [
+          "As classes e m\u00e9todos principais t\u00eam nomes compreens\u00edveis para o dom\u00ednio do problema.",
+          "H\u00e1 documenta\u00e7\u00e3o Javadoc nas classes e na maioria dos m\u00e9todos p\u00fablicos.",
+          "A organiza\u00e7\u00e3o em arquivos separados facilita localizar a interface, o sistema e a entidade Filme.",
+          "Os m\u00e9todos do MainFilmNow est\u00e3o divididos por comandos do menu, melhorando a leitura."
+        ],
+        "evidence_refs": [
+          "src/filmnow/Filme.java",
+          "src/filmnow/FilmNow.java",
+          "src/filmnow/MainFilmNow.java",
+          "src/filmnow/LeitorFilmNow.java"
+        ],
+        "non_penalized_observations": [
+          "Coment\u00e1rios e mensagens em portugu\u00eas s\u00e3o adequados ao contexto da disciplina.",
+          "Diferen\u00e7as de acento em mensagens de retorno n\u00e3o foram tratadas como problema de legibilidade relevante."
+        ],
+        "deductions": [
+          {
+            "points_lost": 1,
+            "severity": "minor",
+            "confidence": "high",
+            "rubric_anchor": "C\u00f3digo claro e organizado",
+            "problem": "Filme possui m\u00e9todos muito semelhantes, como nomeAno e getNomeAno, com comportamentos diferentes apenas no caso de ano vazio.",
+            "consequence": "A API fica redundante e pode confundir qual representa\u00e7\u00e3o deve ser usada em cada funcionalidade.",
+            "how_to_fix": "Manter um \u00fanico m\u00e9todo de representa\u00e7\u00e3o resumida bem definido, ou documentar claramente a diferen\u00e7a e usar apenas o necess\u00e1rio.",
+            "evidence_refs": [
+              "src/filmnow/Filme.java: nomeAno()",
+              "src/filmnow/Filme.java: getNomeAno()"
+            ]
+          },
+          {
+            "points_lost": 1,
+            "severity": "minor",
+            "confidence": "high",
+            "rubric_anchor": "Documenta\u00e7\u00e3o e implementa\u00e7\u00e3o devem apoiar compreens\u00e3o al\u00e9m do nome do c\u00f3digo",
+            "problem": "A implementa\u00e7\u00e3o usa v\u00e1rias opera\u00e7\u00f5es de split sobre strings formatadas para recuperar nome e ano, e h\u00e1 coment\u00e1rio indicando uma \"representa\u00e7\u00e3o simploria\" da lista de filmes.",
+            "consequence": "Embora compreens\u00edvel, o c\u00f3digo fica menos autoexplicativo e mais sujeito a erros quando o formato textual muda.",
+            "how_to_fix": "Armazenar dados estruturados em objetos Filme e usar m\u00e9todos de Filme para obter nome, ano e representa\u00e7\u00f5es textuais, reduzindo parsing manual.",
+            "evidence_refs": [
+              "src/filmnow/FilmNow.java: atributo filmes e m\u00e9todos exibirHot()/detalhaFilme(int)",
+              "src/filmnow/MainFilmNow.java: mostrarFilmes(FilmNow)"
+            ]
+          }
+        ]
+      }
+    ],
+    "reviewer_audit": {
+      "requires_human_review": false,
+      "grading_basis": "A avalia\u00e7\u00e3o foi baseada em leitura est\u00e1tica dos arquivos fonte e dos testes submetidos. N\u00e3o houve execu\u00e7\u00e3o real de build ou su\u00edte JUnit, mas os problemas apontados t\u00eam evid\u00eancia direta no c\u00f3digo.",
+      "main_uncertainties": [
+        "Sem execu\u00e7\u00e3o, n\u00e3o foi verificado se o ambiente de testes compila todos os arquivos exatamente como apresentados.",
+        "A rubrica n\u00e3o exige explicitamente que a listagem esteja em FilmNow, ent\u00e3o a dedu\u00e7\u00e3o funcional por listagem foi mantida pequena e a principal penaliza\u00e7\u00e3o foi colocada em separa\u00e7\u00e3o de responsabilidades."
+      ],
+      "potential_false_positive_risks": [
+        "Se o avaliador oficial desconsiderar completamente testes extras de MainFilmNow e LeitorFilmNow, a penaliza\u00e7\u00e3o por fail expl\u00edcito nos testes pode ser mais severa do que o necess\u00e1rio.",
+        "Se a corre\u00e7\u00e3o aceitar null como equivalente a retorno vazio em detalhar posi\u00e7\u00e3o sem filme, a dedu\u00e7\u00e3o funcional correspondente pode ser reduzida."
+      ]
+    },
+    "confidence": "high"
+  },
+  "stage2_parsed": {
+    "feedback_items": [
+      {
+        "criterion_id": "class_design",
+        "criterion_name": "Cria\u00e7\u00e3o e modelagem de classes",
+        "severity": "major",
+        "confidence": "high",
+        "problem": "A classe FilmNow armazena filmes e HotList como String[], e o objeto Filme criado no cadastro \u00e9 usado apenas para gerar texto e depois \u00e9 descartado.",
+        "consequence": "A composi\u00e7\u00e3o esperada do laborat\u00f3rio, isto \u00e9, FilmNow guardar e manipular objetos Filme, n\u00e3o acontece de fato; com isso, o sistema perde a vantagem de usar objetos para representar os dados do dom\u00ednio.",
+        "how_to_fix": "Alterar FilmNow para manter Filme[] filmes e Filme[] hotlist, salvando diretamente os objetos Filme e usando os m\u00e9todos de Filme para exibi\u00e7\u00e3o e compara\u00e7\u00e3o.",
+        "evidence_refs": [
+          "src/filmnow/FilmNow.java: atributo filmes",
+          "src/filmnow/FilmNow.java: atributo hotlist",
+          "src/filmnow/FilmNow.java: cadastraFilme(int, String, String, String)"
+        ]
+      },
+      {
+        "criterion_id": "object_references",
+        "criterion_name": "Refer\u00eancias de objetos e composi\u00e7\u00e3o",
+        "severity": "moderate",
+        "confidence": "high",
+        "problem": "Filme.confereExistencia \u00e9 um m\u00e9todo est\u00e1tico que recebe um FilmNow e percorre a cole\u00e7\u00e3o de filmes do sistema.",
+        "consequence": "Isso aumenta o acoplamento, ou seja, faz Filme depender demais de FilmNow, quando a responsabilidade de gerenciar a cole\u00e7\u00e3o deveria ficar em FilmNow.",
+        "how_to_fix": "Mover a verifica\u00e7\u00e3o de filme repetido para FilmNow e comparar objetos Filme com equals.",
+        "evidence_refs": [
+          "src/filmnow/Filme.java: confereExistencia(FilmNow, String, String)",
+          "src/filmnow/FilmNow.java: cadastraFilme(int, String, String, String)"
+        ]
+      },
+      {
+        "criterion_id": "separation_of_concerns",
+        "criterion_name": "Divis\u00e3o de responsabilidades",
+        "severity": "moderate",
+        "confidence": "high",
+        "problem": "MainFilmNow.mostrarFilmes percorre o array retornado por FilmNow e usa split(\",\") para extrair o nome do filme.",
+        "consequence": "A interface passa a depender do formato interno das strings dos filmes, em vez de apenas pedir ao sistema uma listagem pronta para imprimir.",
+        "how_to_fix": "Criar em FilmNow um m\u00e9todo de listagem dos filmes cadastrados e deixar MainFilmNow apenas chamar esse m\u00e9todo e imprimir o retorno.",
+        "evidence_refs": [
+          "src/filmnow/MainFilmNow.java: mostrarFilmes(FilmNow)",
+          "src/filmnow/FilmNow.java: aus\u00eancia de m\u00e9todo p\u00fablico espec\u00edfico para listar todos os filmes"
+        ]
+      },
+      {
+        "criterion_id": "basic_functionality",
+        "criterion_name": "Funcionalidade b\u00e1sica",
+        "severity": "minor",
+        "confidence": "high",
+        "problem": "Quando a posi\u00e7\u00e3o \u00e9 v\u00e1lida, mas n\u00e3o cont\u00e9m filme, detalhaFilme retorna null; na interface, esse retorno \u00e9 impresso diretamente.",
+        "consequence": "O usu\u00e1rio veria \"null\" na tela, quando o comportamento esperado era n\u00e3o exibir nada para uma posi\u00e7\u00e3o vazia.",
+        "how_to_fix": "Retornar string vazia em FilmNow.detalhaFilme para posi\u00e7\u00e3o v\u00e1lida sem filme, ou tratar null no Main antes de imprimir.",
+        "evidence_refs": [
+          "src/filmnow/FilmNow.java: detalhaFilme(int)",
+          "src/filmnow/MainFilmNow.java: detalharFilme(FilmNow, Scanner)"
+        ]
+      },
+      {
+        "criterion_id": "unit_tests",
+        "criterion_name": "Testes de unidade",
+        "severity": "moderate",
+        "confidence": "high",
+        "problem": "H\u00e1 testes extras em LeitorFilmNowTest e MainFilmNowTest com fail(\"Not yet implemented\").",
+        "consequence": "Se a su\u00edte JUnit inteira for executada, esses testes falham mesmo que os testes principais de Filme e FilmNow estejam corretos.",
+        "how_to_fix": "Remover esses testes incompletos ou substitu\u00ed-los por testes reais; como essas classes n\u00e3o eram obrigat\u00f3rias nos testes, tamb\u00e9m seria aceit\u00e1vel n\u00e3o incluir esses arquivos.",
+        "evidence_refs": [
+          "filmnow/filmnow/LeitorFilmNowTest.java: test()",
+          "filmnow/filmnow/MainFilmNowTest.java: test()"
+        ]
+      },
+      {
+        "criterion_id": "unit_tests",
+        "criterion_name": "Testes de unidade",
+        "severity": "moderate",
+        "confidence": "high",
+        "problem": "A su\u00edte de testes cobre muitos casos, mas ainda faltam alguns pontos importantes: listagem completa, verifica\u00e7\u00e3o clara do estado ap\u00f3s sobrescrita e Filme com ano vazio em getNomeAno/toString.",
+        "consequence": "Algumas regress\u00f5es relevantes poderiam passar despercebidas, principalmente nos formatos de exibi\u00e7\u00e3o e na substitui\u00e7\u00e3o de filmes em uma posi\u00e7\u00e3o j\u00e1 ocupada.",
+        "how_to_fix": "Adicionar testes para listagem vazia e com m\u00faltiplos filmes, conferir getFilme ap\u00f3s sobrescrever uma posi\u00e7\u00e3o e testar Filme com ano vazio.",
+        "evidence_refs": [
+          "filmnow/filmnow/FilmNowTest.java: testCadastraFilmeEmPosicaoOcupada()",
+          "filmnow/filmnow/FilmNowTest.java: aus\u00eancia de teste de mostrar todos",
+          "filmnow/filmnow/FilmeTest.java: aus\u00eancia de caso com ano vazio"
+        ]
+      }
+    ],
+    "student_feedback": "[src/filmnow/Filme.java, src/filmnow/FilmNow.java e src/filmnow/MainFilmNow.java] Ponto positivo: a solu\u00e7\u00e3o j\u00e1 separa entidade, sistema e interface, e implementa boa parte do cadastro, detalhamento e HotList; isso mostra entendimento do fluxo principal do laborat\u00f3rio.\n[src/filmnow/FilmNow.java] Problema: FilmNow guarda filmes e HotList como String[], e n\u00e3o como objetos Filme. Consequ\u00eancia: a composi\u00e7\u00e3o, isto \u00e9, uma classe guardar refer\u00eancias para objetos de outra, fica prejudicada. Como consertar: usar Filme[] para filmes e HotList, armazenando diretamente os objetos Filme.\n[src/filmnow/Filme.java: confereExistencia] Problema: Filme recebe um FilmNow e percorre os filmes do sistema. Consequ\u00eancia: Filme passa a conhecer o sistema que deveria apenas cont\u00ea-lo, aumentando o acoplamento entre classes. Como consertar: mover essa busca para FilmNow e usar equals de Filme para comparar.\n[src/filmnow/MainFilmNow.java: mostrarFilmes] Problema: a interface monta a listagem usando split sobre a string interna do filme. Consequ\u00eancia: o Main depende do formato textual usado por FilmNow, o que deixa a solu\u00e7\u00e3o menos robusta. Como consertar: criar um m\u00e9todo de listagem em FilmNow e deixar o Main apenas imprimir o retorno.\n[src/filmnow/FilmNow.java: detalhaFilme; src/filmnow/MainFilmNow.java: detalharFilme] Problema: posi\u00e7\u00e3o v\u00e1lida sem filme retorna null e o Main imprime esse valor. Consequ\u00eancia: o usu\u00e1rio pode ver \"null\" em vez de uma sa\u00edda vazia. Como consertar: retornar \"\" nesse caso ou tratar null antes do println.\n[filmnow/filmnow/LeitorFilmNowTest.java e filmnow/filmnow/MainFilmNowTest.java] Problema: h\u00e1 testes com fail(\"Not yet implemented\"). Consequ\u00eancia: a su\u00edte completa de testes falharia. Como consertar: remover esses placeholders ou substitu\u00ed-los por testes reais.\n[filmnow/filmnow/FilmNowTest.java e filmnow/filmnow/FilmeTest.java] Problema: os testes s\u00e3o bons em v\u00e1rios fluxos, mas ainda n\u00e3o cobrem bem listagem completa, sobrescrita e Filme sem ano. Consequ\u00eancia: alguns erros nesses casos poderiam passar sem serem percebidos. Como consertar: adicionar testes espec\u00edficos para esses cen\u00e1rios.",
+    "reviewer_notes": {
+      "requires_human_review": false,
+      "synthesis_rationale": "Foram selecionados os problemas de maior impacto e alta confian\u00e7a: a aus\u00eancia de composi\u00e7\u00e3o real com Filme, o acoplamento de Filme para FilmNow, a listagem montada na interface, o retorno null em detalhamento vazio e os dois pontos principais de testes. Dedu\u00e7\u00f5es repetidas sobre strings/split foram consolidadas para evitar feedback redundante.",
+      "omitted_stage1_deductions": [
+        "A dedu\u00e7\u00e3o de duplicidade com ano vazio foi omitida do feedback principal por ter confian\u00e7a m\u00e9dia e ser menos central que o problema estrutural de armazenar filmes como String.",
+        "A dedu\u00e7\u00e3o sobre m\u00e9todos redundantes nomeAno/getNomeAno foi omitida por ser um ponto menor de legibilidade.",
+        "A dedu\u00e7\u00e3o geral de legibilidade sobre uso frequente de split foi absorvida nos itens sobre armazenamento como String e listagem no Main, para evitar repeti\u00e7\u00e3o."
+      ],
+      "low_confidence_items": []
+    }
+  },
+  "parse_audit": {
+    "stage1": {
+      "parse_mode": "direct_json_loads"
+    },
+    "stage2": {
+      "parse_mode": "direct_json_loads"
+    },
+    "stage1_raw_text_chars": 18931,
+    "stage2_raw_text_chars": 7526
+  }
+}

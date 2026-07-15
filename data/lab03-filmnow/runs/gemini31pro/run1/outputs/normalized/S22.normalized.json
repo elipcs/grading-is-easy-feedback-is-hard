@@ -1,0 +1,428 @@
+{
+  "submission_id": "S22",
+  "evaluator_type": "llm",
+  "criteria": [
+    {
+      "criterion_id": "basic_functionality",
+      "criterion_name": "Basic Functionality",
+      "score": 7.0,
+      "max_score": 10,
+      "justification": "O fluxo principal de cadastro, listagem e detalhamento funciona, mas h\u00e1 falhas nas valida\u00e7\u00f5es da HotList (exce\u00e7\u00e3o em vez de mensagem para posi\u00e7\u00e3o inv\u00e1lida e falta de mensagem para duplicatas) e bugs de compara\u00e7\u00e3o de strings que comprometem as valida\u00e7\u00f5es de campos vazios.",
+      "success_evidence": [
+        "Cadastro de filmes com verifica\u00e7\u00e3o de limite de posi\u00e7\u00f5es.",
+        "Listagem correta dos filmes cadastrados.",
+        "Detalhamento exibindo o \u00edcone de HotList quando aplic\u00e1vel."
+      ],
+      "evidence_refs": [
+        "FilmNow.java: cadastraFilme",
+        "MainFilmNow.java: mostrarFilmes",
+        "DetalhaFilme.java: toString",
+        "FilmNow.java:111",
+        "FilmNow.java:115",
+        "FilmNow.java:22",
+        "FilmNow.java:44",
+        "MainFilmNow.java:108",
+        "FilmNow.java:41"
+      ],
+      "non_penalized_observations": [
+        "O sistema permite cadastrar filmes sem ano, conforme o fluxo b\u00e1sico esperado."
+      ],
+      "deductions": [
+        {
+          "problem": "Uso do operador '==' para comparar o resultado de 'trim()' com string vazia ('nome.trim() == \"\"').",
+          "consequence": "Como 'trim()' pode retornar uma nova inst\u00e2ncia de String, a compara\u00e7\u00e3o com '==' falha, permitindo que filmes com nomes contendo apenas espa\u00e7os sejam cadastrados indevidamente.",
+          "how_to_fix": "Utilizar o m\u00e9todo '.equals(\"\")' ou '.isEmpty()' para verificar se a string est\u00e1 vazia ap\u00f3s o trim.",
+          "points_lost": 1.0,
+          "severity": "moderate",
+          "confidence": "high",
+          "rubric_anchor": "Valida\u00e7\u00e3o de entradas",
+          "evidence_refs": [
+            "FilmNow.java:111",
+            "FilmNow.java:115",
+            "FilmNow.java: cadastraFilme",
+            "MainFilmNow.java: mostrarFilmes",
+            "DetalhaFilme.java: toString"
+          ]
+        },
+        {
+          "problem": "As opera\u00e7\u00f5es da HotList n\u00e3o validam se a posi\u00e7\u00e3o informada est\u00e1 dentro dos limites do array.",
+          "consequence": "Informar uma posi\u00e7\u00e3o inv\u00e1lida (ex: 15) causa um erro de execu\u00e7\u00e3o (ArrayIndexOutOfBoundsException) em vez de retornar a mensagem 'POSICAO INVALIDA'.",
+          "how_to_fix": "Adicionar uma verifica\u00e7\u00e3o 'if (posicaoHotList < 1 || posicaoHotList > 10)' nos m\u00e9todos de adicionar e remover da HotList.",
+          "points_lost": 1.0,
+          "severity": "moderate",
+          "confidence": "high",
+          "rubric_anchor": "HotList - Posi\u00e7\u00e3o inv\u00e1lida",
+          "evidence_refs": [
+            "FilmNow.java:22",
+            "FilmNow.java:44",
+            "FilmNow.java: cadastraFilme",
+            "MainFilmNow.java: mostrarFilmes",
+            "DetalhaFilme.java: toString"
+          ]
+        },
+        {
+          "problem": "O sistema n\u00e3o informa 'FILME JA ADICIONADO' ao tentar inserir um filme que j\u00e1 est\u00e1 na HotList.",
+          "consequence": "O m\u00e9todo 'adicionaHotList' retorna false, mas a 'MainFilmNow' ignora esse retorno e sempre imprime que o filme foi adicionado com sucesso.",
+          "how_to_fix": "Na 'MainFilmNow', verificar o retorno booleano de 'adicionaHotList' e imprimir a mensagem de erro correspondente caso seja false.",
+          "points_lost": 1.0,
+          "severity": "minor",
+          "confidence": "high",
+          "rubric_anchor": "HotList - Filme j\u00e1 adicionado",
+          "evidence_refs": [
+            "MainFilmNow.java:108",
+            "FilmNow.java:41",
+            "FilmNow.java: cadastraFilme",
+            "MainFilmNow.java: mostrarFilmes",
+            "DetalhaFilme.java: toString"
+          ]
+        }
+      ]
+    },
+    {
+      "criterion_id": "unit_tests",
+      "criterion_name": "Unit Tests",
+      "score": 8.0,
+      "max_score": 10,
+      "justification": "Boa cobertura dos cen\u00e1rios de cadastro e detalhamento na classe FilmNow, incluindo casos limite. Faltam testes para as opera\u00e7\u00f5es espec\u00edficas da HotList e para a classe Filme.",
+      "success_evidence": [
+        "Presen\u00e7a de testes JUnit verificando posi\u00e7\u00f5es limite (0, 100, 101).",
+        "Testes cobrindo a tentativa de cadastro em posi\u00e7\u00f5es ocupadas e filmes duplicados.",
+        "Testes verificando o comportamento com campos vazios."
+      ],
+      "evidence_refs": [
+        "FIlmeTeste.java"
+      ],
+      "non_penalized_observations": [
+        "Os testes utilizam a classe DetalhaFilme indiretamente, o que \u00e9 aceit\u00e1vel para validar a sa\u00edda formatada."
+      ],
+      "deductions": [
+        {
+          "problem": "Aus\u00eancia de testes unit\u00e1rios para as opera\u00e7\u00f5es de adicionar e remover da HotList, bem como para os m\u00e9todos da classe Filme.",
+          "consequence": "Comportamentos importantes do sistema, como a substitui\u00e7\u00e3o de filmes na HotList e a igualdade de filmes, n\u00e3o est\u00e3o sendo validados automaticamente.",
+          "how_to_fix": "Criar m\u00e9todos de teste com '@Test' espec\u00edficos para 'adicionaHotList', 'retiraHotList' e para o m\u00e9todo 'equals' da classe Filme.",
+          "points_lost": 2.0,
+          "severity": "moderate",
+          "confidence": "high",
+          "rubric_anchor": "Cobertura de testes",
+          "evidence_refs": [
+            "FIlmeTeste.java"
+          ]
+        }
+      ]
+    },
+    {
+      "criterion_id": "class_design",
+      "criterion_name": "Class Design",
+      "score": 8.5,
+      "max_score": 10,
+      "justification": "Boa compreens\u00e3o da modelagem das classes principais (Filme e FilmNow). O m\u00e9todo equals de Filme possui um erro conceitual na compara\u00e7\u00e3o de strings.",
+      "success_evidence": [
+        "Cria\u00e7\u00e3o da classe Filme com seus atributos encapsulados.",
+        "Cria\u00e7\u00e3o da classe FilmNow para gerenciar os acervos de filmes."
+      ],
+      "evidence_refs": [
+        "Filme.java",
+        "FilmNow.java",
+        "Filme.java:58"
+      ],
+      "non_penalized_observations": [
+        "O uso de uma classe separada 'DetalhaFilme' para formatar a sa\u00edda \u00e9 uma escolha de design incomum (poderia ser um m\u00e9todo em Filme), mas funciona e demonstra tentativa de separar responsabilidades."
+      ],
+      "deductions": [
+        {
+          "problem": "O m\u00e9todo 'equals' da classe 'Filme' compara o atributo 'ano' (que \u00e9 uma String) usando o operador '=='.",
+          "consequence": "A compara\u00e7\u00e3o de strings com '==' verifica a refer\u00eancia de mem\u00f3ria, n\u00e3o o conte\u00fado. Isso pode fazer com que a verifica\u00e7\u00e3o de filmes duplicados falhe se as strings de ano forem inst\u00e2ncias diferentes.",
+          "how_to_fix": "Utilizar 'Objects.equals(ano, other.ano)' ou 'ano.equals(other.ano)' no m\u00e9todo equals.",
+          "points_lost": 1.5,
+          "severity": "moderate",
+          "confidence": "high",
+          "rubric_anchor": "Modelagem de classes (Igualdade)",
+          "evidence_refs": [
+            "Filme.java:58",
+            "Filme.java",
+            "FilmNow.java"
+          ]
+        }
+      ]
+    },
+    {
+      "criterion_id": "object_references",
+      "criterion_name": "Object References and Composition",
+      "score": 9.5,
+      "max_score": 10,
+      "justification": "Excelente uso de refer\u00eancias e composi\u00e7\u00e3o. O sistema gerencia corretamente os objetos Filme dentro dos arrays de FilmNow e HotList.",
+      "success_evidence": [
+        "FilmNow comp\u00f5e arrays de objetos Filme.",
+        "A HotList armazena refer\u00eancias para os mesmos objetos Filme do acervo principal, permitindo a sincroniza\u00e7\u00e3o do status 'hot'."
+      ],
+      "evidence_refs": [
+        "FilmNow.java:12",
+        "FilmNow.java:13",
+        "DetalhaFilme.java:5",
+        "DetalhaFilme.java:19"
+      ],
+      "non_penalized_observations": [],
+      "deductions": [
+        {
+          "problem": "A classe 'DetalhaFilme' armazena a 'posicao' como atributo de inst\u00e2ncia apenas para valid\u00e1-la no m\u00e9todo 'toString'.",
+          "consequence": "Uso ligeiramente inadequado do estado do objeto, j\u00e1 que a posi\u00e7\u00e3o n\u00e3o \u00e9 uma propriedade intr\u00ednseca do detalhamento do filme, mas sim um par\u00e2metro da opera\u00e7\u00e3o.",
+          "how_to_fix": "Passar a posi\u00e7\u00e3o como par\u00e2metro para o m\u00e9todo que gera a string, ou realizar a valida\u00e7\u00e3o da posi\u00e7\u00e3o na classe FilmNow antes de criar o objeto DetalhaFilme.",
+          "points_lost": 0.5,
+          "severity": "minor",
+          "confidence": "high",
+          "rubric_anchor": "Uso de refer\u00eancias",
+          "evidence_refs": [
+            "DetalhaFilme.java:5",
+            "DetalhaFilme.java:19",
+            "FilmNow.java:12",
+            "FilmNow.java:13"
+          ]
+        }
+      ]
+    },
+    {
+      "criterion_id": "collections_and_arrays",
+      "criterion_name": "Collections and Arrays",
+      "score": 8.5,
+      "max_score": 10,
+      "justification": "Uso correto de arrays para o acervo e para a HotList, respeitando os tamanhos definidos. Faltou apenas a prote\u00e7\u00e3o contra acesso fora dos limites na HotList.",
+      "success_evidence": [
+        "Declara\u00e7\u00e3o e inicializa\u00e7\u00e3o corretas de 'Filme[] filmes' com tamanho 100.",
+        "Declara\u00e7\u00e3o e inicializa\u00e7\u00e3o corretas de 'Filme[] hotList' com tamanho 10."
+      ],
+      "evidence_refs": [
+        "FilmNow.java:12",
+        "FilmNow.java:13",
+        "FilmNow.java:22",
+        "FilmNow.java:44"
+      ],
+      "non_penalized_observations": [],
+      "deductions": [
+        {
+          "problem": "Acesso direto ao array 'hotList' usando \u00edndices baseados na entrada do usu\u00e1rio sem verifica\u00e7\u00e3o pr\u00e9via de limites.",
+          "consequence": "Pode causar 'ArrayIndexOutOfBoundsException' se o usu\u00e1rio informar uma posi\u00e7\u00e3o de HotList maior que 10 ou menor que 1.",
+          "how_to_fix": "Validar se 'posicaoHotList' est\u00e1 entre 1 e 10 antes de acessar 'hotList[posicaoHotList - 1]'.",
+          "points_lost": 1.5,
+          "severity": "moderate",
+          "confidence": "high",
+          "rubric_anchor": "Uso de arrays",
+          "evidence_refs": [
+            "FilmNow.java:22",
+            "FilmNow.java:44",
+            "FilmNow.java:12",
+            "FilmNow.java:13"
+          ]
+        }
+      ]
+    },
+    {
+      "criterion_id": "separation_of_concerns",
+      "criterion_name": "Separation of Concerns",
+      "score": 7.5,
+      "max_score": 10,
+      "justification": "Existe uma separa\u00e7\u00e3o b\u00e1sica entre a Main (UI) e o FilmNow (Dom\u00ednio), mas o dom\u00ednio retorna mensagens de texto diretamente para a UI, e a UI ignora alguns retornos l\u00f3gicos do dom\u00ednio.",
+      "success_evidence": [
+        "A l\u00f3gica de itera\u00e7\u00e3o, menus e leitura do teclado est\u00e1 concentrada na MainFilmNow.",
+        "A manipula\u00e7\u00e3o dos arrays e regras de neg\u00f3cio est\u00e3o na classe FilmNow."
+      ],
+      "evidence_refs": [
+        "MainFilmNow.java",
+        "FilmNow.java",
+        "FilmNow.java:112",
+        "FilmNow.java:120",
+        "MainFilmNow.java:108"
+      ],
+      "non_penalized_observations": [],
+      "deductions": [
+        {
+          "problem": "Os m\u00e9todos de 'FilmNow' (como 'cadastraFilme') retornam mensagens de interface (ex: 'FILME INVALIDO', 'POSI\u00c7\u00c3O INV\u00c1LIDA') em vez de usar exce\u00e7\u00f5es ou retornos l\u00f3gicos.",
+          "consequence": "Acopla a camada de dom\u00ednio \u00e0 camada de apresenta\u00e7\u00e3o, dificultando a reutiliza\u00e7\u00e3o da classe FilmNow em interfaces diferentes (ex: gr\u00e1fica ou web).",
+          "how_to_fix": "Fazer os m\u00e9todos retornarem booleanos, enums ou lan\u00e7arem exce\u00e7\u00f5es, deixando a MainFilmNow respons\u00e1vel por decidir qual texto imprimir.",
+          "points_lost": 1.5,
+          "severity": "moderate",
+          "confidence": "high",
+          "rubric_anchor": "Separa\u00e7\u00e3o de responsabilidades",
+          "evidence_refs": [
+            "FilmNow.java:112",
+            "FilmNow.java:120",
+            "MainFilmNow.java",
+            "FilmNow.java"
+          ]
+        },
+        {
+          "problem": "A 'MainFilmNow' ignora o retorno booleano do m\u00e9todo 'adicionaHotList'.",
+          "consequence": "A interface falha em comunicar o resultado real da opera\u00e7\u00e3o de neg\u00f3cio ao usu\u00e1rio, imprimindo sucesso mesmo quando a adi\u00e7\u00e3o falha (ex: filme j\u00e1 na hotlist).",
+          "how_to_fix": "Capturar o retorno de 'fn.adicionaHotList' na Main e usar um 'if' para imprimir a mensagem de sucesso ou de erro adequada.",
+          "points_lost": 1.0,
+          "severity": "minor",
+          "confidence": "high",
+          "rubric_anchor": "Separa\u00e7\u00e3o de responsabilidades",
+          "evidence_refs": [
+            "MainFilmNow.java:108",
+            "MainFilmNow.java",
+            "FilmNow.java"
+          ]
+        }
+      ]
+    },
+    {
+      "criterion_id": "readability_and_documentation",
+      "criterion_name": "Readability and Documentation",
+      "score": 9.0,
+      "max_score": 10,
+      "justification": "C\u00f3digo limpo, bem indentado e com nomes de vari\u00e1veis claros. H\u00e1 Javadoc na maioria dos m\u00e9todos, embora alguns estejam incompletos.",
+      "success_evidence": [
+        "Nomenclatura coerente e descritiva de m\u00e9todos e vari\u00e1veis.",
+        "Presen\u00e7a de coment\u00e1rios Javadoc explicando o prop\u00f3sito de v\u00e1rios m\u00e9todos criados pelo aluno."
+      ],
+      "evidence_refs": [
+        "FilmNow.java",
+        "Filme.java",
+        "DetalhaFilme.java:10",
+        "FilmNow.java:18",
+        "FilmNow.java:36"
+      ],
+      "non_penalized_observations": [],
+      "deductions": [
+        {
+          "problem": "Alguns blocos de Javadoc est\u00e3o incompletos, contendo as tags '@param' e '@return' vazias, sem a descri\u00e7\u00e3o correspondente.",
+          "consequence": "A documenta\u00e7\u00e3o gerada fica incompleta, n\u00e3o explicando o significado dos par\u00e2metros e do retorno para quem for usar os m\u00e9todos.",
+          "how_to_fix": "Preencher as descri\u00e7\u00f5es ap\u00f3s as tags '@param' e '@return' nos coment\u00e1rios Javadoc.",
+          "points_lost": 1.0,
+          "severity": "minor",
+          "confidence": "high",
+          "rubric_anchor": "Documenta\u00e7\u00e3o",
+          "evidence_refs": [
+            "DetalhaFilme.java:10",
+            "FilmNow.java:18",
+            "FilmNow.java:36",
+            "FilmNow.java",
+            "Filme.java"
+          ]
+        }
+      ]
+    }
+  ],
+  "total_score": 8.15,
+  "total_max_score": 10.0,
+  "feedback_items": [
+    {
+      "criterion_id": "basic_functionality",
+      "criterion_name": "Basic Functionality",
+      "problem": "Uso do operador '==' para comparar Strings, tanto na verifica\u00e7\u00e3o de campos vazios ('nome.trim() == \"\"') quanto no m\u00e9todo equals ('ano == other.ano').",
+      "consequence": "O operador '==' em Java compara refer\u00eancias de mem\u00f3ria, n\u00e3o o conte\u00fado do texto. Isso permite o cadastro indevido de filmes com nomes vazios e pode falhar ao identificar filmes duplicados.",
+      "how_to_fix": "Utilize o m\u00e9todo '.equals()' para comparar o conte\u00fado de Strings (ex: 'ano.equals(other.ano)') e '.isEmpty()' para verificar se a string est\u00e1 vazia ap\u00f3s o trim.",
+      "severity": "moderate",
+      "confidence": "high",
+      "evidence_refs": [
+        "FilmNow.java:111",
+        "FilmNow.java:115",
+        "Filme.java:58",
+        "FilmNow.java: cadastraFilme",
+        "MainFilmNow.java: mostrarFilmes",
+        "DetalhaFilme.java: toString",
+        "FilmNow.java:22",
+        "FilmNow.java:44",
+        "MainFilmNow.java:108",
+        "FilmNow.java:41"
+      ]
+    },
+    {
+      "criterion_id": "collections_and_arrays",
+      "criterion_name": "Collections and Arrays",
+      "problem": "Acesso direto ao array 'hotList' sem valida\u00e7\u00e3o pr\u00e9via dos limites da posi\u00e7\u00e3o informada.",
+      "consequence": "Se o usu\u00e1rio informar uma posi\u00e7\u00e3o inv\u00e1lida (ex: 15), o sistema lan\u00e7ar\u00e1 um erro de execu\u00e7\u00e3o (ArrayIndexOutOfBoundsException) em vez de tratar o problema graciosamente.",
+      "how_to_fix": "Adicione uma verifica\u00e7\u00e3o 'if (posicaoHotList < 1 || posicaoHotList > 10)' nos m\u00e9todos de adicionar e remover da HotList antes de acessar o array.",
+      "severity": "moderate",
+      "confidence": "high",
+      "evidence_refs": [
+        "FilmNow.java:22",
+        "FilmNow.java:44",
+        "FilmNow.java:12",
+        "FilmNow.java:13"
+      ]
+    },
+    {
+      "criterion_id": "separation_of_concerns",
+      "criterion_name": "Separation of Concerns",
+      "problem": "M\u00e9todos de dom\u00ednio (como 'cadastraFilme') retornam mensagens de texto espec\u00edficas da interface (ex: 'FILME INVALIDO').",
+      "consequence": "Isso acopla a camada de neg\u00f3cio \u00e0 camada de apresenta\u00e7\u00e3o, dificultando a reutiliza\u00e7\u00e3o da classe FilmNow em outros tipos de interface (como uma interface gr\u00e1fica ou web).",
+      "how_to_fix": "Fa\u00e7a os m\u00e9todos de neg\u00f3cio retornarem tipos l\u00f3gicos (como boolean ou enums) ou lan\u00e7arem exce\u00e7\u00f5es. Deixe a classe MainFilmNow respons\u00e1vel por decidir qual texto imprimir.",
+      "severity": "moderate",
+      "confidence": "high",
+      "evidence_refs": [
+        "FilmNow.java:112",
+        "FilmNow.java:120",
+        "MainFilmNow.java",
+        "FilmNow.java",
+        "MainFilmNow.java:108"
+      ]
+    },
+    {
+      "criterion_id": "basic_functionality",
+      "criterion_name": "Basic Functionality",
+      "problem": "A classe MainFilmNow ignora o retorno booleano do m\u00e9todo 'adicionaHotList'.",
+      "consequence": "O sistema falha em comunicar quando um filme j\u00e1 est\u00e1 na HotList, imprimindo uma mensagem de sucesso indevida mesmo quando a adi\u00e7\u00e3o n\u00e3o ocorre.",
+      "how_to_fix": "Capture o retorno de 'fn.adicionaHotList' na MainFilmNow e use uma estrutura condicional (if/else) para imprimir a mensagem de sucesso ou o aviso de que o filme j\u00e1 foi adicionado.",
+      "severity": "minor",
+      "confidence": "high",
+      "evidence_refs": [
+        "MainFilmNow.java:108",
+        "FilmNow.java:41",
+        "FilmNow.java: cadastraFilme",
+        "MainFilmNow.java: mostrarFilmes",
+        "DetalhaFilme.java: toString",
+        "FilmNow.java:111",
+        "FilmNow.java:115",
+        "FilmNow.java:22",
+        "FilmNow.java:44"
+      ]
+    },
+    {
+      "criterion_id": "unit_tests",
+      "criterion_name": "Unit Tests",
+      "problem": "Aus\u00eancia de testes unit\u00e1rios para as opera\u00e7\u00f5es da HotList e para os m\u00e9todos da classe Filme.",
+      "consequence": "Comportamentos importantes, como a substitui\u00e7\u00e3o correta de filmes na HotList e a l\u00f3gica de igualdade (equals) entre filmes, n\u00e3o est\u00e3o sendo validados automaticamente.",
+      "how_to_fix": "Crie m\u00e9todos com a anota\u00e7\u00e3o '@Test' espec\u00edficos para testar 'adicionaHotList', 'retiraHotList' e o m\u00e9todo 'equals' da classe Filme.",
+      "severity": "moderate",
+      "confidence": "high",
+      "evidence_refs": [
+        "FIlmeTeste.java"
+      ]
+    },
+    {
+      "criterion_id": "readability_and_documentation",
+      "criterion_name": "Readability and Documentation",
+      "problem": "Alguns blocos de coment\u00e1rios Javadoc est\u00e3o com as tags '@param' e '@return' vazias.",
+      "consequence": "A documenta\u00e7\u00e3o gerada fica incompleta, n\u00e3o explicando o significado dos par\u00e2metros e do retorno para outros desenvolvedores que forem utilizar os m\u00e9todos.",
+      "how_to_fix": "Preencha uma breve descri\u00e7\u00e3o ap\u00f3s as tags '@param' e '@return' nos coment\u00e1rios Javadoc.",
+      "severity": "minor",
+      "confidence": "high",
+      "evidence_refs": [
+        "DetalhaFilme.java:10",
+        "FilmNow.java:18",
+        "FilmNow.java:36",
+        "FilmNow.java",
+        "Filme.java"
+      ]
+    }
+  ],
+  "student_feedback": "Ol\u00e1! No geral, a sua solu\u00e7\u00e3o demonstra um bom entendimento da modelagem das classes principais (Filme e FilmNow) e um excelente uso de refer\u00eancias e composi\u00e7\u00e3o entre os acervos. Os testes unit\u00e1rios cobrem bem os cen\u00e1rios b\u00e1sicos de cadastro. O caminho est\u00e1 muito bom! Abaixo, listo os pontos que precisam de mais aten\u00e7\u00e3o para consolidar seu aprendizado:\n\n[Filme.java / FilmNow.java] Problema: Uso do operador `==` para comparar Strings (`ano == other.ano` e `nome.trim() == \"\"`). Consequ\u00eancia: O `==` compara refer\u00eancias de mem\u00f3ria, n\u00e3o o conte\u00fado do texto, o que pode causar falhas na valida\u00e7\u00e3o e na busca de duplicatas. Como consertar: Utilize `.equals()` para comparar o conte\u00fado de Strings e `.isEmpty()` para verificar strings vazias.\n\n[FilmNow.java: adicionaHotList / retiraHotList] Problema: Acesso ao array `hotList` sem valida\u00e7\u00e3o de limites. Consequ\u00eancia: Informar uma posi\u00e7\u00e3o fora do intervalo (ex: 15) causa um erro de execu\u00e7\u00e3o (`ArrayIndexOutOfBoundsException`). Como consertar: Adicione um `if` para verificar se a posi\u00e7\u00e3o est\u00e1 entre 1 e 10 antes de acessar o array.\n\n[FilmNow.java: cadastraFilme] Problema: O m\u00e9todo retorna mensagens de texto da interface (ex: 'FILME INVALIDO'). Consequ\u00eancia: Isso mistura regras de neg\u00f3cio com a interface de usu\u00e1rio (System.out), dificultando o reuso da classe em outros contextos. Como consertar: Retorne valores l\u00f3gicos (como boolean) ou lance exce\u00e7\u00f5es, deixando a classe Main decidir o texto a ser impresso.\n\n[MainFilmNow.java: atribuirHotList] Problema: O retorno booleano de `fn.adicionaHotList` \u00e9 ignorado. Consequ\u00eancia: O sistema imprime que o filme foi adicionado com sucesso mesmo quando a opera\u00e7\u00e3o falha (ex: filme j\u00e1 estava na HotList). Como consertar: Capture o retorno do m\u00e9todo em um `if` e imprima a mensagem de erro ou sucesso correspondente.\n\n[FIlmeTeste.java] Problema: Aus\u00eancia de testes para a HotList e para a classe Filme. Consequ\u00eancia: Comportamentos importantes, como a substitui\u00e7\u00e3o de filmes na HotList e a igualdade de filmes, n\u00e3o s\u00e3o validados automaticamente. Como consertar: Crie m\u00e9todos `@Test` espec\u00edficos para `adicionaHotList`, `retiraHotList` e `Filme.equals`.\n\n[FilmNow.java / DetalhaFilme.java] Problema: Tags `@param` e `@return` vazias no Javadoc. Consequ\u00eancia: A documenta\u00e7\u00e3o gerada fica incompleta e n\u00e3o explica o prop\u00f3sito dos par\u00e2metros. Como consertar: Adicione uma breve descri\u00e7\u00e3o ap\u00f3s cada tag no Javadoc.\n\nContinue com o bom trabalho!",
+  "reviewer_audit": {
+    "requires_human_review": false,
+    "grading_basis": "Avalia\u00e7\u00e3o baseada na leitura est\u00e1tica do c\u00f3digo fonte e dos testes fornecidos, analisando a l\u00f3gica de neg\u00f3cio, valida\u00e7\u00f5es e estrutura das classes.",
+    "main_uncertainties": [],
+    "potential_false_positive_risks": [
+      "A dedu\u00e7\u00e3o sobre o uso de '==' para comparar strings em 'trim() == \"\"' e 'ano == other.ano' \u00e9 um erro cl\u00e1ssico de Java e foi penalizado com confian\u00e7a alta, pois afeta diretamente a funcionalidade de valida\u00e7\u00e3o e igualdade."
+    ]
+  },
+  "feedback_reviewer_notes": {
+    "requires_human_review": false,
+    "synthesis_rationale": "Foram selecionados os problemas de maior impacto na l\u00f3gica (compara\u00e7\u00e3o de strings com '==' e limites de array) e no design (separa\u00e7\u00e3o de responsabilidades e tratamento de retornos ignorados). O problema de Javadoc foi inclu\u00eddo por ser uma dedu\u00e7\u00e3o direta e f\u00e1cil de corrigir. Problemas sobrepostos (como limites de array na funcionalidade e em cole\u00e7\u00f5es) foram consolidados.",
+    "omitted_stage1_deductions": [
+      "Dedu\u00e7\u00e3o sobre o armazenamento da 'posicao' como atributo de inst\u00e2ncia em 'DetalhaFilme' (Object References), omitida para manter o foco nos 6 problemas mais centrais e de maior impacto funcional/arquitetural."
+    ],
+    "low_confidence_items": []
+  },
+  "confidence": "high"
+}

@@ -1,0 +1,169 @@
+{
+  "submission_id": "S28",
+  "evaluator_type": "llm",
+  "criteria": [
+    {
+      "criterion_id": "basic_functionality",
+      "criterion_name": "Basic Functionality",
+      "score": 6.0,
+      "max_score": 10,
+      "justification": "O fluxo principal de cadastro, listagem e detalhamento funciona bem. No entanto, há falhas na implementação da HotList (que não permite posições específicas para sobrescrita), na aceitação de ano vazio e nos limites de posição.",
+      "evidence_refs": [
+        "MainFilmNow.java: adicionaFilme",
+        "FilmNow.java: cadastraFilme, existeFilme",
+        "MainFilmNow.java: atribuirHot",
+        "FilmNow.java: atribuirHot",
+        "MainFilmNow.java: adicionaFilme (linhas 131-137)",
+        "MainFilmNow.java: adicionaFilme (linha 116)",
+        "MainFilmNow.java: detalharFilme (linhas 103-108)"
+      ],
+      "deductions": [
+        {
+          "problem": "A HotList não permite especificar uma posição (de 1 a 10) para inserir ou sobrescrever um filme. Os filmes são apenas adicionados ao final da lista.",
+          "consequence": "O requisito 'Se um novo filme for colocado numa posição ocupada da HotList, o antigo deixa de ser hot' não pode ser cumprido, pois não há conceito de posições na HotList.",
+          "how_to_fix": "Modificar o comando de atribuir Hot para receber a posição da HotList desejada e atualizar a estrutura para sobrescrever o filme naquela posição específica.",
+          "points_lost": 2.0,
+          "severity": "major",
+          "confidence": "high",
+          "rubric_anchor": "HotList",
+          "evidence_refs": [
+            "MainFilmNow.java: atribuirHot",
+            "FilmNow.java: atribuirHot",
+            "MainFilmNow.java: adicionaFilme",
+            "FilmNow.java: cadastraFilme, existeFilme"
+          ]
+        },
+        {
+          "problem": "O sistema não permite cadastrar um filme com o ano vazio, lançando exceção e exibindo 'ANO INVÁLIDO'.",
+          "consequence": "Viola o requisito que especifica que o ano pode estar vazio no fluxo básico.",
+          "how_to_fix": "Adicionar uma verificação para string vazia antes de fazer o parse do ano, atribuindo um valor padrão (como 0) ou tratando o ano como opcional na classe Filme.",
+          "points_lost": 1.0,
+          "severity": "moderate",
+          "confidence": "high",
+          "rubric_anchor": "Ano vazio",
+          "evidence_refs": [
+            "MainFilmNow.java: adicionaFilme (linhas 131-137)",
+            "MainFilmNow.java: adicionaFilme",
+            "FilmNow.java: cadastraFilme, existeFilme"
+          ]
+        },
+        {
+          "problem": "A validação de posição restringe as entradas de 1 a 99, impedindo o uso da posição 100.",
+          "consequence": "O acervo fica limitado a 99 filmes em vez de 100.",
+          "how_to_fix": "Alterar a condição de validação para `posicao < 1 || posicao > 100`.",
+          "points_lost": 0.5,
+          "severity": "minor",
+          "confidence": "high",
+          "rubric_anchor": "Posição 1 a 100",
+          "evidence_refs": [
+            "MainFilmNow.java: adicionaFilme (linha 116)",
+            "MainFilmNow.java: adicionaFilme",
+            "FilmNow.java: cadastraFilme, existeFilme"
+          ]
+        },
+        {
+          "problem": "Ao detalhar uma posição válida mas vazia, o sistema exibe 'FILME NÃO REGISTRADO' em vez de retornar vazio.",
+          "consequence": "Comportamento levemente divergente do especificado para posições vazias.",
+          "how_to_fix": "Verificar se o filme é nulo antes de chamar `detalhesFilme` e, se for, não imprimir nada.",
+          "points_lost": 0.5,
+          "severity": "minor",
+          "confidence": "high",
+          "rubric_anchor": "Detalhar posição vazia",
+          "evidence_refs": [
+            "MainFilmNow.java: detalharFilme (linhas 103-108)",
+            "MainFilmNow.java: adicionaFilme",
+            "FilmNow.java: cadastraFilme, existeFilme"
+          ]
+        }
+      ]
+    },
+    {
+      "criterion_id": "unit_tests",
+      "criterion_name": "Unit Tests",
+      "score": 10.0,
+      "max_score": 10,
+      "justification": "Os testes foram implementados com excelente cobertura, testando tanto a classe Film quanto a FilmNow, incluindo cenários normais e limites.",
+      "evidence_refs": [
+        "testes/filmnow/FilmTestes.java",
+        "testes/filmnow/FilmNowTestes.java"
+      ],
+      "deductions": []
+    },
+    {
+      "criterion_id": "class_design",
+      "criterion_name": "Class Design",
+      "score": 10.0,
+      "max_score": 10,
+      "justification": "As classes foram bem modeladas, com responsabilidades claras. A classe Film encapsula corretamente os dados do filme e a FilmNow gerencia o acervo.",
+      "evidence_refs": [
+        "src/filmnow/Film.java",
+        "src/filmnow/FilmNow.java"
+      ],
+      "deductions": []
+    },
+    {
+      "criterion_id": "object_references",
+      "criterion_name": "Object References and Composition",
+      "score": 10.0,
+      "max_score": 10,
+      "justification": "O uso de referências e composição está correto. FilmNow compõe instâncias de Film de forma coerente.",
+      "evidence_refs": [
+        "src/filmnow/FilmNow.java: cadastraFilme, getFilme"
+      ],
+      "deductions": []
+    },
+    {
+      "criterion_id": "collections_and_arrays",
+      "criterion_name": "Collections and Arrays",
+      "score": 9.0,
+      "max_score": 10,
+      "justification": "O uso do array principal é adequado. A estrutura da HotList utiliza uma coleção válida, mas a modelagem não reflete posições fixas conforme esperado pelo domínio.",
+      "evidence_refs": [
+        "src/filmnow/FilmNow.java: filmes, hotList",
+        "src/filmnow/FilmNow.java: hotList"
+      ],
+      "deductions": [
+        {
+          "problem": "A HotList foi implementada como uma lista dinâmica (ArrayList) que apenas cresce até 10 elementos, em vez de uma estrutura com 10 posições fixas que podem ser sobrescritas.",
+          "consequence": "A estrutura escolhida dificulta a implementação do requisito de sobrescrever um filme em uma posição específica da HotList.",
+          "how_to_fix": "Utilizar um array de tamanho 10 para a HotList ou gerenciar o ArrayList de forma a permitir a substituição em índices específicos.",
+          "points_lost": 1.0,
+          "severity": "minor",
+          "confidence": "high",
+          "rubric_anchor": "Estrutura da HotList",
+          "evidence_refs": [
+            "src/filmnow/FilmNow.java: hotList",
+            "src/filmnow/FilmNow.java: filmes, hotList"
+          ]
+        }
+      ]
+    },
+    {
+      "criterion_id": "separation_of_concerns",
+      "criterion_name": "Separation of Concerns",
+      "score": 10.0,
+      "max_score": 10,
+      "justification": "A separação de responsabilidades está muito boa. A interface com o usuário (MainFilmNow) não vaza lógica de negócio complexa e a classe de domínio (FilmNow) não realiza operações de I/O.",
+      "evidence_refs": [
+        "src/filmnow/MainFilmNow.java",
+        "src/filmnow/FilmNow.java"
+      ],
+      "deductions": []
+    },
+    {
+      "criterion_id": "readability_and_documentation",
+      "criterion_name": "Readability and Documentation",
+      "score": 10.0,
+      "max_score": 10,
+      "justification": "O código é extremamente legível, bem organizado e possui excelente documentação Javadoc.",
+      "evidence_refs": [
+        "src/filmnow/Film.java",
+        "src/filmnow/FilmNow.java",
+        "src/filmnow/MainFilmNow.java"
+      ],
+      "deductions": []
+    }
+  ],
+  "total_score": 8.9,
+  "total_max_score": 10.0
+}

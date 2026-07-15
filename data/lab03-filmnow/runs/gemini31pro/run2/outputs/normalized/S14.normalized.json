@@ -1,0 +1,226 @@
+{
+  "submission_id": "S14",
+  "evaluator_type": "llm",
+  "criteria": [
+    {
+      "criterion_id": "basic_functionality",
+      "criterion_name": "Basic Functionality",
+      "score": 9.0,
+      "max_score": 10,
+      "justification": "O sistema implementa quase todas as funcionalidades corretamente, incluindo adi\u00e7\u00e3o, listagem e detalhamento de filmes. No entanto, h\u00e1 pequenas falhas na manipula\u00e7\u00e3o da HotList, como a aus\u00eancia de exibi\u00e7\u00e3o de mensagens de retorno na interface e risco de exce\u00e7\u00e3o ao remover itens vazios.",
+      "success_evidence": [
+        "Adi\u00e7\u00e3o de filmes valida corretamente posi\u00e7\u00f5es, campos vazios e duplicatas.",
+        "Detalhamento de filmes exibe as informa\u00e7\u00f5es formatadas corretamente, lidando bem com a aus\u00eancia de ano.",
+        "A l\u00f3gica de atribui\u00e7\u00e3o de HotList substitui filmes antigos e impede duplicatas na lista."
+      ],
+      "evidence_refs": [
+        "FilmNow.java:cadastraFilme",
+        "FilmNow.java:detalhaFilme",
+        "FilmNow.java:adicionaHot",
+        "MainFilmNow.java:atribuirHot",
+        "FilmNow.java:removeHot"
+      ],
+      "non_penalized_observations": [
+        "Na exibi\u00e7\u00e3o da HotList (`exibeHotList`), o sistema mostra um contador sequencial em vez da posi\u00e7\u00e3o real do array, o que pode confundir o usu\u00e1rio na hora de remover um filme, mas a l\u00f3gica interna de armazenamento est\u00e1 correta.",
+        "No m\u00e9todo `adicionaHot`, se o filme j\u00e1 estiver na HotList, o filme antigo da posi\u00e7\u00e3o solicitada perde o status 'hot' antes da valida\u00e7\u00e3o de duplicata retornar erro. Isso deixa o filme antigo na lista, mas sem o status."
+      ],
+      "deductions": [
+        {
+          "problem": "O m\u00e9todo `atribuirHot` na classe `MainFilmNow` n\u00e3o imprime o retorno do m\u00e9todo `adicionaHot`, ocultando as mensagens de sucesso ou erro do usu\u00e1rio. Al\u00e9m disso, `removeHot` n\u00e3o verifica se a posi\u00e7\u00e3o est\u00e1 vazia, podendo gerar NullPointerException.",
+          "consequence": "O usu\u00e1rio n\u00e3o recebe feedback ao adicionar um filme \u00e0 HotList e o programa pode quebrar se tentar remover um 'hot' de uma posi\u00e7\u00e3o vazia.",
+          "how_to_fix": "No `MainFilmNow`, envolva a chamada `fn.adicionaHot` em um `System.out.println()`. No `FilmNow.removeHot`, adicione uma verifica\u00e7\u00e3o `if (hotList[posicaoHot] != null)` antes de chamar `naoEhHot()`.",
+          "points_lost": 1.0,
+          "severity": "minor",
+          "confidence": "high",
+          "rubric_anchor": "HotList",
+          "evidence_refs": [
+            "MainFilmNow.java:atribuirHot",
+            "FilmNow.java:removeHot",
+            "FilmNow.java:cadastraFilme",
+            "FilmNow.java:detalhaFilme",
+            "FilmNow.java:adicionaHot"
+          ]
+        }
+      ]
+    },
+    {
+      "criterion_id": "unit_tests",
+      "criterion_name": "Unit Tests",
+      "score": 8.0,
+      "max_score": 10,
+      "justification": "Excelente cobertura de testes para a classe FilmNow, explorando bem os casos limite. Contudo, faltam testes unit\u00e1rios expl\u00edcitos para os m\u00e9todos da classe Filme, conforme exigido pela rubrica.",
+      "success_evidence": [
+        "Foram criados 25 casos de teste, cobrindo extensivamente a classe FilmNow.",
+        "Testes verificam limites de posi\u00e7\u00e3o (0, 100, 101) e regras de neg\u00f3cio (filme duplicado, campos vazios).",
+        "Testes cobrem a l\u00f3gica da HotList adequadamente atrav\u00e9s da classe gerenciadora."
+      ],
+      "evidence_refs": [
+        "FilmeNowtestes.java:testAdicionaFilmePosicao100",
+        "FilmeNowtestes.java:testAdicionaFilmePosicaoMaior",
+        "FilmeNowtestes.java:detalharFilmeHot",
+        "FilmeNowtestes.java"
+      ],
+      "non_penalized_observations": [
+        "Os m\u00e9todos da classe Filme acabam sendo testados indiretamente pelos testes da classe FilmNow, o que mostra que o sistema como um todo est\u00e1 validado, mas a rubrica pede testes isolados para a classe de dom\u00ednio."
+      ],
+      "deductions": [
+        {
+          "problem": "Aus\u00eancia de testes unit\u00e1rios expl\u00edcitos para os m\u00e9todos da classe Filme, em especial para o `equals` e o `toString`.",
+          "consequence": "A unidade `Filme` n\u00e3o est\u00e1 sendo validada isoladamente, dificultando a identifica\u00e7\u00e3o de falhas caso a l\u00f3gica de igualdade ou formata\u00e7\u00e3o mude no futuro.",
+          "how_to_fix": "Crie m\u00e9todos de teste espec\u00edficos instanciando objetos `Filme` e usando `assertEquals` para verificar o retorno de `toString()` e `assertTrue`/`assertFalse` para o m\u00e9todo `equals()`.",
+          "points_lost": 2.0,
+          "severity": "moderate",
+          "confidence": "high",
+          "rubric_anchor": "Testes da classe Filme",
+          "evidence_refs": [
+            "FilmeNowtestes.java",
+            "FilmeNowtestes.java:testAdicionaFilmePosicao100",
+            "FilmeNowtestes.java:testAdicionaFilmePosicaoMaior",
+            "FilmeNowtestes.java:detalharFilmeHot"
+          ]
+        }
+      ]
+    },
+    {
+      "criterion_id": "class_design",
+      "criterion_name": "Class Design",
+      "score": 10.0,
+      "max_score": 10,
+      "justification": "O design das classes est\u00e1 excelente. A entidade Filme foi bem modelada e a classe FilmNow gerencia corretamente a composi\u00e7\u00e3o.",
+      "success_evidence": [
+        "Cria\u00e7\u00e3o da classe `Filme` com atributos adequados e encapsulamento correto.",
+        "Implementa\u00e7\u00e3o correta do m\u00e9todo `equals` na classe `Filme`, comparando nome e ano.",
+        "Classe `MainFilmNow` modularizada com m\u00e9todos est\u00e1ticos para cada opera\u00e7\u00e3o do menu."
+      ],
+      "evidence_refs": [
+        "Filme.java",
+        "FilmNow.java",
+        "MainFilmNow.java"
+      ],
+      "non_penalized_observations": [],
+      "deductions": []
+    },
+    {
+      "criterion_id": "object_references",
+      "criterion_name": "Object References and Composition",
+      "score": 10.0,
+      "max_score": 10,
+      "justification": "Uso correto de refer\u00eancias e composi\u00e7\u00e3o. Os objetos s\u00e3o instanciados adequadamente e n\u00e3o h\u00e1 uso indevido de modificadores est\u00e1ticos.",
+      "success_evidence": [
+        "A classe `FilmNow` mant\u00e9m arrays de refer\u00eancias para objetos `Filme`.",
+        "Instancia\u00e7\u00e3o correta de `Filme` dentro do m\u00e9todo `cadastraFilme`.",
+        "Uso de m\u00e9todos est\u00e1ticos restrito \u00e0 classe `MainFilmNow`."
+      ],
+      "evidence_refs": [
+        "FilmNow.java:cadastraFilme",
+        "MainFilmNow.java"
+      ],
+      "non_penalized_observations": [],
+      "deductions": []
+    },
+    {
+      "criterion_id": "collections_and_arrays",
+      "criterion_name": "Collections and Arrays",
+      "score": 10.0,
+      "max_score": 10,
+      "justification": "As estruturas de dados foram utilizadas corretamente, respeitando os limites estabelecidos no roteiro.",
+      "success_evidence": [
+        "Uso de array de tamanho 100 para armazenar os filmes.",
+        "Uso de array de tamanho 10 para a HotList.",
+        "Mapeamento correto das posi\u00e7\u00f5es informadas pelo usu\u00e1rio (1 a 100) para os \u00edndices do array (0 a 99)."
+      ],
+      "evidence_refs": [
+        "FilmNow.java:TAMANHO",
+        "FilmNow.java:cadastraFilme"
+      ],
+      "non_penalized_observations": [],
+      "deductions": []
+    },
+    {
+      "criterion_id": "separation_of_concerns",
+      "criterion_name": "Separation of Concerns",
+      "score": 10.0,
+      "max_score": 10,
+      "justification": "\u00d3tima separa\u00e7\u00e3o de responsabilidades. A interface com o usu\u00e1rio est\u00e1 isolada na classe Main, enquanto a l\u00f3gica de neg\u00f3cio reside em FilmNow e Filme.",
+      "success_evidence": [
+        "A classe `MainFilmNow` lida exclusivamente com entrada e sa\u00edda de dados (Scanner e System.out).",
+        "A classe `FilmNow` concentra as regras de neg\u00f3cio, retornando Strings ou objetos para a Main.",
+        "A classe `Filme` \u00e9 respons\u00e1vel por formatar sua pr\u00f3pria exibi\u00e7\u00e3o atrav\u00e9s dos m\u00e9todos `toString` e `toStringHot`."
+      ],
+      "evidence_refs": [
+        "MainFilmNow.java",
+        "FilmNow.java",
+        "Filme.java:toString"
+      ],
+      "non_penalized_observations": [],
+      "deductions": []
+    },
+    {
+      "criterion_id": "readability_and_documentation",
+      "criterion_name": "Readability and Documentation",
+      "score": 10.0,
+      "max_score": 10,
+      "justification": "O c\u00f3digo \u00e9 muito leg\u00edvel e a documenta\u00e7\u00e3o Javadoc est\u00e1 completa e bem redigida.",
+      "success_evidence": [
+        "Nomes de vari\u00e1veis e m\u00e9todos s\u00e3o claros e expressivos.",
+        "Presen\u00e7a de Javadoc em todas as classes e m\u00e9todos p\u00fablicos, explicando o prop\u00f3sito e os par\u00e2metros de forma objetiva.",
+        "C\u00f3digo bem indentado e organizado."
+      ],
+      "evidence_refs": [
+        "Filme.java",
+        "FilmNow.java"
+      ],
+      "non_penalized_observations": [],
+      "deductions": []
+    }
+  ],
+  "total_score": 9.45,
+  "total_max_score": 10.0,
+  "feedback_items": [
+    {
+      "criterion_id": "basic_functionality",
+      "criterion_name": "Basic Functionality",
+      "problem": "O m\u00e9todo `atribuirHot` n\u00e3o imprime o retorno do m\u00e9todo `adicionaHot`, e o m\u00e9todo `removeHot` n\u00e3o verifica se a posi\u00e7\u00e3o est\u00e1 vazia antes de acess\u00e1-la.",
+      "consequence": "O usu\u00e1rio n\u00e3o recebe feedback visual ao adicionar um filme \u00e0 HotList, e o programa pode quebrar (NullPointerException) ao tentar remover um filme de uma posi\u00e7\u00e3o vazia.",
+      "how_to_fix": "No `MainFilmNow`, envolva a chamada `fn.adicionaHot` em um `System.out.println()`. No `FilmNow.removeHot`, adicione uma verifica\u00e7\u00e3o `if (hotList[posicaoHot] != null)` antes de chamar `naoEhHot()`.",
+      "severity": "minor",
+      "confidence": "high",
+      "evidence_refs": [
+        "MainFilmNow.java:atribuirHot",
+        "FilmNow.java:removeHot",
+        "FilmNow.java:cadastraFilme",
+        "FilmNow.java:detalhaFilme",
+        "FilmNow.java:adicionaHot"
+      ]
+    },
+    {
+      "criterion_id": "unit_tests",
+      "criterion_name": "Unit Tests",
+      "problem": "Aus\u00eancia de testes unit\u00e1rios expl\u00edcitos para os m\u00e9todos da classe Filme, em especial para o `equals` e o `toString`.",
+      "consequence": "A unidade `Filme` n\u00e3o est\u00e1 sendo validada isoladamente. Embora seja testada indiretamente pela `FilmNow`, a falta de testes diretos dificulta a identifica\u00e7\u00e3o de falhas caso a l\u00f3gica de igualdade ou formata\u00e7\u00e3o mude no futuro.",
+      "how_to_fix": "Crie m\u00e9todos de teste espec\u00edficos instanciando objetos `Filme` e usando `assertEquals` para verificar o retorno de `toString()` e `assertTrue`/`assertFalse` para o m\u00e9todo `equals()`.",
+      "severity": "moderate",
+      "confidence": "high",
+      "evidence_refs": [
+        "FilmeNowtestes.java",
+        "FilmeNowtestes.java:testAdicionaFilmePosicao100",
+        "FilmeNowtestes.java:testAdicionaFilmePosicaoMaior",
+        "FilmeNowtestes.java:detalharFilmeHot"
+      ]
+    }
+  ],
+  "student_feedback": "No geral, a sua solu\u00e7\u00e3o est\u00e1 excelente! Voc\u00ea demonstrou um \u00f3timo entendimento sobre design de classes, separa\u00e7\u00e3o de responsabilidades e uso de arrays. A cobertura de testes para a classe FilmNow tamb\u00e9m est\u00e1 muito boa, explorando bem os casos limite (edge cases). O caminho est\u00e1 certo, mas h\u00e1 pequenos ajustes a fazer para consolidar o aprendizado:\n\n[MainFilmNow.java/atribuirHot] Problema: O m\u00e9todo n\u00e3o imprime o retorno de `fn.adicionaHot(...)`. Consequ\u00eancia: O usu\u00e1rio n\u00e3o recebe feedback (mensagem de sucesso ou erro) ao tentar adicionar um filme \u00e0 HotList. Como consertar: Envolva a chamada do m\u00e9todo em um `System.out.println()`.\n\n[FilmNow.java/removeHot] Problema: O m\u00e9todo n\u00e3o verifica se a posi\u00e7\u00e3o da HotList est\u00e1 vazia antes de acessar o objeto. Consequ\u00eancia: Se o usu\u00e1rio tentar remover um filme de uma posi\u00e7\u00e3o vazia, o programa lan\u00e7ar\u00e1 um erro (NullPointerException). Como consertar: Adicione uma verifica\u00e7\u00e3o `if (hotList[posicaoHot] != null)` antes de chamar `naoEhHot()`.\n\n[FilmeNowtestes.java] Problema: Faltam testes unit\u00e1rios expl\u00edcitos para os m\u00e9todos da classe `Filme` (como `equals` e `toString`). Consequ\u00eancia: A unidade `Filme` n\u00e3o est\u00e1 sendo validada isoladamente, o que dificulta achar erros se a l\u00f3gica dela mudar no futuro. Como consertar: Crie m\u00e9todos de teste instanciando objetos `Filme` e usando `assertEquals` e `assertTrue`/`assertFalse` para validar seus m\u00e9todos diretamente.\n\nEsses ajustes s\u00e3o importantes, mas n\u00e3o apagam os acertos que j\u00e1 aparecem no resto da solu\u00e7\u00e3o. \u00d3timo trabalho!",
+  "reviewer_audit": {
+    "requires_human_review": false,
+    "grading_basis": "Avalia\u00e7\u00e3o baseada na leitura est\u00e1tica do c\u00f3digo e na an\u00e1lise dos testes fornecidos.",
+    "main_uncertainties": [],
+    "potential_false_positive_risks": []
+  },
+  "feedback_reviewer_notes": {
+    "requires_human_review": false,
+    "synthesis_rationale": "Foram selecionados os dois \u00fanicos problemas apontados na Fase 1, ambos com alta confian\u00e7a. O feedback destaca o excelente trabalho geral do aluno (notas 10 em quase todos os crit\u00e9rios) e aponta pontualmente a falta de testes isolados para a classe Filme e os pequenos bugs na manipula\u00e7\u00e3o da HotList, mantendo a proporcionalidade da nota alta.",
+    "omitted_stage1_deductions": [],
+    "low_confidence_items": []
+  },
+  "confidence": "high"
+}

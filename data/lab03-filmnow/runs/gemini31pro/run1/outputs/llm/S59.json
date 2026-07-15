@@ -1,0 +1,156 @@
+{
+  "submission_id": "S59",
+  "evaluator_type": "llm",
+  "criteria": [
+    {
+      "criterion_id": "basic_functionality",
+      "criterion_name": "Basic Functionality",
+      "score": 7.5,
+      "max_score": 10,
+      "justification": "O fluxo principal do sistema funciona bem, incluindo cadastro, listagem e HotList. No entanto, há pequenos desvios em relação à especificação: mensagem incorreta ao adicionar filme duplicado, retorno incorreto ao detalhar posição vazia e uma implementação frágil do status 'hot' modificando diretamente a string do nome.",
+      "evidence_refs": [
+        "FilmNow.java: cadastraFilme",
+        "FilmNow.java: adicionaHot",
+        "MainFilmNow.java: comando",
+        "FilmNow.java: removeHot",
+        "FilmNow.java: getDadosFilme"
+      ],
+      "deductions": [
+        {
+          "problem": "Ao tentar adicionar um filme duplicado, o sistema imprime 'FILME ADICIONADO' em vez da mensagem esperada 'FILME JA ADICIONADO'.",
+          "consequence": "O usuário recebe uma confirmação falsa de sucesso para uma operação que foi rejeitada pela regra de negócio.",
+          "how_to_fix": "Corrigir a string impressa na validação de duplicidade dentro do método cadastraFilme.",
+          "points_lost": 1.0,
+          "severity": "minor",
+          "confidence": "high",
+          "rubric_anchor": "Funcionalidade Básica",
+          "evidence_refs": [
+            "FilmNow.java: cadastraFilme",
+            "FilmNow.java: adicionaHot",
+            "MainFilmNow.java: comando"
+          ]
+        },
+        {
+          "problem": "O status de destaque (hot) é implementado concatenando o emoji '🔥' diretamente no atributo nome do Filme, e a remoção usa 'substring(2)'.",
+          "consequence": "Isso altera o dado original do filme e é uma abordagem frágil, podendo causar erros se o nome original já possuir caracteres especiais no início.",
+          "how_to_fix": "O status 'hot' deve ser tratado na hora da exibição (verificando se o filme está na HotList) ou através de um atributo booleano na classe Filme, sem alterar a string original do nome.",
+          "points_lost": 1.0,
+          "severity": "minor",
+          "confidence": "high",
+          "rubric_anchor": "Funcionalidade Básica",
+          "evidence_refs": [
+            "FilmNow.java: adicionaHot",
+            "FilmNow.java: removeHot",
+            "FilmNow.java: cadastraFilme",
+            "MainFilmNow.java: comando"
+          ]
+        },
+        {
+          "problem": "Ao detalhar uma posição válida que está vazia, o sistema retorna 'POSIÇÃO INVÁLIDA!' em vez de retornar vazio.",
+          "consequence": "O comportamento diverge da especificação, tratando uma posição vazia como se fosse uma posição fora dos limites permitidos.",
+          "how_to_fix": "Ajustar a lógica de getDadosFilme para retornar uma string vazia quando a posição for válida (entre 1 e 100) mas o elemento no array for null.",
+          "points_lost": 0.5,
+          "severity": "minor",
+          "confidence": "high",
+          "rubric_anchor": "Funcionalidade Básica",
+          "evidence_refs": [
+            "FilmNow.java: getDadosFilme",
+            "FilmNow.java: cadastraFilme",
+            "FilmNow.java: adicionaHot",
+            "MainFilmNow.java: comando"
+          ]
+        }
+      ]
+    },
+    {
+      "criterion_id": "unit_tests",
+      "criterion_name": "Unit Tests",
+      "score": 10.0,
+      "max_score": 10,
+      "justification": "Excelente cobertura de testes para as classes Filme e FilmNow, cobrindo cenários de sucesso e falha de forma abrangente.",
+      "evidence_refs": [
+        "Testes/TesteFilme.java",
+        "Testes/TesteFilmNow.java"
+      ],
+      "deductions": []
+    },
+    {
+      "criterion_id": "class_design",
+      "criterion_name": "Class Design",
+      "score": 10.0,
+      "max_score": 10,
+      "justification": "As classes Filme e FilmNow foram bem modeladas, com responsabilidades claras em termos de atributos e métodos essenciais para o domínio do problema.",
+      "evidence_refs": [
+        "Filme.java",
+        "FilmNow.java"
+      ],
+      "deductions": []
+    },
+    {
+      "criterion_id": "object_references",
+      "criterion_name": "Object References and Composition",
+      "score": 10.0,
+      "max_score": 10,
+      "justification": "O sistema utiliza corretamente a composição, com a classe FilmNow gerenciando instâncias da classe Filme de forma coerente.",
+      "evidence_refs": [
+        "FilmNow.java: cadastraFilme",
+        "FilmNow.java: arrayFilmes"
+      ],
+      "deductions": []
+    },
+    {
+      "criterion_id": "collections_and_arrays",
+      "criterion_name": "Collections and Arrays",
+      "score": 10.0,
+      "max_score": 10,
+      "justification": "Uso adequado de arrays para o acervo principal e para a HotList, respeitando os limites de tamanho e manipulando os índices corretamente.",
+      "evidence_refs": [
+        "FilmNow.java: construtor",
+        "FilmNow.java: cadastraFilme"
+      ],
+      "deductions": []
+    },
+    {
+      "criterion_id": "separation_of_concerns",
+      "criterion_name": "Separation of Concerns",
+      "score": 7.0,
+      "max_score": 10,
+      "justification": "A separação de responsabilidades é boa na maior parte do sistema, mas a classe de domínio FilmNow realiza impressões diretas no console, violando o princípio de separação entre lógica de negócio e interface com o usuário.",
+      "evidence_refs": [
+        "MainFilmNow.java",
+        "FilmNow.java",
+        "FilmNow.java: cadastraFilme"
+      ],
+      "deductions": [
+        {
+          "problem": "A classe FilmNow contém chamadas diretas a System.out.println para exibir mensagens de validação durante o cadastro de filmes.",
+          "consequence": "A classe de domínio fica fortemente acoplada à saída de console, impedindo seu reuso em outros tipos de interface (como interfaces gráficas) e dificultando testes automatizados que dependam do retorno da operação.",
+          "how_to_fix": "A classe FilmNow deve retornar as mensagens de erro (como String) ou lançar exceções, deixando a responsabilidade de imprimir no console exclusivamente para a classe MainFilmNow.",
+          "points_lost": 3.0,
+          "severity": "moderate",
+          "confidence": "high",
+          "rubric_anchor": "Divisão de funcionalidades",
+          "evidence_refs": [
+            "FilmNow.java: cadastraFilme",
+            "MainFilmNow.java",
+            "FilmNow.java"
+          ]
+        }
+      ]
+    },
+    {
+      "criterion_id": "readability_and_documentation",
+      "criterion_name": "Readability and Documentation",
+      "score": 10.0,
+      "max_score": 10,
+      "justification": "O código é muito bem organizado, legível e conta com excelente documentação Javadoc em suas classes e métodos.",
+      "evidence_refs": [
+        "Filme.java",
+        "FilmNow.java"
+      ],
+      "deductions": []
+    }
+  ],
+  "total_score": 9.225,
+  "total_max_score": 10.0
+}

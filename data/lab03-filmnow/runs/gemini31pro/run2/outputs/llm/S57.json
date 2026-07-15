@@ -1,0 +1,243 @@
+{
+  "submission_id": "S57",
+  "evaluator_type": "llm",
+  "criteria": [
+    {
+      "criterion_id": "basic_functionality",
+      "criterion_name": "Basic Functionality",
+      "score": 7.5,
+      "max_score": 10,
+      "justification": "A maior parte das funcionalidades foi implementada corretamente, incluindo a adi\u00e7\u00e3o, listagem e detalhamento de filmes, bem como a manipula\u00e7\u00e3o b\u00e1sica da HotList. No entanto, h\u00e1 falhas no controle de duplicatas na HotList e erros de \u00edndice (off-by-one) que podem causar exce\u00e7\u00f5es em tempo de execu\u00e7\u00e3o e comportamentos inesperados.",
+      "success_evidence": [
+        "Adi\u00e7\u00e3o de filmes com valida\u00e7\u00e3o de limites e campos vazios.",
+        "Listagem de filmes e detalhamento com a marca\u00e7\u00e3o de HotList (\ud83d\udd25).",
+        "Atribui\u00e7\u00e3o e remo\u00e7\u00e3o de filmes na HotList."
+      ],
+      "evidence_refs": [
+        "FilmNow.cadastraFilme",
+        "MainFilmNow.mostrarFilmes",
+        "MainFilmNow.detalharFilme",
+        "FilmNow.verificaParametrosHot",
+        "FilmNow.atribuiHot"
+      ],
+      "non_penalized_observations": [
+        "Ao tentar adicionar o mesmo filme na mesma posi\u00e7\u00e3o, o sistema retorna 'FILME J\u00c1 ADICIONADO' em vez de sobrescrever silenciosamente, o que \u00e9 um desvio menor da especifica\u00e7\u00e3o, mas aceit\u00e1vel."
+      ],
+      "deductions": [
+        {
+          "problem": "Uso incorreto de \u00edndice (1-based em vez de 0-based) ao acessar o array de filmes, o que verifica o filme errado e pode causar ArrayIndexOutOfBoundsException.",
+          "consequence": "Em `detalharFilme`, ao verificar `fn.getFilme(posicao) != null`, o c\u00f3digo checa a posi\u00e7\u00e3o seguinte \u00e0 desejada. Se o usu\u00e1rio tentar detalhar o filme da posi\u00e7\u00e3o 100, o programa ir\u00e1 quebrar com uma exce\u00e7\u00e3o, pois tenta acessar o \u00edndice 100 do array (que vai de 0 a 99). O mesmo ocorre em `verificaParametrosHot`.",
+          "how_to_fix": "Em `MainFilmNow.detalharFilme`, altere `fn.getFilme(posicao)` para `fn.getFilme(posicao - 1)`. Em `FilmNow.verificaParametrosHot`, altere `filmes[filme] == null` para `filmes[filme - 1] == null`.",
+          "points_lost": 1.5,
+          "severity": "moderate",
+          "confidence": "high",
+          "rubric_anchor": "Detalhar Filme / HotList",
+          "evidence_refs": [
+            "MainFilmNow.detalharFilme",
+            "FilmNow.verificaParametrosHot",
+            "FilmNow.cadastraFilme",
+            "MainFilmNow.mostrarFilmes"
+          ]
+        },
+        {
+          "problem": "Aus\u00eancia de verifica\u00e7\u00e3o de duplicatas ao adicionar um filme \u00e0 HotList.",
+          "consequence": "O sistema permite que o mesmo filme seja adicionado m\u00faltiplas vezes em posi\u00e7\u00f5es diferentes da HotList, contrariando a especifica\u00e7\u00e3o que exige a mensagem 'FILME J\u00c1 ADICIONADO'.",
+          "how_to_fix": "No m\u00e9todo `atribuiHot`, antes de adicionar o filme, percorra a `hotList` para verificar se o filme j\u00e1 est\u00e1 presente. Se estiver, retorne a mensagem de erro apropriada.",
+          "points_lost": 1.0,
+          "severity": "minor",
+          "confidence": "high",
+          "rubric_anchor": "HotList",
+          "evidence_refs": [
+            "FilmNow.atribuiHot",
+            "FilmNow.cadastraFilme",
+            "MainFilmNow.mostrarFilmes",
+            "MainFilmNow.detalharFilme"
+          ]
+        }
+      ]
+    },
+    {
+      "criterion_id": "unit_tests",
+      "criterion_name": "Unit Tests",
+      "score": 0.0,
+      "max_score": 10,
+      "justification": "N\u00e3o foram encontrados testes de unidade na submiss\u00e3o.",
+      "success_evidence": [],
+      "evidence_refs": [
+        "Pacote de submiss\u00e3o"
+      ],
+      "non_penalized_observations": [],
+      "deductions": [
+        {
+          "problem": "Aus\u00eancia total de testes de unidade (JUnit).",
+          "consequence": "N\u00e3o \u00e9 poss\u00edvel verificar a corretude das classes Filme e FilmNow de forma automatizada, descumprindo um dos objetivos principais do laborat\u00f3rio.",
+          "how_to_fix": "Crie classes de teste (ex: FilmeTest e FilmNowTest) utilizando o framework JUnit para validar os comportamentos especificados, como adi\u00e7\u00e3o v\u00e1lida, limites de array e regras de neg\u00f3cio.",
+          "points_lost": 10.0,
+          "severity": "blocking",
+          "confidence": "high",
+          "rubric_anchor": "Testes",
+          "evidence_refs": [
+            "Pacote de submiss\u00e3o"
+          ]
+        }
+      ]
+    },
+    {
+      "criterion_id": "class_design",
+      "criterion_name": "Class Design",
+      "score": 10.0,
+      "max_score": 10,
+      "justification": "As classes foram criadas e modeladas adequadamente. A classe Filme encapsula os dados do filme e a classe FilmNow gerencia as cole\u00e7\u00f5es.",
+      "success_evidence": [
+        "Cria\u00e7\u00e3o da classe Filme com atributos apropriados (nome, ano, local).",
+        "Implementa\u00e7\u00e3o dos m\u00e9todos equals e toString na classe Filme.",
+        "Classe FilmNow atuando como gerenciadora (composi\u00e7\u00e3o)."
+      ],
+      "evidence_refs": [
+        "Filme.java",
+        "FilmNow.java"
+      ],
+      "non_penalized_observations": [],
+      "deductions": []
+    },
+    {
+      "criterion_id": "object_references",
+      "criterion_name": "Object References and Composition",
+      "score": 10.0,
+      "max_score": 10,
+      "justification": "O uso de refer\u00eancias e a composi\u00e7\u00e3o entre FilmNow e Filme foram implementados corretamente.",
+      "success_evidence": [
+        "Instancia\u00e7\u00e3o correta de objetos Filme dentro de FilmNow.",
+        "Uso adequado de refer\u00eancias para manipular os filmes nos arrays.",
+        "Aus\u00eancia de uso indevido de modificadores static (restritos ao main e constantes)."
+      ],
+      "evidence_refs": [
+        "FilmNow.cadastraFilme",
+        "MainFilmNow.main"
+      ],
+      "non_penalized_observations": [],
+      "deductions": []
+    },
+    {
+      "criterion_id": "collections_and_arrays",
+      "criterion_name": "Collections and Arrays",
+      "score": 10.0,
+      "max_score": 10,
+      "justification": "Os arrays foram utilizados corretamente para armazenar os filmes e a HotList, respeitando os limites estabelecidos.",
+      "success_evidence": [
+        "Uso de array de tamanho 100 para filmes e tamanho 10 para a HotList.",
+        "Mapeamento correto das posi\u00e7\u00f5es informadas pelo usu\u00e1rio (1-based) para os \u00edndices dos arrays (0-based) na maior parte do c\u00f3digo."
+      ],
+      "evidence_refs": [
+        "FilmNow.FilmNow()",
+        "FilmNow.cadastraFilme"
+      ],
+      "non_penalized_observations": [],
+      "deductions": []
+    },
+    {
+      "criterion_id": "separation_of_concerns",
+      "criterion_name": "Separation of Concerns",
+      "score": 10.0,
+      "max_score": 10,
+      "justification": "Boa separa\u00e7\u00e3o de responsabilidades. A interface com o usu\u00e1rio est\u00e1 isolada no MainFilmNow, enquanto a l\u00f3gica de neg\u00f3cio reside em FilmNow e Filme.",
+      "success_evidence": [
+        "MainFilmNow concentra as opera\u00e7\u00f5es de entrada e sa\u00edda (Scanner e System.out).",
+        "FilmNow gerencia a l\u00f3gica de adi\u00e7\u00e3o e valida\u00e7\u00e3o.",
+        "Filme \u00e9 respons\u00e1vel por sua pr\u00f3pria representa\u00e7\u00e3o em texto (toString)."
+      ],
+      "evidence_refs": [
+        "MainFilmNow.comando",
+        "FilmNow.cadastraFilme",
+        "Filme.toString"
+      ],
+      "non_penalized_observations": [
+        "O m\u00e9todo cadastraFilme retorna Strings com mensagens de erro ou sucesso. Embora o uso de exce\u00e7\u00f5es ou enums seja uma pr\u00e1tica mais robusta, o retorno de Strings \u00e9 aceit\u00e1vel para o n\u00edvel deste laborat\u00f3rio."
+      ],
+      "deductions": []
+    },
+    {
+      "criterion_id": "readability_and_documentation",
+      "criterion_name": "Readability and Documentation",
+      "score": 10.0,
+      "max_score": 10,
+      "justification": "O c\u00f3digo \u00e9 leg\u00edvel, com bons nomes de vari\u00e1veis e m\u00e9todos. A documenta\u00e7\u00e3o Javadoc est\u00e1 presente e descreve adequadamente o prop\u00f3sito dos m\u00e9todos.",
+      "success_evidence": [
+        "Nomes descritivos para vari\u00e1veis e m\u00e9todos.",
+        "Presen\u00e7a de coment\u00e1rios Javadoc explicando os par\u00e2metros e retornos dos m\u00e9todos em FilmNow e MainFilmNow."
+      ],
+      "evidence_refs": [
+        "FilmNow.java",
+        "MainFilmNow.java"
+      ],
+      "non_penalized_observations": [
+        "Alguns coment\u00e1rios em FilmNow utilizam '/*' em vez de '/**' para iniciar o bloco Javadoc, o que faz com que n\u00e3o sejam reconhecidos por ferramentas de gera\u00e7\u00e3o de documenta\u00e7\u00e3o, mas a inten\u00e7\u00e3o de documentar est\u00e1 clara."
+      ],
+      "deductions": []
+    }
+  ],
+  "total_score": 7.875,
+  "total_max_score": 10.0,
+  "feedback_items": [
+    {
+      "criterion_id": "unit_tests",
+      "criterion_name": "Unit Tests",
+      "problem": "Aus\u00eancia total de testes de unidade (JUnit).",
+      "consequence": "N\u00e3o \u00e9 poss\u00edvel verificar a corretude das classes Filme e FilmNow de forma automatizada, descumprindo um dos objetivos principais do laborat\u00f3rio.",
+      "how_to_fix": "Crie classes de teste (ex: FilmeTest e FilmNowTest) utilizando o framework JUnit para validar os comportamentos especificados, como adi\u00e7\u00e3o v\u00e1lida, limites de array e regras de neg\u00f3cio.",
+      "severity": "blocking",
+      "confidence": "high",
+      "evidence_refs": [
+        "Pacote de submiss\u00e3o"
+      ]
+    },
+    {
+      "criterion_id": "basic_functionality",
+      "criterion_name": "Basic Functionality",
+      "problem": "Uso incorreto de \u00edndice (1-based em vez de 0-based) ao acessar o array de filmes, o que verifica o filme errado e pode causar ArrayIndexOutOfBoundsException.",
+      "consequence": "Em `detalharFilme`, ao verificar `fn.getFilme(posicao) != null`, o c\u00f3digo checa a posi\u00e7\u00e3o seguinte \u00e0 desejada. Se o usu\u00e1rio tentar detalhar o filme da posi\u00e7\u00e3o 100, o programa ir\u00e1 quebrar com uma exce\u00e7\u00e3o. O mesmo ocorre em `verificaParametrosHot`.",
+      "how_to_fix": "Em `MainFilmNow.detalharFilme`, altere `fn.getFilme(posicao)` para `fn.getFilme(posicao - 1)`. Em `FilmNow.verificaParametrosHot`, altere `filmes[filme] == null` para `filmes[filme - 1] == null`.",
+      "severity": "moderate",
+      "confidence": "high",
+      "evidence_refs": [
+        "MainFilmNow.detalharFilme",
+        "FilmNow.verificaParametrosHot",
+        "FilmNow.cadastraFilme",
+        "MainFilmNow.mostrarFilmes",
+        "FilmNow.atribuiHot"
+      ]
+    },
+    {
+      "criterion_id": "basic_functionality",
+      "criterion_name": "Basic Functionality",
+      "problem": "Aus\u00eancia de verifica\u00e7\u00e3o de duplicatas ao adicionar um filme \u00e0 HotList.",
+      "consequence": "O sistema permite que o mesmo filme seja adicionado m\u00faltiplas vezes em posi\u00e7\u00f5es diferentes da HotList, contrariando a especifica\u00e7\u00e3o que exige a mensagem 'FILME J\u00c1 ADICIONADO'.",
+      "how_to_fix": "No m\u00e9todo `atribuiHot`, antes de adicionar o filme, percorra a `hotList` para verificar se o filme j\u00e1 est\u00e1 presente. Se estiver, retorne a mensagem de erro apropriada.",
+      "severity": "minor",
+      "confidence": "high",
+      "evidence_refs": [
+        "FilmNow.atribuiHot",
+        "FilmNow.cadastraFilme",
+        "MainFilmNow.mostrarFilmes",
+        "MainFilmNow.detalharFilme",
+        "FilmNow.verificaParametrosHot"
+      ]
+    }
+  ],
+  "student_feedback": "No geral, a solu\u00e7\u00e3o demonstra um \u00f3timo entendimento da modelagem de classes e separa\u00e7\u00e3o de responsabilidades. O c\u00f3digo est\u00e1 bem organizado, leg\u00edvel e faz um bom uso de arrays e refer\u00eancias! O ponto que precisa de mais aten\u00e7\u00e3o agora \u00e9 a cria\u00e7\u00e3o de testes automatizados e alguns ajustes de \u00edndices (edge cases, ou seja, situa\u00e7\u00f5es limite).\n\n[Pacote de submiss\u00e3o] Problema: Aus\u00eancia total de testes de unidade (JUnit). Consequ\u00eancia: N\u00e3o \u00e9 poss\u00edvel verificar a corretude das regras de neg\u00f3cio de forma automatizada. Como consertar: Crie classes de teste (ex: FilmeTest e FilmNowTest) para validar os comportamentos especificados.\n[MainFilmNow.detalharFilme] Problema: Uso incorreto de \u00edndice ao verificar a exist\u00eancia do filme. Consequ\u00eancia: O c\u00f3digo checa `fn.getFilme(posicao) != null`, acessando a posi\u00e7\u00e3o seguinte \u00e0 desejada, o que pode causar um erro (ArrayIndexOutOfBoundsException) no limite do array. Como consertar: Altere para `fn.getFilme(posicao - 1)`.\n[FilmNow.verificaParametrosHot] Problema: Erro de \u00edndice similar na valida\u00e7\u00e3o da HotList. Consequ\u00eancia: Verifica o filme errado ou quebra a execu\u00e7\u00e3o. Como consertar: Altere `filmes[filme] == null` para `filmes[filme - 1] == null`.\n[FilmNow.atribuiHot] Problema: Aus\u00eancia de verifica\u00e7\u00e3o de duplicatas. Consequ\u00eancia: O sistema permite que o mesmo filme seja adicionado m\u00faltiplas vezes na HotList. Como consertar: Antes de adicionar, percorra a `hotList` para verificar se o filme j\u00e1 est\u00e1 presente e retorne a mensagem de erro apropriada.",
+  "reviewer_audit": {
+    "requires_human_review": false,
+    "grading_basis": "Avalia\u00e7\u00e3o baseada na leitura est\u00e1tica do c\u00f3digo fonte submetido, verificando a l\u00f3gica de neg\u00f3cio, uso de arrays e separa\u00e7\u00e3o de responsabilidades. A aus\u00eancia de testes foi confirmada pela falta de arquivos de teste no pacote.",
+    "main_uncertainties": [],
+    "potential_false_positive_risks": [
+      "A dedu\u00e7\u00e3o sobre o erro de \u00edndice (off-by-one) em detalharFilme e verificaParametrosHot foi feita por an\u00e1lise est\u00e1tica; em execu\u00e7\u00e3o, isso causaria quebra nos limites (posi\u00e7\u00e3o 100) e verifica\u00e7\u00e3o do filme errado nas demais posi\u00e7\u00f5es."
+    ]
+  },
+  "feedback_reviewer_notes": {
+    "requires_human_review": false,
+    "synthesis_rationale": "Foram selecionados os tr\u00eas problemas apontados na Fase 1: a aus\u00eancia cr\u00edtica de testes (que zerou o crit\u00e9rio) e os dois problemas de funcionalidade (erro de \u00edndice off-by-one e falta de checagem de duplicatas na HotList). O feedback elogia a excelente estrutura geral do c\u00f3digo (que obteve nota m\u00e1xima em v\u00e1rios crit\u00e9rios) para manter o tom encorajador e proporcional.",
+    "omitted_stage1_deductions": [],
+    "low_confidence_items": []
+  },
+  "confidence": "high"
+}

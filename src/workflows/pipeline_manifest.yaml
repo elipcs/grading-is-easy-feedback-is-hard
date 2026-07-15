@@ -1,0 +1,40 @@
+pipeline_name: lab03_filmnow_canonical
+version: "1.4"
+description: Canonical workflow for LLM evaluation, analysis/reporting, and model benchmarking on packaged study data (no student/TA collection stage).
+
+reference_experiments:
+  gpt55: data/lab03-filmnow/runs/gpt55/run1
+  gemini31pro: data/lab03-filmnow/runs/gemini31pro/run1
+  benchmark: data/lab03-filmnow/results/benchmark
+  by_category: data/lab03-filmnow/results/by_category
+
+stages:
+  - id: llm_evaluation
+    entrypoint: src/workflows/llm_evaluation.py
+    outputs:
+      - data/lab03-filmnow/runs/gemini31pro/run1/prompts/rendered/
+      - data/lab03-filmnow/runs/gemini31pro/run1/outputs/llm/
+      - data/lab03-filmnow/runs/gemini31pro/run1/analyses/validation_report.json
+
+  - id: analysis_reporting
+    entrypoint: src/workflows/analysis_reporting.py
+    depends_on:
+      - llm_evaluation
+    outputs:
+      - data/lab03-filmnow/runs/gemini31pro/run1/outputs/consolidated/
+      - data/lab03-filmnow/runs/gemini31pro/run1/analyses/
+
+  - id: model_benchmark
+    entrypoint: src/pipeline/10_model_benchmark.py
+    depends_on:
+      - analysis_reporting
+    inputs:
+      - data/lab03-filmnow/runs/gpt55/run1/outputs/llm/
+      - data/lab03-filmnow/runs/gemini31pro/run1/outputs/llm/
+    outputs:
+      - data/lab03-filmnow/results/by_category/model_benchmark.csv
+      - data/lab03-filmnow/results/by_category/model_benchmark.json
+      - data/lab03-filmnow/results/by_category/model_benchmark.md
+      - data/lab03-filmnow/results/by_category/model_statistical_tests.json
+      - data/lab03-filmnow/results/by_category/model_statistical_tests.csv
+      - data/lab03-filmnow/results/by_category/model_statistical_tests_by_submission.csv

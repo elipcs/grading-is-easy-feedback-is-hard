@@ -1,0 +1,233 @@
+{
+  "submission_id": "S57",
+  "evaluator_type": "llm",
+  "criteria": [
+    {
+      "criterion_id": "basic_functionality",
+      "criterion_name": "Basic Functionality",
+      "score": 6,
+      "max_score": 10,
+      "justification": "O fluxo principal de cadastro e listagem foi implementado, mas há falhas funcionais importantes: ausência de verificação de duplicidade na HotList e erros de índice (off-by-one) que causam exceções ou validações incorretas nos limites do acervo.",
+      "evidence_refs": [
+        "FilmNow.cadastraFilme",
+        "FilmNow.existeFilme",
+        "MainFilmNow.mostrarFilmes",
+        "FilmNow.removerHot",
+        "FilmNow.atribuiHot",
+        "MainFilmNow.detalharFilme",
+        "FilmNow.verificaParametrosHot"
+      ],
+      "deductions": [
+        {
+          "problem": "Não há impedimento para adicionar um filme que já está na HotList em outra posição da própria HotList.",
+          "consequence": "Permite duplicidade de filmes na HotList, violando a regra de negócio.",
+          "how_to_fix": "Adicionar uma verificação iterando sobre a hotList para checar se o filme já existe antes de inseri-lo.",
+          "points_lost": 1.5,
+          "severity": "moderate",
+          "confidence": "high",
+          "rubric_anchor": "HotList",
+          "evidence_refs": [
+            "FilmNow.atribuiHot",
+            "FilmNow.cadastraFilme",
+            "FilmNow.existeFilme",
+            "MainFilmNow.mostrarFilmes",
+            "FilmNow.removerHot"
+          ]
+        },
+        {
+          "problem": "O método detalharFilme na Main acessa o índice 'posicao' diretamente (base 1) em vez de 'posicao - 1' na verificação de nulidade.",
+          "consequence": "Se o usuário tentar detalhar a posição 100, o programa lançará ArrayIndexOutOfBoundsException. Para outras posições, verifica a nulidade do filme seguinte, não do atual.",
+          "how_to_fix": "Corrigir a chamada para fn.getFilme(posicao - 1) != null na condição do if.",
+          "points_lost": 1.5,
+          "severity": "major",
+          "confidence": "high",
+          "rubric_anchor": "Detalhar filme",
+          "evidence_refs": [
+            "MainFilmNow.detalharFilme",
+            "FilmNow.cadastraFilme",
+            "FilmNow.existeFilme",
+            "MainFilmNow.mostrarFilmes",
+            "FilmNow.removerHot"
+          ]
+        },
+        {
+          "problem": "A validação verificaParametrosHot acessa o array filmes usando o índice base 1 (filmes[filme]).",
+          "consequence": "Lança exceção ao tentar adicionar o filme da posição 100 à HotList e verifica a nulidade do filme errado para as demais posições.",
+          "how_to_fix": "Alterar a verificação para filmes[filme - 1] == null.",
+          "points_lost": 1.0,
+          "severity": "moderate",
+          "confidence": "high",
+          "rubric_anchor": "HotList",
+          "evidence_refs": [
+            "FilmNow.verificaParametrosHot",
+            "FilmNow.cadastraFilme",
+            "FilmNow.existeFilme",
+            "MainFilmNow.mostrarFilmes",
+            "FilmNow.removerHot"
+          ]
+        }
+      ]
+    },
+    {
+      "criterion_id": "unit_tests",
+      "criterion_name": "Unit Tests",
+      "score": 0,
+      "max_score": 10,
+      "justification": "Não há arquivos de testes na submissão.",
+      "evidence_refs": [
+        "Pacote raiz"
+      ],
+      "deductions": [
+        {
+          "problem": "Ausência total de testes automatizados (JUnit).",
+          "consequence": "Não é possível avaliar a capacidade do aluno de testar o comportamento das classes.",
+          "how_to_fix": "Criar classes de teste (ex: FilmeTest, FilmNowTest) e implementar métodos com a anotação @Test para validar os cenários de sucesso e falha.",
+          "points_lost": 10.0,
+          "severity": "blocking",
+          "confidence": "high",
+          "rubric_anchor": "Testes",
+          "evidence_refs": [
+            "Pacote raiz"
+          ]
+        }
+      ]
+    },
+    {
+      "criterion_id": "class_design",
+      "criterion_name": "Class Design",
+      "score": 10,
+      "max_score": 10,
+      "justification": "As classes Filme e FilmNow foram criadas e modeladas corretamente, com atributos adequados e métodos equals/hashCode bem definidos.",
+      "evidence_refs": [
+        "Filme.java",
+        "Filme.equals",
+        "FilmNow.java"
+      ],
+      "deductions": []
+    },
+    {
+      "criterion_id": "object_references",
+      "criterion_name": "Object References and Composition",
+      "score": 10,
+      "max_score": 10,
+      "justification": "O uso de referências e a composição entre FilmNow e Filme foram bem compreendidos e aplicados.",
+      "evidence_refs": [
+        "FilmNow.filmes",
+        "FilmNow.hotList",
+        "FilmNow.existeFilme"
+      ],
+      "deductions": []
+    },
+    {
+      "criterion_id": "collections_and_arrays",
+      "criterion_name": "Collections and Arrays",
+      "score": 8,
+      "max_score": 10,
+      "justification": "Os arrays foram declarados e instanciados corretamente, mas há confusão no mapeamento entre as posições informadas pelo usuário (1 a N) e os índices dos arrays (0 a N-1).",
+      "evidence_refs": [
+        "FilmNow.FilmNow()",
+        "FilmNow.existeFilme",
+        "FilmNow.verificaParametrosHot",
+        "MainFilmNow.detalharFilme"
+      ],
+      "deductions": [
+        {
+          "problem": "Inconsistência no uso de índices de array, misturando base 0 e base 1 em acessos diretos.",
+          "consequence": "Causa acessos a índices incorretos ou fora dos limites do array em métodos de validação e detalhamento.",
+          "how_to_fix": "Padronizar o acesso aos arrays subtraindo 1 da posição informada pelo usuário em todos os pontos onde o array é acessado diretamente.",
+          "points_lost": 2.0,
+          "severity": "moderate",
+          "confidence": "high",
+          "rubric_anchor": "Uso de array/coleções",
+          "evidence_refs": [
+            "FilmNow.verificaParametrosHot",
+            "MainFilmNow.detalharFilme",
+            "FilmNow.FilmNow()",
+            "FilmNow.existeFilme"
+          ]
+        }
+      ]
+    },
+    {
+      "criterion_id": "separation_of_concerns",
+      "criterion_name": "Separation of Concerns",
+      "score": 8,
+      "max_score": 10,
+      "justification": "A separação de responsabilidades existe, mas a classe de domínio (FilmNow) retorna mensagens de interface e a Main realiza algumas validações que deveriam estar encapsuladas.",
+      "evidence_refs": [
+        "MainFilmNow.java",
+        "FilmNow.java",
+        "FilmNow.cadastraFilme",
+        "FilmNow.verificaParametros",
+        "FilmNow.atribuiHot",
+        "MainFilmNow.detalharFilme"
+      ],
+      "deductions": [
+        {
+          "problem": "Métodos de negócio em FilmNow retornam Strings com mensagens voltadas para o usuário (ex: 'POSIÇÃO INVÁLIDA', 'FILME JÁ ADICIONADO').",
+          "consequence": "Acopla a classe de domínio à interface de texto, dificultando a reutilização do sistema com outras interfaces (ex: gráfica ou web).",
+          "how_to_fix": "Fazer os métodos retornarem booleanos ou lançarem exceções para indicar sucesso/falha, deixando a Main decidir qual mensagem imprimir.",
+          "points_lost": 1.5,
+          "severity": "moderate",
+          "confidence": "high",
+          "rubric_anchor": "Divisão de funcionalidades",
+          "evidence_refs": [
+            "FilmNow.cadastraFilme",
+            "FilmNow.verificaParametros",
+            "FilmNow.atribuiHot",
+            "MainFilmNow.java",
+            "FilmNow.java"
+          ]
+        },
+        {
+          "problem": "A lógica de verificar se um filme é 'hot' para adicionar o emoji de fogo está na MainFilmNow.",
+          "consequence": "Vaza uma regra de formatação de domínio para a classe de interface.",
+          "how_to_fix": "Criar um método em FilmNow que retorne a representação textual completa do filme já formatada (com ou sem o emoji), ou encapsular essa lógica de exibição de forma mais limpa.",
+          "points_lost": 0.5,
+          "severity": "minor",
+          "confidence": "high",
+          "rubric_anchor": "Divisão de funcionalidades",
+          "evidence_refs": [
+            "MainFilmNow.detalharFilme",
+            "MainFilmNow.java",
+            "FilmNow.java"
+          ]
+        }
+      ]
+    },
+    {
+      "criterion_id": "readability_and_documentation",
+      "criterion_name": "Readability and Documentation",
+      "score": 9,
+      "max_score": 10,
+      "justification": "O código é legível, bem indentado e possui bons nomes de variáveis. A documentação Javadoc está presente, mas com pequenas falhas de formatação.",
+      "evidence_refs": [
+        "FilmNow.java",
+        "MainFilmNow.java",
+        "FilmNow.getHotFilme",
+        "FilmNow.eHot",
+        "FilmNow.atribuiHot"
+      ],
+      "deductions": [
+        {
+          "problem": "Alguns blocos de documentação usam '/*' em vez de '/**', o que impede que sejam reconhecidos como Javadoc oficial.",
+          "consequence": "A documentação gerada pela ferramenta Javadoc ficará incompleta para esses métodos.",
+          "how_to_fix": "Substituir '/*' por '/**' no início dos blocos de comentário de métodos como getHotFilme, eHot, atribuiHot, etc.",
+          "points_lost": 1.0,
+          "severity": "minor",
+          "confidence": "high",
+          "rubric_anchor": "Legibilidade e Documentação",
+          "evidence_refs": [
+            "FilmNow.getHotFilme",
+            "FilmNow.eHot",
+            "FilmNow.atribuiHot",
+            "FilmNow.java",
+            "MainFilmNow.java"
+          ]
+        }
+      ]
+    }
+  ],
+  "total_score": 7.1,
+  "total_max_score": 10.0
+}

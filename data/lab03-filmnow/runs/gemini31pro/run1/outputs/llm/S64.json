@@ -1,0 +1,247 @@
+{
+  "submission_id": "S64",
+  "evaluator_type": "llm",
+  "criteria": [
+    {
+      "criterion_id": "basic_functionality",
+      "criterion_name": "Basic Functionality",
+      "score": 7.5,
+      "max_score": 10,
+      "justification": "O fluxo principal de cadastro e detalhamento funciona bem, com validações corretas. No entanto, há falhas na listagem de filmes (ignora a posição 1 e mostra índices errados) e na lógica de substituição da HotList.",
+      "evidence_refs": [
+        "FilmNow.java: cadastraFilme",
+        "FilmNow.java: getFilme",
+        "FilmNow.java: getFilmes",
+        "FilmNow.java: adicionaHot"
+      ],
+      "deductions": [
+        {
+          "problem": "O método `getFilmes` ignora o índice 0 (posição 1) pois o laço termina em `i > 0`, e exibe o índice interno do array (0 a 99) em vez da posição amigável (1 a 100).",
+          "consequence": "A listagem de filmes fica incompleta (falta o primeiro filme) e com a numeração incorreta para o usuário.",
+          "how_to_fix": "Alterar a condição do laço para `i >= 0` e imprimir `(i + 1)` como a posição do filme.",
+          "points_lost": 1.5,
+          "severity": "moderate",
+          "confidence": "high",
+          "rubric_anchor": "Listagem de filmes",
+          "evidence_refs": [
+            "FilmNow.java: getFilmes",
+            "FilmNow.java: cadastraFilme",
+            "FilmNow.java: getFilme"
+          ]
+        },
+        {
+          "problem": "Ao sobrescrever um filme em uma posição já ocupada da HotList, o filme anterior não perde o status de 'hot'.",
+          "consequence": "O filme antigo continua sendo exibido com o marcador '🔥' no detalhamento, mesmo não estando mais na HotList.",
+          "how_to_fix": "Antes de atribuir o novo filme à posição na HotList, verifique se já existe um filme lá e limpe seu status de hot.",
+          "points_lost": 1.0,
+          "severity": "minor",
+          "confidence": "high",
+          "rubric_anchor": "Manipulação da HotList",
+          "evidence_refs": [
+            "FilmNow.java: adicionaHot",
+            "FilmNow.java: cadastraFilme",
+            "FilmNow.java: getFilme"
+          ]
+        }
+      ]
+    },
+    {
+      "criterion_id": "unit_tests",
+      "criterion_name": "Unit Tests",
+      "score": 8.5,
+      "max_score": 10,
+      "justification": "Bons testes para o fluxo principal de cadastro e detalhamento, cobrindo limites e casos alternativos. Faltam testes para as operações da HotList.",
+      "evidence_refs": [
+        "FilmNowTest.java",
+        "FilmeTest.java"
+      ],
+      "deductions": [
+        {
+          "problem": "Ausência de testes para as operações específicas da HotList (adicionar, remover, mostrar).",
+          "consequence": "Comportamentos importantes do sistema ficam sem garantia automatizada de funcionamento.",
+          "how_to_fix": "Adicionar métodos de teste no `FilmNowTest` para cobrir `adicionaHot`, `removeHot` e `mostrarHot`.",
+          "points_lost": 1.5,
+          "severity": "moderate",
+          "confidence": "high",
+          "rubric_anchor": "Cobertura de cenários",
+          "evidence_refs": [
+            "FilmNowTest.java",
+            "FilmeTest.java"
+          ]
+        }
+      ]
+    },
+    {
+      "criterion_id": "class_design",
+      "criterion_name": "Class Design",
+      "score": 9.0,
+      "max_score": 10,
+      "justification": "As classes principais foram criadas com responsabilidades bem definidas. Há um pequeno desvio na modelagem do status 'hot' como String.",
+      "evidence_refs": [
+        "Filme.java",
+        "FilmNow.java",
+        "Filme.java: atributo hot"
+      ],
+      "deductions": [
+        {
+          "problem": "O status de 'hot' foi modelado como uma String ('🔥' ou '') dentro da classe `Filme`.",
+          "consequence": "Mistura a representação visual (UI) com o modelo de dados. Um booleano seria mais adequado para representar o estado lógico.",
+          "how_to_fix": "Usar um atributo `boolean isHot` na classe `Filme` e deixar a formatação do emoji para o momento da exibição (toString ou UI).",
+          "points_lost": 1.0,
+          "severity": "minor",
+          "confidence": "high",
+          "rubric_anchor": "Modelagem de atributos",
+          "evidence_refs": [
+            "Filme.java: atributo hot",
+            "Filme.java",
+            "FilmNow.java"
+          ]
+        }
+      ]
+    },
+    {
+      "criterion_id": "object_references",
+      "criterion_name": "Object References and Composition",
+      "score": 8.5,
+      "max_score": 10,
+      "justification": "A composição entre FilmNow e Filme é bem feita, com a HotList armazenando referências corretamente. O desconto se deve a um erro ao acessar a referência correta na remoção da HotList.",
+      "evidence_refs": [
+        "FilmNow.java: atributos filmes e hotList",
+        "FilmNow.java: adicionaHot",
+        "FilmNow.java: removeHot"
+      ],
+      "deductions": [
+        {
+          "problem": "No método `removeHot`, o código tenta limpar o status do filme acessando `filmes[posicao]`, usando o índice da HotList no array principal.",
+          "consequence": "Isso altera o filme errado ou causa NullPointerException, pois os índices dos dois arrays não correspondem. A referência correta armazenada na HotList é ignorada.",
+          "how_to_fix": "Usar a referência do objeto que está na própria HotList antes de anulá-la: `this.hotList[posicao].setHot('');`.",
+          "points_lost": 1.5,
+          "severity": "moderate",
+          "confidence": "high",
+          "rubric_anchor": "Uso de referências",
+          "evidence_refs": [
+            "FilmNow.java: removeHot",
+            "FilmNow.java: atributos filmes e hotList",
+            "FilmNow.java: adicionaHot"
+          ]
+        }
+      ]
+    },
+    {
+      "criterion_id": "collections_and_arrays",
+      "criterion_name": "Collections and Arrays",
+      "score": 8.0,
+      "max_score": 10,
+      "justification": "Uso correto de arrays com os tamanhos especificados. Há erros significativos na iteração e no uso de índices (0-based vs 1-based) na HotList.",
+      "evidence_refs": [
+        "FilmNow.java: construtor",
+        "FilmNow.java: mostrarHot",
+        "FilmNow.java: removeHot",
+        "FilmNow.java: adicionaHot"
+      ],
+      "deductions": [
+        {
+          "problem": "A condição do laço `for` no método `mostrarHot` está invertida (`i > hotList.length` com `i` iniciando em 0).",
+          "consequence": "O laço nunca é executado e a HotList nunca é percorrida ou exibida.",
+          "how_to_fix": "Corrigir a condição do laço para `i < hotList.length`.",
+          "points_lost": 1.5,
+          "severity": "moderate",
+          "confidence": "high",
+          "rubric_anchor": "Uso de estruturas",
+          "evidence_refs": [
+            "FilmNow.java: mostrarHot",
+            "FilmNow.java: construtor"
+          ]
+        },
+        {
+          "problem": "Inconsistência no uso de índices na HotList: `removeHot` usa a posição diretamente como índice (1-based), enquanto `adicionaHot` usa `posicao-1` (0-based).",
+          "consequence": "Causa confusão e bugs ao acessar posições incorretas no array.",
+          "how_to_fix": "Padronizar o uso de índices 0-based internamente, subtraindo 1 da posição informada pelo usuário em todos os métodos.",
+          "points_lost": 0.5,
+          "severity": "minor",
+          "confidence": "high",
+          "rubric_anchor": "Uso de estruturas",
+          "evidence_refs": [
+            "FilmNow.java: removeHot",
+            "FilmNow.java: adicionaHot",
+            "FilmNow.java: construtor"
+          ]
+        }
+      ]
+    },
+    {
+      "criterion_id": "separation_of_concerns",
+      "criterion_name": "Separation of Concerns",
+      "score": 8.0,
+      "max_score": 10,
+      "justification": "Boa separação geral entre a interface (Main) e o domínio (FilmNow). O desconto ocorre porque FilmNow retorna mensagens de UI e faz parse de Strings.",
+      "evidence_refs": [
+        "MainFilmNow.java",
+        "FilmNow.java",
+        "FilmNow.java: cadastraFilme",
+        "FilmNow.java: adicionaHot"
+      ],
+      "deductions": [
+        {
+          "problem": "Os métodos de `FilmNow` retornam mensagens de texto voltadas para a interface (ex: 'FILME JÁ ADICIONADO', 'POSIÇÃO INVÁLIDA').",
+          "consequence": "A classe de domínio fica acoplada a mensagens de interface, dificultando a reutilização ou internacionalização.",
+          "how_to_fix": "Fazer os métodos retornarem booleanos, lançarem exceções ou usarem enums, deixando a `Main` decidir o que imprimir.",
+          "points_lost": 1.5,
+          "severity": "moderate",
+          "confidence": "high",
+          "rubric_anchor": "Separação de responsabilidades",
+          "evidence_refs": [
+            "FilmNow.java: cadastraFilme",
+            "FilmNow.java: adicionaHot",
+            "MainFilmNow.java",
+            "FilmNow.java"
+          ]
+        },
+        {
+          "problem": "O método `cadastraFilme` recebe a posição como `String` e faz o parse para `int` internamente.",
+          "consequence": "A conversão de tipos de entrada do usuário deveria ser responsabilidade da interface (`Main`).",
+          "how_to_fix": "Fazer o parse na `Main` e passar um `int` para o método `cadastraFilme`.",
+          "points_lost": 0.5,
+          "severity": "minor",
+          "confidence": "high",
+          "rubric_anchor": "Separação de responsabilidades",
+          "evidence_refs": [
+            "FilmNow.java: cadastraFilme",
+            "MainFilmNow.java",
+            "FilmNow.java"
+          ]
+        }
+      ]
+    },
+    {
+      "criterion_id": "readability_and_documentation",
+      "criterion_name": "Readability and Documentation",
+      "score": 9.0,
+      "max_score": 10,
+      "justification": "Código organizado e com Javadoc presente. A lógica de formatação da listagem de filmes é desnecessariamente complexa.",
+      "evidence_refs": [
+        "Filme.java",
+        "FilmNow.java",
+        "FilmNow.java: getFilmes"
+      ],
+      "deductions": [
+        {
+          "problem": "A lógica de concatenação no método `getFilmes` é desnecessariamente complexa, iterando de trás para frente e usando um método auxiliar `primeiroFilme()` para formatar quebras de linha.",
+          "consequence": "Dificulta a leitura e manutenção do código.",
+          "how_to_fix": "Iterar do início ao fim (0 a length-1) e usar um `StringBuilder` ou lógica mais simples para adicionar quebras de linha.",
+          "points_lost": 1.0,
+          "severity": "minor",
+          "confidence": "high",
+          "rubric_anchor": "Legibilidade",
+          "evidence_refs": [
+            "FilmNow.java: getFilmes",
+            "Filme.java",
+            "FilmNow.java"
+          ]
+        }
+      ]
+    }
+  ],
+  "total_score": 8.35,
+  "total_max_score": 10.0
+}

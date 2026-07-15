@@ -1,0 +1,205 @@
+{
+  "submission_id": "S78",
+  "evaluator_type": "llm",
+  "criteria": [
+    {
+      "criterion_id": "basic_functionality",
+      "criterion_name": "Basic Functionality",
+      "score": 7.0,
+      "max_score": 10,
+      "justification": "O fluxo principal de cadastro, listagem e detalhamento funciona bem. No entanto, há falhas lógicas importantes: filmes duplicados são inseridos no array mesmo retornando mensagem de erro, a HotList não impede a inserção de filmes duplicados e há uso inadequado do operador '==' para comparar Strings.",
+      "evidence_refs": [
+        "FilmNow.java: cadastraFilme",
+        "FilmNow.java: detalharFilmeNow",
+        "FilmNow.java: inFilmes",
+        "FilmNow.java: linhas 68-71 (método cadastraFilme)",
+        "FilmNow.java: método cadastraHot",
+        "FilmNow.java: linhas 55 e 59 (método cadastraFilme)"
+      ],
+      "deductions": [
+        {
+          "problem": "O sistema identifica que o filme é duplicado e retorna 'FILME JA ADICIONADO', mas ainda assim o insere na nova posição do array.",
+          "consequence": "Permite a duplicidade de filmes no acervo, violando a regra de negócio de impedir filmes com mesmo nome e ano em posições diferentes.",
+          "how_to_fix": "Remover a linha 'this.filmes[filme.getPosicao()] = filme;' de dentro do bloco 'if (inFilmes(filme))'.",
+          "points_lost": 1.5,
+          "severity": "moderate",
+          "confidence": "high",
+          "rubric_anchor": "Basic Functionality",
+          "evidence_refs": [
+            "FilmNow.java: linhas 68-71 (método cadastraFilme)",
+            "FilmNow.java: cadastraFilme",
+            "FilmNow.java: detalharFilmeNow",
+            "FilmNow.java: inFilmes"
+          ]
+        },
+        {
+          "problem": "Não há verificação se o filme já existe na HotList antes de adicioná-lo.",
+          "consequence": "Um mesmo filme pode ser adicionado múltiplas vezes à HotList, o que contraria os requisitos do laboratório.",
+          "how_to_fix": "Adicionar uma verificação usando o método 'inHot' no início de 'cadastraHot' e retornar 'FILME JA ADICIONADO' se for verdadeiro.",
+          "points_lost": 1.0,
+          "severity": "moderate",
+          "confidence": "high",
+          "rubric_anchor": "Basic Functionality",
+          "evidence_refs": [
+            "FilmNow.java: método cadastraHot",
+            "FilmNow.java: cadastraFilme",
+            "FilmNow.java: detalharFilmeNow",
+            "FilmNow.java: inFilmes"
+          ]
+        },
+        {
+          "problem": "Uso do operador '==' para comparar o conteúdo de Strings ao verificar se nome ou local são vazios.",
+          "consequence": "Em Java, '==' compara referências de memória, não o conteúdo. Isso pode falhar em tempo de execução dependendo de como a String foi instanciada.",
+          "how_to_fix": "Utilizar 'nome.equals(\"\")' ou 'nome.isEmpty()'.",
+          "points_lost": 0.5,
+          "severity": "minor",
+          "confidence": "high",
+          "rubric_anchor": "Basic Functionality",
+          "evidence_refs": [
+            "FilmNow.java: linhas 55 e 59 (método cadastraFilme)",
+            "FilmNow.java: cadastraFilme",
+            "FilmNow.java: detalharFilmeNow",
+            "FilmNow.java: inFilmes"
+          ]
+        }
+      ]
+    },
+    {
+      "criterion_id": "unit_tests",
+      "criterion_name": "Unit Tests",
+      "score": 10.0,
+      "max_score": 10,
+      "justification": "Excelente conjunto de testes para o nível esperado. Foram criados 21 testes cobrindo a maioria dos cenários de sucesso e falha, incluindo igualdade, formatação e limites de posição.",
+      "evidence_refs": [
+        "FilmNowTest.java: todos os métodos de teste"
+      ],
+      "deductions": []
+    },
+    {
+      "criterion_id": "class_design",
+      "criterion_name": "Class Design",
+      "score": 8.5,
+      "max_score": 10,
+      "justification": "Boa modelagem das classes principais, com atributos privados e métodos adequados. O desconto se deve ao armazenamento da posição do array dentro da classe Filme, misturando estado do sistema com a entidade de domínio.",
+      "evidence_refs": [
+        "Filme.java",
+        "FilmNow.java",
+        "Filme.java: linha 14 (atributo posicao)"
+      ],
+      "deductions": [
+        {
+          "problem": "A classe Filme armazena a sua 'posicao' no array do sistema.",
+          "consequence": "Mistura o conceito da entidade de domínio (Filme) com a estrutura de armazenamento do sistema (posição no array). Um filme não deveria saber em qual posição de um array ele está guardado.",
+          "how_to_fix": "Remover o atributo 'posicao' da classe Filme e gerenciar as posições exclusivamente na classe FilmNow.",
+          "points_lost": 1.5,
+          "severity": "minor",
+          "confidence": "high",
+          "rubric_anchor": "Class Design",
+          "evidence_refs": [
+            "Filme.java: linha 14 (atributo posicao)",
+            "Filme.java",
+            "FilmNow.java"
+          ]
+        }
+      ]
+    },
+    {
+      "criterion_id": "object_references",
+      "criterion_name": "Object References and Composition",
+      "score": 10.0,
+      "max_score": 10,
+      "justification": "Compreensão clara de composição e referências. A classe FilmNow gerencia corretamente instâncias de Filme, e a HotList armazena referências para os mesmos objetos do acervo principal.",
+      "evidence_refs": [
+        "FilmNow.java: cadastraFilme",
+        "FilmNow.java: cadastraHot",
+        "FilmNow.java: inHot"
+      ],
+      "deductions": []
+    },
+    {
+      "criterion_id": "collections_and_arrays",
+      "criterion_name": "Collections and Arrays",
+      "score": 6.0,
+      "max_score": 10,
+      "justification": "Os arrays foram declarados e utilizados corretamente na maior parte do tempo, mas há erros graves de manipulação de índices na HotList que causam ArrayIndexOutOfBoundsException.",
+      "evidence_refs": [
+        "FilmNow.java: construtor",
+        "FilmNow.java: inFilmes",
+        "FilmNow.java: linhas 84 e 91 (método cadastraHot)",
+        "FilmNow.java: linha 164 (método removerHot)"
+      ],
+      "deductions": [
+        {
+          "problem": "O método cadastraHot decrementa a posição e depois chama removerHot, que decrementa a posição novamente.",
+          "consequence": "Se o usuário tentar substituir o filme na posição 1 da HotList, o índice passará a ser -1 dentro de removerHot, causando um ArrayIndexOutOfBoundsException e quebrando o programa.",
+          "how_to_fix": "Passar a posição original (1-based) para removerHot, ou ajustar removerHot para não decrementar o índice novamente se ele já for 0-based.",
+          "points_lost": 2.0,
+          "severity": "moderate",
+          "confidence": "high",
+          "rubric_anchor": "Collections and Arrays",
+          "evidence_refs": [
+            "FilmNow.java: linhas 84 e 91 (método cadastraHot)",
+            "FilmNow.java: construtor",
+            "FilmNow.java: inFilmes"
+          ]
+        },
+        {
+          "problem": "Risco de ArrayIndexOutOfBoundsException no método removerHot ao avaliar a condição do if.",
+          "consequence": "A expressão 'filmesHot[posicao + 1] == null || posicao >= 9' avalia o lado esquerdo primeiro. Se 'posicao' for 9, tentará acessar 'filmesHot[10]', causando uma exceção.",
+          "how_to_fix": "Inverter a ordem das condições para aproveitar o curto-circuito do operador ||: 'posicao >= 9 || filmesHot[posicao + 1] == null'.",
+          "points_lost": 2.0,
+          "severity": "moderate",
+          "confidence": "high",
+          "rubric_anchor": "Collections and Arrays",
+          "evidence_refs": [
+            "FilmNow.java: linha 164 (método removerHot)",
+            "FilmNow.java: construtor",
+            "FilmNow.java: inFilmes"
+          ]
+        }
+      ]
+    },
+    {
+      "criterion_id": "separation_of_concerns",
+      "criterion_name": "Separation of Concerns",
+      "score": 9.0,
+      "max_score": 10,
+      "justification": "Boa separação entre a interface de usuário (MainFilmNow) e a lógica de negócio (FilmNow). O pequeno desconto ocorre porque a classe de domínio retorna mensagens de texto exatas da interface.",
+      "evidence_refs": [
+        "MainFilmNow.java",
+        "FilmNow.java",
+        "FilmNow.java: método cadastraFilme"
+      ],
+      "deductions": [
+        {
+          "problem": "A classe FilmNow retorna Strings com mensagens exatas de interface (ex: 'FILME ADICIONADO', 'POSICAO INVALIDA').",
+          "consequence": "Acopla a lógica de domínio com a camada de apresentação. Se a interface precisar ser traduzida ou alterada, a classe de domínio terá que ser modificada.",
+          "how_to_fix": "Retornar valores booleanos, enums ou lançar exceções para indicar o resultado da operação, deixando a MainFilmNow decidir qual texto imprimir.",
+          "points_lost": 1.0,
+          "severity": "minor",
+          "confidence": "high",
+          "rubric_anchor": "Separation of Concerns",
+          "evidence_refs": [
+            "FilmNow.java: método cadastraFilme",
+            "MainFilmNow.java",
+            "FilmNow.java"
+          ]
+        }
+      ]
+    },
+    {
+      "criterion_id": "readability_and_documentation",
+      "criterion_name": "Readability and Documentation",
+      "score": 10.0,
+      "max_score": 10,
+      "justification": "Código muito limpo, bem indentado, com variáveis bem nomeadas e excelente uso de Javadoc para documentar o propósito dos métodos e classes.",
+      "evidence_refs": [
+        "Filme.java",
+        "FilmNow.java"
+      ],
+      "deductions": []
+    }
+  ],
+  "total_score": 8.425,
+  "total_max_score": 10.0
+}

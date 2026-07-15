@@ -1,0 +1,324 @@
+{
+  "submission_id": "S38",
+  "evaluator_type": "llm",
+  "criteria": [
+    {
+      "criterion_id": "basic_functionality",
+      "criterion_name": "Basic Functionality",
+      "score": 7,
+      "max_score": 10,
+      "justification": "A submissão implementa o fluxo principal de cadastro, listagem, detalhamento e HotList, com vários cenários obrigatórios cobertos no código. Porém há falhas materiais em duplicidade por nome+ano, validação de posições na HotList e alguns casos alternativos do fluxo normal que podem causar exceção ou impedir comportamento esperado.",
+      "evidence_refs": [
+        "src/filmnow/FilmNow.java: cadastraFilme(int, String, String, String)",
+        "src/filmnow/FilmNow.java: detalhaFilme(int), getFilme(int)",
+        "src/filmnow/FilmNow.java: adicionaHot(int, int), removerHot(int), getHotList()",
+        "src/filmnow/MainFilmNow.java: mostrarFilmes, detalharFilme, adicionaFilme, atribuirHot, removerHot",
+        "testes/lab3FilmNow/FilmNowTest.java",
+        "src/filmnow/FilmNow.java: existeFilme(String, String, Filme[])",
+        "src/filmnow/FilmNow.java: adicionaHot(int, int)",
+        "src/filmnow/FilmNow.java: removerHot(int)",
+        "src/filmnow/FilmNow.java: detalhaFilme(int)",
+        "src/filmnow/MainFilmNow.java: detalharFilme(FilmNow, Scanner)",
+        "src/filmnow/MainFilmNow.java: adicionaFilme(FilmNow, Scanner)"
+      ],
+      "deductions": [
+        {
+          "problem": "A verificação de duplicidade compara o ano com o operador == em vez de comparar o conteúdo da String.",
+          "consequence": "Filmes com mesmo nome e mesmo ano podem ser aceitos como duplicados quando os anos vêm de objetos String distintos, como em entradas normais por Scanner ou arquivo.",
+          "how_to_fix": "Normalizar nome e ano e comparar com equals, preferencialmente reutilizando Filme.equals ou Objects.equals para nome e ano.",
+          "points_lost": 1.2,
+          "severity": "moderate",
+          "confidence": "high",
+          "rubric_anchor": "impedir duplicidade de filme por nome + ano",
+          "evidence_refs": [
+            "src/filmnow/FilmNow.java: existeFilme(String, String, Filme[])",
+            "src/filmnow/FilmNow.java: cadastraFilme(int, String, String, String)",
+            "src/filmnow/FilmNow.java: detalhaFilme(int), getFilme(int)",
+            "src/filmnow/FilmNow.java: adicionaHot(int, int), removerHot(int), getHotList()",
+            "src/filmnow/MainFilmNow.java: mostrarFilmes, detalharFilme, adicionaFilme, atribuirHot, removerHot",
+            "testes/lab3FilmNow/FilmNowTest.java"
+          ]
+        },
+        {
+          "problem": "adicionaHot e removerHot acessam os arrays antes de validar todos os limites das posições.",
+          "consequence": "Posições como 0, 101 para filme ou 0, 11 para HotList podem gerar ArrayIndexOutOfBoundsException em vez da resposta esperada.",
+          "how_to_fix": "Validar iFilme entre 1 e 100 e iHot/posicao entre 1 e 10 antes de qualquer acesso aos arrays.",
+          "points_lost": 1.0,
+          "severity": "moderate",
+          "confidence": "high",
+          "rubric_anchor": "operações com posição inválida devem informar POSICAO INVALIDA",
+          "evidence_refs": [
+            "src/filmnow/FilmNow.java: adicionaHot(int, int)",
+            "src/filmnow/FilmNow.java: removerHot(int)",
+            "src/filmnow/FilmNow.java: cadastraFilme(int, String, String, String)",
+            "src/filmnow/FilmNow.java: detalhaFilme(int), getFilme(int)",
+            "src/filmnow/FilmNow.java: adicionaHot(int, int), removerHot(int), getHotList()",
+            "src/filmnow/MainFilmNow.java: mostrarFilmes, detalharFilme, adicionaFilme, atribuirHot, removerHot",
+            "testes/lab3FilmNow/FilmNowTest.java"
+          ]
+        },
+        {
+          "problem": "No fluxo da interface, detalhar uma posição válida vazia pode causar NullPointerException, e a leitura do ano usa scanner.next(), o que não permite naturalmente uma linha vazia.",
+          "consequence": "Casos aceitos pelo enunciado no fluxo normal do sistema não são tratados de ponta a ponta pela aplicação textual.",
+          "how_to_fix": "Fazer detalhaFilme retornar uma String vazia para posição válida sem filme ou tratar null com segurança na Main, e ler o ano com nextLine para permitir entrada vazia.",
+          "points_lost": 0.8,
+          "severity": "moderate",
+          "confidence": "high",
+          "rubric_anchor": "detalhar posição vazia e permitir ano vazio no fluxo normal",
+          "evidence_refs": [
+            "src/filmnow/FilmNow.java: detalhaFilme(int)",
+            "src/filmnow/MainFilmNow.java: detalharFilme(FilmNow, Scanner)",
+            "src/filmnow/MainFilmNow.java: adicionaFilme(FilmNow, Scanner)",
+            "src/filmnow/FilmNow.java: cadastraFilme(int, String, String, String)",
+            "src/filmnow/FilmNow.java: detalhaFilme(int), getFilme(int)",
+            "src/filmnow/FilmNow.java: adicionaHot(int, int), removerHot(int), getHotList()",
+            "src/filmnow/MainFilmNow.java: mostrarFilmes, detalharFilme, adicionaFilme, atribuirHot, removerHot",
+            "testes/lab3FilmNow/FilmNowTest.java"
+          ]
+        }
+      ]
+    },
+    {
+      "criterion_id": "unit_tests",
+      "criterion_name": "Unit Tests",
+      "score": 8,
+      "max_score": 10,
+      "justification": "Há uma suíte JUnit real e extensa para Filme e FilmNow, com asserts relevantes para igualdade, toString, cadastro, invalidez, detalhamento, listagem e HotList. A cobertura é boa, mas deixa de capturar alguns erros importantes de referência e limites da HotList.",
+      "evidence_refs": [
+        "testes/lab3FilmNow/FilmeTest.java",
+        "testes/lab3FilmNow/FilmNowTest.java",
+        "testes/lab3FilmNow/FilmNowTest.java: testAdicionaFilmeNovamente",
+        "testes/lab3FilmNow/FilmNowTest.java: testAdicionaFilmeNomeAnoIgualPosicaoDiferente",
+        "src/filmnow/FilmNow.java: existeFilme(String, String, Filme[])",
+        "testes/lab3FilmNow/FilmNowTest.java: testes de HotList",
+        "src/filmnow/FilmNow.java: adicionaHot(int, int)",
+        "src/filmnow/FilmNow.java: removerHot(int)"
+      ],
+      "deductions": [
+        {
+          "problem": "Os testes de duplicidade usam principalmente literais ou objetos que não revelam o erro de comparação de String por referência no ano.",
+          "consequence": "A suíte aprova uma implementação que pode aceitar filmes duplicados em entradas reais com Strings distintas.",
+          "how_to_fix": "Adicionar testes com new String(\"2009\"), entradas vindas de variáveis distintas e anos com espaços antes/depois para verificar comparação por conteúdo normalizado.",
+          "points_lost": 1.1,
+          "severity": "moderate",
+          "confidence": "high",
+          "rubric_anchor": "cobertura de cenários alternativos e limites",
+          "evidence_refs": [
+            "testes/lab3FilmNow/FilmNowTest.java: testAdicionaFilmeNovamente",
+            "testes/lab3FilmNow/FilmNowTest.java: testAdicionaFilmeNomeAnoIgualPosicaoDiferente",
+            "src/filmnow/FilmNow.java: existeFilme(String, String, Filme[])",
+            "testes/lab3FilmNow/FilmeTest.java",
+            "testes/lab3FilmNow/FilmNowTest.java"
+          ]
+        },
+        {
+          "problem": "A suíte não cobre limites inválidos de índice da HotList e do filme em operações hot, como 0, 11 ou 101.",
+          "consequence": "Erros de estouro de índice em adicionaHot e removerHot permanecem sem detecção pelos testes.",
+          "how_to_fix": "Adicionar asserts para adicionaHot com iFilme fora de 1..100, iHot fora de 1..10 e removerHot com posições 0 e 11, esperando POSICAO INVALIDA sem exceção.",
+          "points_lost": 0.9,
+          "severity": "moderate",
+          "confidence": "high",
+          "rubric_anchor": "cobertura de valores limite da HotList",
+          "evidence_refs": [
+            "testes/lab3FilmNow/FilmNowTest.java: testes de HotList",
+            "src/filmnow/FilmNow.java: adicionaHot(int, int)",
+            "src/filmnow/FilmNow.java: removerHot(int)",
+            "testes/lab3FilmNow/FilmeTest.java",
+            "testes/lab3FilmNow/FilmNowTest.java"
+          ]
+        }
+      ]
+    },
+    {
+      "criterion_id": "class_design",
+      "criterion_name": "Class Design",
+      "score": 9,
+      "max_score": 10,
+      "justification": "A modelagem central está bem presente: Filme representa os dados do filme e FilmNow atua como gerenciador do acervo e da HotList. Há comportamento relevante nas classes, não apenas estruturas vazias. A perda é pequena e ligada à coerência de alguns contratos públicos.",
+      "evidence_refs": [
+        "src/filmnow/Filme.java",
+        "src/filmnow/FilmNow.java",
+        "src/filmnow/LeitorFilmNow.java",
+        "src/filmnow/FilmNow.java: getFilme(int)",
+        "src/filmnow/FilmNow.java: detalhaFilme(int)"
+      ],
+      "deductions": [
+        {
+          "problem": "Alguns contratos públicos ficam incoerentes: getFilme é documentado como posição 1..100, mas opera como índice zero-based e sem validação; detalhaFilme usa esse ajuste internamente e retorna null para posição vazia.",
+          "consequence": "A fronteira entre a API pública do gerenciador e a representação interna por array fica menos clara e mais propensa a uso incorreto.",
+          "how_to_fix": "Padronizar métodos públicos para receber posições 1..100, centralizar a conversão para índice interno e retornar uma representação vazia explícita para posição sem filme.",
+          "points_lost": 1.0,
+          "severity": "minor",
+          "confidence": "high",
+          "rubric_anchor": "classes com papéis claros e coerentes",
+          "evidence_refs": [
+            "src/filmnow/FilmNow.java: getFilme(int)",
+            "src/filmnow/FilmNow.java: detalhaFilme(int)",
+            "src/filmnow/Filme.java",
+            "src/filmnow/FilmNow.java",
+            "src/filmnow/LeitorFilmNow.java"
+          ]
+        }
+      ]
+    },
+    {
+      "criterion_id": "object_references",
+      "criterion_name": "Object References and Composition",
+      "score": 8,
+      "max_score": 10,
+      "justification": "A composição principal foi compreendida: FilmNow armazena objetos Filme e a HotList guarda referências para esses mesmos objetos. Entretanto, há um erro conceitual relevante no uso de referências ao comparar Strings por identidade em vez de conteúdo.",
+      "evidence_refs": [
+        "src/filmnow/FilmNow.java: atributos filmes e filmesHot",
+        "src/filmnow/FilmNow.java: cadastraFilme(int, String, String, String)",
+        "src/filmnow/FilmNow.java: adicionaHot(int, int)",
+        "src/filmnow/Filme.java: getIsHot(), setIsHot(boolean)",
+        "src/filmnow/FilmNow.java: existeFilme(String, String, Filme[])",
+        "src/filmnow/Filme.java: equals(Object)"
+      ],
+      "deductions": [
+        {
+          "problem": "O método existeFilme usa == para comparar o ano, que é uma referência para String, em vez de comparar o conteúdo do objeto.",
+          "consequence": "Isso indica confusão entre identidade de referência e igualdade lógica, afetando a regra de duplicidade por nome e ano.",
+          "how_to_fix": "Usar equals ou Objects.equals para comparar Strings e, se possível, delegar a comparação lógica para Filme.equals.",
+          "points_lost": 2.0,
+          "severity": "moderate",
+          "confidence": "high",
+          "rubric_anchor": "uso correto de referências entre objetos",
+          "evidence_refs": [
+            "src/filmnow/FilmNow.java: existeFilme(String, String, Filme[])",
+            "src/filmnow/Filme.java: equals(Object)",
+            "src/filmnow/FilmNow.java: atributos filmes e filmesHot",
+            "src/filmnow/FilmNow.java: cadastraFilme(int, String, String, String)",
+            "src/filmnow/FilmNow.java: adicionaHot(int, int)",
+            "src/filmnow/Filme.java: getIsHot(), setIsHot(boolean)"
+          ]
+        }
+      ]
+    },
+    {
+      "criterion_id": "collections_and_arrays",
+      "criterion_name": "Collections and Arrays",
+      "score": 7.5,
+      "max_score": 10,
+      "justification": "Os arrays principais existem com os tamanhos corretos e sustentam as operações normais do acervo e da HotList. As maiores perdas vêm da validação incompleta de índices e da inconsistência entre posição pública e índice interno.",
+      "evidence_refs": [
+        "src/filmnow/FilmNow.java: atributos filmes e filmesHot",
+        "src/filmnow/FilmNow.java: getFilmes()",
+        "src/filmnow/FilmNow.java: getHotList()",
+        "src/filmnow/FilmNow.java: cadastraFilme(int, String, String, String)",
+        "src/filmnow/FilmNow.java: adicionaHot(int, int)",
+        "src/filmnow/FilmNow.java: removerHot(int)",
+        "src/filmnow/FilmNow.java: getFilme(int)",
+        "src/filmnow/FilmNow.java: detalhaFilme(int)",
+        "testes/lab3FilmNow/FilmNowTest.java: testGetFilmeSimples"
+      ],
+      "deductions": [
+        {
+          "problem": "As operações de HotList não validam completamente os limites antes de acessar os arrays.",
+          "consequence": "Índices fora dos intervalos esperados podem quebrar o programa, prejudicando o uso seguro das estruturas de armazenamento.",
+          "how_to_fix": "Criar métodos auxiliares de validação de posição do acervo e da HotList e chamá-los antes de qualquer acesso ao array.",
+          "points_lost": 1.5,
+          "severity": "moderate",
+          "confidence": "high",
+          "rubric_anchor": "uso coerente de array respeitando limites",
+          "evidence_refs": [
+            "src/filmnow/FilmNow.java: adicionaHot(int, int)",
+            "src/filmnow/FilmNow.java: removerHot(int)",
+            "src/filmnow/FilmNow.java: atributos filmes e filmesHot",
+            "src/filmnow/FilmNow.java: getFilmes()",
+            "src/filmnow/FilmNow.java: getHotList()",
+            "src/filmnow/FilmNow.java: cadastraFilme(int, String, String, String)"
+          ]
+        },
+        {
+          "problem": "getFilme usa índice zero-based como parâmetro público, enquanto outros métodos públicos usam posições 1-based.",
+          "consequence": "A inconsistência aumenta a chance de acessar a posição errada ou lançar exceção quando o método é usado fora do caminho específico de detalhaFilme.",
+          "how_to_fix": "Manter todos os métodos públicos com a convenção 1-based do enunciado e fazer a conversão para zero-based apenas internamente.",
+          "points_lost": 1.0,
+          "severity": "moderate",
+          "confidence": "high",
+          "rubric_anchor": "mapeamento consistente entre posição e índice",
+          "evidence_refs": [
+            "src/filmnow/FilmNow.java: getFilme(int)",
+            "src/filmnow/FilmNow.java: detalhaFilme(int)",
+            "testes/lab3FilmNow/FilmNowTest.java: testGetFilmeSimples",
+            "src/filmnow/FilmNow.java: atributos filmes e filmesHot",
+            "src/filmnow/FilmNow.java: getFilmes()",
+            "src/filmnow/FilmNow.java: getHotList()",
+            "src/filmnow/FilmNow.java: cadastraFilme(int, String, String, String)"
+          ]
+        }
+      ]
+    },
+    {
+      "criterion_id": "separation_of_concerns",
+      "criterion_name": "Separation of Concerns",
+      "score": 8.5,
+      "max_score": 10,
+      "justification": "Há uma separação razoável para o nível do laboratório: Main cuida da interação textual, FilmNow concentra a lógica do sistema e LeitorFilmNow cuida da carga CSV. O principal problema é o acoplamento da interface a mensagens e retornos internos específicos.",
+      "evidence_refs": [
+        "src/filmnow/MainFilmNow.java",
+        "src/filmnow/FilmNow.java",
+        "src/filmnow/LeitorFilmNow.java",
+        "src/filmnow/MainFilmNow.java: detalharFilme(FilmNow, Scanner)",
+        "src/filmnow/FilmNow.java: detalhaFilme(int)"
+      ],
+      "deductions": [
+        {
+          "problem": "A Main decide o fluxo de detalhamento comparando literalmente a mensagem POSIÇÃO INVÁLIDA! e não trata retorno null de FilmNow.",
+          "consequence": "A interface fica acoplada ao texto exato retornado pelo domínio e pode quebrar quando a posição é válida mas vazia.",
+          "how_to_fix": "Fazer FilmNow retornar valores seguros e bem definidos, ou usar um protocolo de resultado mais claro; na Main, tratar vazio/null sem depender de uma comparação literal frágil.",
+          "points_lost": 1.5,
+          "severity": "moderate",
+          "confidence": "high",
+          "rubric_anchor": "separar interface e lógica de domínio",
+          "evidence_refs": [
+            "src/filmnow/MainFilmNow.java: detalharFilme(FilmNow, Scanner)",
+            "src/filmnow/FilmNow.java: detalhaFilme(int)",
+            "src/filmnow/MainFilmNow.java",
+            "src/filmnow/FilmNow.java",
+            "src/filmnow/LeitorFilmNow.java"
+          ]
+        }
+      ]
+    },
+    {
+      "criterion_id": "readability_and_documentation",
+      "criterion_name": "Readability and Documentation",
+      "score": 9,
+      "max_score": 10,
+      "justification": "O código é em geral legível, com nomes compreensíveis e comentários/Javadocs em várias classes e métodos. A perda é pequena, associada a documentação ou nomes que não refletem exatamente o comportamento implementado.",
+      "evidence_refs": [
+        "src/filmnow/Filme.java",
+        "src/filmnow/FilmNow.java",
+        "src/filmnow/MainFilmNow.java",
+        "testes/lab3FilmNow/FilmNowTest.java",
+        "src/filmnow/LeitorFilmNow.java: carregaContatos(String, FilmNow)",
+        "src/filmnow/FilmNow.java: getFilme(int)",
+        "src/filmnow/FilmNow.java: getFilmes(), existeFilme(String, String, Filme[])"
+      ],
+      "deductions": [
+        {
+          "problem": "Alguns nomes e comentários estão desalinhados com o comportamento: carregaContatos lê filmes, getFilme é documentado como posição 1..100 mas recebe índice zero-based, e há variáveis pouco expressivas como out e i em trechos centrais.",
+          "consequence": "Essas inconsistências não impedem a compreensão geral, mas dificultam revisão e manutenção e podem esconder erros de contrato.",
+          "how_to_fix": "Atualizar Javadocs e nomes para refletir o comportamento real e preferir nomes de variáveis que explicitem o papel no domínio.",
+          "points_lost": 1.0,
+          "severity": "minor",
+          "confidence": "high",
+          "rubric_anchor": "legibilidade, nomes e documentação coerentes",
+          "evidence_refs": [
+            "src/filmnow/LeitorFilmNow.java: carregaContatos(String, FilmNow)",
+            "src/filmnow/FilmNow.java: getFilme(int)",
+            "src/filmnow/FilmNow.java: getFilmes(), existeFilme(String, String, Filme[])",
+            "src/filmnow/Filme.java",
+            "src/filmnow/FilmNow.java",
+            "src/filmnow/MainFilmNow.java",
+            "testes/lab3FilmNow/FilmNowTest.java"
+          ]
+        }
+      ]
+    }
+  ],
+  "total_score": 8.075,
+  "total_max_score": 10.0
+}

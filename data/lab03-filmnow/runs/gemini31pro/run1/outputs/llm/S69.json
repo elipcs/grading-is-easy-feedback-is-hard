@@ -1,0 +1,153 @@
+{
+  "submission_id": "S69",
+  "evaluator_type": "llm",
+  "criteria": [
+    {
+      "criterion_id": "basic_functionality",
+      "criterion_name": "Basic Functionality",
+      "score": 7.5,
+      "max_score": 10,
+      "justification": "O fluxo principal de cadastro, listagem e detalhamento funciona muito bem, incluindo o tratamento de filmes com ano vazio e a verificação de duplicidade. No entanto, há falhas de robustez na manipulação da HotList (risco de NullPointerException ao acessar posições vazias) e a substituição de um filme na HotList não remove o status 'hot' do filme anterior.",
+      "evidence_refs": [
+        "FilmNow.java: cadastraFilme",
+        "FilmNow.java: detalhando",
+        "FilmNow.java: adicionaNaHotList",
+        "FilmNow.java: removerHot"
+      ],
+      "deductions": [
+        {
+          "problem": "Os métodos `adicionaNaHotList` e `removerHot` não verificam se o filme na posição solicitada é nulo antes de acessar seus métodos, o que causa NullPointerException se o usuário informar uma posição vazia.",
+          "consequence": "O sistema quebra (crash) abruptamente em vez de exibir uma mensagem de erro amigável informando que a posição está vazia.",
+          "how_to_fix": "Adicionar uma verificação `if (filme == null)` antes de chamar `filme.getNome()` em `adicionaNaHotList`, e verificar se a posição na HotList não é nula antes de chamar `setHot(false)` em `removerHot`.",
+          "points_lost": 1.5,
+          "severity": "moderate",
+          "confidence": "high",
+          "rubric_anchor": "Manipulação da HotList",
+          "evidence_refs": [
+            "FilmNow.java: adicionaNaHotList",
+            "FilmNow.java: removerHot",
+            "FilmNow.java: cadastraFilme",
+            "FilmNow.java: detalhando"
+          ]
+        },
+        {
+          "problem": "Ao adicionar um filme em uma posição já ocupada da HotList, o filme anterior é sobrescrito no array, mas seu atributo `hot` não é alterado para `false`.",
+          "consequence": "O filme antigo continuará sendo exibido com o ícone de fogo (🔥) no detalhamento, mesmo não estando mais presente na HotList.",
+          "how_to_fix": "Antes de sobrescrever a posição no array `hotList`, verifique se já existe um filme lá e, se sim, chame `setHot(false)` na instância antiga.",
+          "points_lost": 1.0,
+          "severity": "minor",
+          "confidence": "high",
+          "rubric_anchor": "Regras da HotList",
+          "evidence_refs": [
+            "FilmNow.java: adicionaNaHotList",
+            "FilmNow.java: cadastraFilme",
+            "FilmNow.java: detalhando"
+          ]
+        }
+      ]
+    },
+    {
+      "criterion_id": "unit_tests",
+      "criterion_name": "Unit Tests",
+      "score": 8.0,
+      "max_score": 10,
+      "justification": "A suíte de testes é boa e cobre diversos cenários dos métodos `cadastraFilme` e `detalhando`, incluindo limites de array e campos vazios. Faltaram testes para as operações da HotList e para a classe Filme.",
+      "evidence_refs": [
+        "FilmNowTest.java"
+      ],
+      "deductions": [
+        {
+          "problem": "Ausência de testes para os métodos de manipulação da HotList (`adicionaNaHotList`, `removerHot`) e para os métodos da classe `Filme` (como o `equals`).",
+          "consequence": "Regras de negócio importantes, como a substituição de filmes na HotList e a igualdade de filmes, ficam sem verificação automatizada.",
+          "how_to_fix": "Criar métodos `@Test` adicionais para cobrir a adição e remoção de filmes na HotList, bem como testar diretamente o comportamento da classe `Filme`.",
+          "points_lost": 2.0,
+          "severity": "moderate",
+          "confidence": "high",
+          "rubric_anchor": "Cobertura de testes",
+          "evidence_refs": [
+            "FilmNowTest.java"
+          ]
+        }
+      ]
+    },
+    {
+      "criterion_id": "class_design",
+      "criterion_name": "Class Design",
+      "score": 10.0,
+      "max_score": 10,
+      "justification": "Excelente modelagem das classes. A classe Filme foi criada com os atributos corretos e métodos adequados (equals, toString), e a classe FilmNow gerencia corretamente o acervo.",
+      "evidence_refs": [
+        "Filme.java"
+      ],
+      "deductions": []
+    },
+    {
+      "criterion_id": "object_references",
+      "criterion_name": "Object References and Composition",
+      "score": 10.0,
+      "max_score": 10,
+      "justification": "O sistema utiliza corretamente a composição, armazenando referências de objetos Filme nos arrays da classe FilmNow. A HotList também armazena referências para as mesmas instâncias, o que está correto.",
+      "evidence_refs": [
+        "FilmNow.java: hotList",
+        "FilmNow.java: filmes"
+      ],
+      "deductions": []
+    },
+    {
+      "criterion_id": "collections_and_arrays",
+      "criterion_name": "Collections and Arrays",
+      "score": 10.0,
+      "max_score": 10,
+      "justification": "Uso correto de arrays para armazenar o acervo principal (100 posições) e a HotList (10 posições), respeitando os limites estabelecidos no enunciado.",
+      "evidence_refs": [
+        "FilmNow.java: construtor",
+        "FilmNow.java: cadastraFilme"
+      ],
+      "deductions": []
+    },
+    {
+      "criterion_id": "separation_of_concerns",
+      "criterion_name": "Separation of Concerns",
+      "score": 9.0,
+      "max_score": 10,
+      "justification": "Boa separação geral entre a interface de usuário (MainFilmNow) e a lógica de negócio (FilmNow). Há apenas um pequeno acoplamento devido ao retorno de mensagens de interface diretamente dos métodos de negócio.",
+      "evidence_refs": [
+        "MainFilmNow.java",
+        "FilmNow.java",
+        "FilmNow.java: cadastraFilme",
+        "FilmNow.java: adicionaNaHotList"
+      ],
+      "deductions": [
+        {
+          "problem": "Métodos da classe de negócio `FilmNow` (como `cadastraFilme`) retornam strings formatadas com quebras de linha (`\\nFILME ADICIONADO`), misturando a lógica de domínio com a formatação da interface textual.",
+          "consequence": "A classe `FilmNow` fica levemente acoplada ao formato de saída esperado no console, dificultando seu reuso em uma interface gráfica, por exemplo.",
+          "how_to_fix": "Fazer os métodos retornarem booleanos, enums ou lançarem exceções para indicar sucesso ou falha, deixando a formatação das mensagens exatas para a classe `MainFilmNow`.",
+          "points_lost": 1.0,
+          "severity": "minor",
+          "confidence": "high",
+          "rubric_anchor": "Separação de responsabilidades",
+          "evidence_refs": [
+            "FilmNow.java: cadastraFilme",
+            "FilmNow.java: adicionaNaHotList",
+            "MainFilmNow.java",
+            "FilmNow.java"
+          ]
+        }
+      ]
+    },
+    {
+      "criterion_id": "readability_and_documentation",
+      "criterion_name": "Readability and Documentation",
+      "score": 10.0,
+      "max_score": 10,
+      "justification": "Código muito bem organizado, com boa indentação, nomes de variáveis claros e presença de Javadoc explicando o propósito das classes e métodos.",
+      "evidence_refs": [
+        "Filme.java",
+        "FilmNow.java"
+      ],
+      "deductions": []
+    }
+  ],
+  "total_score": 9.025,
+  "total_max_score": 10.0
+}

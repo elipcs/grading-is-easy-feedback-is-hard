@@ -1,0 +1,160 @@
+{
+  "submission_id": "S84",
+  "evaluator_type": "llm",
+  "criteria": [
+    {
+      "criterion_id": "basic_functionality",
+      "criterion_name": "Basic Functionality",
+      "score": 7.5,
+      "max_score": 10,
+      "justification": "O fluxo principal de cadastro, listagem e detalhamento funciona corretamente. No entanto, há falhas na lógica da HotList (não permite escolher a posição, não checa duplicidade e possui erro de índice ao buscar o filme) e um erro na validação de strings vazias.",
+      "evidence_refs": [
+        "FilmNow.java: cadastraFilme",
+        "FilmNow.java: detalhaFilme",
+        "MainFilmNow.java: mostrarFilmes",
+        "FilmNow.java: atribuirHot",
+        "MainFilmNow.java: atribuirHot"
+      ],
+      "deductions": [
+        {
+          "problem": "A implementação da HotList não permite que o usuário escolha a posição de inserção, não verifica se o filme já está na HotList e possui um erro de 'off-by-one' ao buscar o filme em `atribuirHot` (não subtrai 1 da posição informada).",
+          "consequence": "O comportamento diverge da especificação, impedindo a substituição de filmes em posições específicas e favoritando o filme errado devido ao índice incorreto.",
+          "how_to_fix": "Solicitar a posição da HotList no Main, verificar duplicidade antes de inserir e ajustar o índice do filme (`posicao - 1`) ao chamar `getFilme` em `atribuirHot`.",
+          "points_lost": 2.0,
+          "severity": "moderate",
+          "confidence": "high",
+          "rubric_anchor": "Manipulação da HotList",
+          "evidence_refs": [
+            "FilmNow.java: atribuirHot",
+            "MainFilmNow.java: atribuirHot",
+            "FilmNow.java: cadastraFilme",
+            "FilmNow.java: detalhaFilme",
+            "MainFilmNow.java: mostrarFilmes"
+          ]
+        },
+        {
+          "problem": "A validação de strings vazias em `cadastraFilme` utiliza o operador `==` (`nome.trim() == \"\"`) em vez do método `.equals()` ou `.isEmpty()`.",
+          "consequence": "Se o usuário inserir apenas espaços, o método `trim()` retornará uma nova string vazia, e a comparação com `==` falhará, permitindo o cadastro de um filme inválido.",
+          "how_to_fix": "Utilizar `nome.trim().isEmpty()` ou `nome.trim().equals(\"\")` para comparar o conteúdo das strings.",
+          "points_lost": 0.5,
+          "severity": "minor",
+          "confidence": "high",
+          "rubric_anchor": "Validação de entradas",
+          "evidence_refs": [
+            "FilmNow.java: cadastraFilme",
+            "FilmNow.java: detalhaFilme",
+            "MainFilmNow.java: mostrarFilmes"
+          ]
+        }
+      ]
+    },
+    {
+      "criterion_id": "unit_tests",
+      "criterion_name": "Unit Tests",
+      "score": 10,
+      "max_score": 10,
+      "justification": "Excelente conjunto de testes unitários, cobrindo as principais regras de negócio, limites de array e fluxos alternativos.",
+      "evidence_refs": [
+        "FilmNowTest.java",
+        "FilmTest.java"
+      ],
+      "deductions": []
+    },
+    {
+      "criterion_id": "class_design",
+      "criterion_name": "Class Design",
+      "score": 10,
+      "max_score": 10,
+      "justification": "As classes foram muito bem modeladas, com responsabilidades claras, encapsulamento adequado e uso correto de construtores.",
+      "evidence_refs": [
+        "Filme.java",
+        "FilmNow.java"
+      ],
+      "deductions": []
+    },
+    {
+      "criterion_id": "object_references",
+      "criterion_name": "Object References and Composition",
+      "score": 10,
+      "max_score": 10,
+      "justification": "O sistema utiliza corretamente a composição, instanciando objetos Filme e gerenciando suas referências dentro de FilmNow.",
+      "evidence_refs": [
+        "FilmNow.java: cadastraFilme",
+        "FilmNow.java: atribuirHot"
+      ],
+      "deductions": []
+    },
+    {
+      "criterion_id": "collections_and_arrays",
+      "criterion_name": "Collections and Arrays",
+      "score": 9.0,
+      "max_score": 10,
+      "justification": "Os arrays foram declarados e utilizados corretamente para armazenar o acervo e a HotList, mas há um pequeno erro de lógica nos limites de índice ao remover da HotList.",
+      "evidence_refs": [
+        "FilmNow.java: construtor",
+        "FilmNow.java: existeFilme",
+        "FilmNow.java: removerHot"
+      ],
+      "deductions": [
+        {
+          "problem": "A condição `posicao <= 0` no método `removerHot` impede o acesso ao índice 0 do array da HotList.",
+          "consequence": "O usuário nunca consegue remover o filme que está na primeira posição da HotList (índice 0), pois a validação bloqueia a operação.",
+          "how_to_fix": "Alterar a condição para `posicao < 0` para permitir o acesso ao índice 0.",
+          "points_lost": 1.0,
+          "severity": "minor",
+          "confidence": "high",
+          "rubric_anchor": "Uso de array/coleções",
+          "evidence_refs": [
+            "FilmNow.java: removerHot",
+            "FilmNow.java: construtor",
+            "FilmNow.java: existeFilme"
+          ]
+        }
+      ]
+    },
+    {
+      "criterion_id": "separation_of_concerns",
+      "criterion_name": "Separation of Concerns",
+      "score": 9.0,
+      "max_score": 10,
+      "justification": "Boa separação geral entre a interface com o usuário (MainFilmNow) e a lógica de negócio (FilmNow), com um pequeno acoplamento devido ao retorno de mensagens de UI diretamente da classe de domínio.",
+      "evidence_refs": [
+        "MainFilmNow.java",
+        "FilmNow.java",
+        "FilmNow.java: cadastraFilme",
+        "FilmNow.java: detalhaFilme"
+      ],
+      "deductions": [
+        {
+          "problem": "Os métodos de negócio em `FilmNow` (como `cadastraFilme`) retornam diretamente as strings de mensagem que serão exibidas ao usuário (ex: \"POSIÇÃO INVALIDA!\").",
+          "consequence": "A classe de domínio fica acoplada aos textos exatos da interface, o que dificulta a manutenção e a reutilização do código em diferentes tipos de interface.",
+          "how_to_fix": "Utilizar exceções, valores booleanos ou enums para indicar o resultado das operações, deixando a formatação da mensagem de texto para a classe MainFilmNow.",
+          "points_lost": 1.0,
+          "severity": "minor",
+          "confidence": "high",
+          "rubric_anchor": "Divisão de funcionalidades",
+          "evidence_refs": [
+            "FilmNow.java: cadastraFilme",
+            "FilmNow.java: detalhaFilme",
+            "MainFilmNow.java",
+            "FilmNow.java"
+          ]
+        }
+      ]
+    },
+    {
+      "criterion_id": "readability_and_documentation",
+      "criterion_name": "Readability and Documentation",
+      "score": 10,
+      "max_score": 10,
+      "justification": "O código é muito legível, bem organizado e possui excelente documentação Javadoc.",
+      "evidence_refs": [
+        "Filme.java",
+        "FilmNow.java"
+      ],
+      "deductions": []
+    }
+  ],
+  "total_score": 9.225,
+  "total_max_score": 10.0
+}

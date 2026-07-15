@@ -1,0 +1,122 @@
+% Requires:
+% \usetikzlibrary{positioning,fit,calc}
+
+\scalebox{0.72}{
+\begin{tikzpicture}[
+    databox/.style={rectangle, draw, thick, fill=blue!10, minimum width=2.3cm, minimum height=0.8cm, align=center, font=\scriptsize},
+    processbox/.style={rectangle, draw, thick, fill=green!10, minimum width=2.3cm, minimum height=0.8cm, align=center, font=\scriptsize},
+    evalbox/.style={rectangle, draw, thick, fill=orange!10, minimum width=2.3cm, minimum height=0.8cm, align=center, font=\scriptsize},
+    metricbox/.style={rectangle, draw, thick, fill=purple!10, minimum width=2.3cm, minimum height=0.8cm, align=center, font=\scriptsize},
+    arrow/.style={->, >=stealth, thick},
+    rq1wire/.style={line width=1.3pt, red},
+    rq1arrow/.style={->, >=stealth, line width=1.3pt, red},
+    rq2wire/.style={line width=1.3pt, blue},
+    rq2arrow/.style={->, >=stealth, line width=1.3pt, blue},
+    label/.style={font=\small\bfseries}
+]
+
+\def\taRow{-1.4}
+\def\expertRow{-3.2}
+\def\expertGradeRow{-2.65}
+\def\expertProblemRow{-3.75}
+\def\llmRow{-5.3}
+
+\def\rqOneRow{-3.0}
+\def\rqTwoRow{-4.15}
+
+\def\redBusX{16.25}
+\def\blueBusX{15.85}
+
+% Phase headings
+\node[label] at (0,0.45) {\textbf{PHASE 1}};
+\node[font=\scriptsize] at (0,0.0) {Data Collection};
+
+\node[label] at (7.8,0.45) {\textbf{PHASE 2}};
+\node[font=\scriptsize] at (7.8,0.0) {Evaluation};
+
+\node[label] at (18.0,0.45) {\textbf{PHASE 3}};
+\node[font=\scriptsize] at (18.0,0.0) {Analysis};
+
+% Inputs
+\node[databox] (submissions) at (0,-1.4) {84 Student\\Submissions};
+\node[databox] (rubric) at (0,-3.2) {Official\\Rubric};
+\node[databox] (spec) at (0,-5.0) {Assignment\\Spec};
+
+\node[databox] (input-package) at (3.0,-3.2) {Assessment\\Input Package};
+
+\draw[arrow] (submissions.east) -- ++(0.55,0) |- (input-package.west);
+\draw[arrow] (rubric.east) -- (input-package.west);
+\draw[arrow] (spec.east) -- ++(0.55,0) |- (input-package.west);
+
+% Evaluation sources
+\node[processbox] (ta-eval) at (5.8,\taRow) {TA/Monitor\\Assessment};
+\node[databox] (ta-grades) at (8.6,\taRow) {TA/Monitor\\Grades + Feedback};
+
+\node[processbox] (expert-assessment) at (5.8,\expertRow) {Expert Reference\\Assessment};
+\node[databox] (expert-grades) at (8.6,\expertGradeRow) {Expert\\Grades};
+\node[databox] (expert-problems) at (8.6,\expertProblemRow) {Expert Problems\\+ Taxonomy};
+
+\node[processbox] (llm-stage1) at (5.8,\llmRow) {LLM Stage 1:\\Scoring};
+\node[databox] (llm-grades) at (8.6,\llmRow) {LLM\\Grades};
+\node[processbox] (llm-stage2) at (11.4,\llmRow) {LLM Stage 2:\\Feedback};
+\node[databox] (llm-feedback) at (14.2,\llmRow) {LLM Problems\\+ Feedback};
+
+\node[draw, dashed, thick, fit=(llm-stage1)(llm-grades)(llm-stage2)(llm-feedback),
+      inner sep=0.22cm, label={[font=\scriptsize]above:Two-stage LLM protocol}] {};
+
+% Fan-out
+\coordinate (fanout) at (4.25,-3.2);
+\draw[arrow] (input-package.east) -- (fanout);
+\draw[arrow] (fanout) |- (ta-eval.west);
+\draw[arrow] (fanout) -- (expert-assessment.west);
+\draw[arrow] (fanout) |- (llm-stage1.west);
+
+% Internal process arrows
+\draw[arrow] (ta-eval) -- (ta-grades);
+
+\draw[arrow] (expert-assessment.east) -- ++(0.45,0) |- (expert-grades.west);
+\draw[arrow] (expert-assessment.east) -- ++(0.45,0) |- (expert-problems.west);
+
+\draw[arrow] (llm-stage1) -- (llm-grades);
+\draw[arrow] (llm-grades) -- (llm-stage2);
+\draw[arrow] (llm-stage2) -- (llm-feedback);
+
+% Analysis nodes aligned in the middle
+\node[evalbox] (rq1) at (17.8,\rqOneRow) {\textbf{RQ1:}\\Grade\\Concordance};
+\node[metricbox] (rq1-metrics) at (20.6,\rqOneRow) {Pairwise\\MAE/RMSE\\Bias\\Tolerance};
+
+\node[evalbox] (rq2) at (17.8,\rqTwoRow) {\textbf{RQ2:}\\Problem\\Alignment};
+\node[metricbox] (rq2-metrics) at (20.6,\rqTwoRow) {Precision\\Recall\\F1};
+
+% Internal red corridor: RQ1
+\draw[rq1wire] (ta-grades.east) -- (\redBusX,\taRow);
+\draw[rq1wire] (expert-grades.east) -- (\redBusX,\expertGradeRow);
+
+% Route LLM grades above the LLM protocol boxes before joining the red corridor
+\draw[rq1wire] (llm-grades.north east) -- (10.05,-4.85) -- (10.05,-3.20) -- (\redBusX,-3.20);
+
+% Red vertical bus and entry into RQ1
+\draw[rq1wire] (\redBusX,\taRow) -- (\redBusX,-3.20);
+\draw[rq1arrow] (\redBusX,\rqOneRow) -- (rq1.west);
+
+% Internal blue corridor: RQ2
+\draw[rq2wire] (expert-problems.east) -- (\blueBusX,\expertProblemRow);
+\draw[rq2wire] (llm-feedback.east) -- (\blueBusX,\llmRow);
+
+% Blue vertical bus and entry into RQ2
+\draw[rq2wire] (\blueBusX,\expertProblemRow) -- (\blueBusX,\llmRow);
+\draw[rq2arrow] (\blueBusX,\rqTwoRow) -- (rq2.west);
+
+% Metrics
+\draw[arrow] (rq1) -- (rq1-metrics);
+\draw[arrow] (rq2) -- (rq2-metrics);
+
+% Legend
+\node[font=\scriptsize, align=left] at (10.8,-6.7) {
+    \textbf{Legend:}
+    \tikz\draw[rq1arrow] (0,0) -- (0.45,0); RQ1 grade concordance (TA vs LLM vs expert) \quad
+    \tikz\draw[rq2arrow] (0,0) -- (0.45,0); RQ2 problem alignment (LLM Stage 2 feedback/problems vs expert problems)
+};
+
+\end{tikzpicture}
+}

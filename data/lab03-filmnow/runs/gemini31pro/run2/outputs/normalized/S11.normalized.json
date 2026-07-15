@@ -1,0 +1,218 @@
+{
+  "submission_id": "S11",
+  "evaluator_type": "llm",
+  "criteria": [
+    {
+      "criterion_id": "basic_functionality",
+      "criterion_name": "Basic Functionality",
+      "score": 9.5,
+      "max_score": 10,
+      "justification": "O sistema implementa corretamente as funcionalidades principais (adicionar, detalhar, listar e hotlist), respeitando as regras de neg\u00f3cio. No entanto, h\u00e1 um pequeno erro na interface de usu\u00e1rio ao adicionar um filme, onde uma chamada extra ao scanner causa travamento na leitura.",
+      "success_evidence": [
+        "Adi\u00e7\u00e3o de filmes com valida\u00e7\u00f5es corretas de limite de posi\u00e7\u00f5es, campos vazios e duplicidade.",
+        "Listagem e detalhamento de filmes funcionando conforme o esperado.",
+        "HotList implementada com regras de limite, verifica\u00e7\u00e3o de duplicidade e formata\u00e7\u00e3o especial (\ud83d\udd25) ao detalhar."
+      ],
+      "evidence_refs": [
+        "FilmNow.java (m\u00e9todos cadastraFilme, getFilme, adicionaHot)",
+        "MainFilmNow.java (fluxo de menus)",
+        "MainFilmNow.java (m\u00e9todo adicionaFilme, linha 138)"
+      ],
+      "non_penalized_observations": [
+        "A mensagem de erro ao remover um filme inexistente da HotList difere levemente do especificado ('NAO EXISTE FILME...' em vez de 'POSI\u00c7\u00c3O INV\u00c1LIDA'), mas mant\u00e9m a sem\u00e2ntica correta.",
+        "O m\u00e9todo toString do filme adiciona uma v\u00edrgula extra antes do local, o que \u00e9 um detalhe puramente cosm\u00e9tico e n\u00e3o afeta a funcionalidade."
+      ],
+      "deductions": [
+        {
+          "problem": "O m\u00e9todo `adicionaFilme` possui uma chamada extra a `scanner.nextLine()` logo ap\u00f3s ler o ano do filme.",
+          "consequence": "O programa fica aguardando um 'Enter' adicional do usu\u00e1rio sem exibir nenhum prompt, o que quebra a fluidez da interface e pode consumir a pr\u00f3xima entrada (o local) de forma incorreta.",
+          "how_to_fix": "Remover a linha `scanner.nextLine();` extra que est\u00e1 isolada ap\u00f3s a leitura da vari\u00e1vel `ano`.",
+          "points_lost": 0.5,
+          "severity": "minor",
+          "confidence": "high",
+          "rubric_anchor": "Adicionar Filme",
+          "evidence_refs": [
+            "MainFilmNow.java (m\u00e9todo adicionaFilme, linha 138)",
+            "FilmNow.java (m\u00e9todos cadastraFilme, getFilme, adicionaHot)",
+            "MainFilmNow.java (fluxo de menus)"
+          ]
+        }
+      ]
+    },
+    {
+      "criterion_id": "unit_tests",
+      "criterion_name": "Unit Tests",
+      "score": 10,
+      "max_score": 10,
+      "justification": "Excelente conjunto de testes. O aluno cobriu exaustivamente as classes Filme e FilmNow, incluindo casos limite e cen\u00e1rios de erro.",
+      "success_evidence": [
+        "Testes de equals, hashCode, toString e getters na classe Filme.",
+        "Testes de adi\u00e7\u00e3o cobrindo limites (0, 100, 101), posi\u00e7\u00f5es inv\u00e1lidas, duplicatas e campos vazios na classe FilmNow.",
+        "Testes de detalhamento e manipula\u00e7\u00e3o da HotList."
+      ],
+      "evidence_refs": [
+        "FilmeTestes.java",
+        "FilmNowTestes.java"
+      ],
+      "non_penalized_observations": [
+        "Os testes de igualdade de Filme passam mesmo com o uso de '==' para strings porque utilizam literais de string (que s\u00e3o internados pelo Java). O erro conceitual do '==' ser\u00e1 avaliado no crit\u00e9rio de Design de Classes."
+      ],
+      "deductions": []
+    },
+    {
+      "criterion_id": "class_design",
+      "criterion_name": "Class Design",
+      "score": 9,
+      "max_score": 10,
+      "justification": "As classes foram bem modeladas, com atributos corretos e m\u00e9todos adequados. Houve apenas um erro conceitual importante na implementa\u00e7\u00e3o do m\u00e9todo equals da classe Filme ao comparar strings.",
+      "success_evidence": [
+        "Cria\u00e7\u00e3o da classe Filme com encapsulamento adequado e construtor inicializando os atributos.",
+        "Implementa\u00e7\u00e3o de equals e hashCode baseada nas regras de neg\u00f3cio (nome e ano).",
+        "Classe FilmNow gerenciando corretamente as inst\u00e2ncias de Filme."
+      ],
+      "evidence_refs": [
+        "Filme.java",
+        "FilmNow.java",
+        "Filme.java (m\u00e9todo equals, linha 82)"
+      ],
+      "non_penalized_observations": [
+        "O ano de lan\u00e7amento foi modelado como String, o que \u00e9 uma abordagem v\u00e1lida e permitida pela especifica\u00e7\u00e3o."
+      ],
+      "deductions": [
+        {
+          "problem": "O m\u00e9todo `equals` da classe `Filme` utiliza o operador `==` para comparar o atributo `anoDeLancamento` (que \u00e9 uma String).",
+          "consequence": "O operador `==` compara refer\u00eancias de mem\u00f3ria, n\u00e3o o conte\u00fado das strings. Isso far\u00e1 com que filmes com o mesmo ano inseridos dinamicamente pelo usu\u00e1rio (via Scanner) sejam considerados diferentes, falhando a verifica\u00e7\u00e3o de duplicidade na pr\u00e1tica.",
+          "how_to_fix": "Utilizar o m\u00e9todo `.equals()` ou `Objects.equals()` para comparar o `anoDeLancamento`, assim como foi feito corretamente com o atributo `nome`.",
+          "points_lost": 1.0,
+          "severity": "moderate",
+          "confidence": "high",
+          "rubric_anchor": "Classe Filme ou equivalente (Testes de equals)",
+          "evidence_refs": [
+            "Filme.java (m\u00e9todo equals, linha 82)",
+            "Filme.java",
+            "FilmNow.java"
+          ]
+        }
+      ]
+    },
+    {
+      "criterion_id": "object_references",
+      "criterion_name": "Object References and Composition",
+      "score": 10,
+      "max_score": 10,
+      "justification": "O uso de refer\u00eancias e a composi\u00e7\u00e3o entre FilmNow e Filme foram implementados de forma correta e segura.",
+      "success_evidence": [
+        "FilmNow mant\u00e9m arrays de objetos Filme e os instancia corretamente no momento do cadastro.",
+        "Uso de m\u00e9todos est\u00e1ticos restrito \u00e0 classe MainFilmNow, respeitando os princ\u00edpios de orienta\u00e7\u00e3o a objetos."
+      ],
+      "evidence_refs": [
+        "FilmNow.java (atributos filmes e hotList)",
+        "MainFilmNow.java"
+      ],
+      "non_penalized_observations": [],
+      "deductions": []
+    },
+    {
+      "criterion_id": "collections_and_arrays",
+      "criterion_name": "Collections and Arrays",
+      "score": 10,
+      "max_score": 10,
+      "justification": "Os arrays foram utilizados corretamente, respeitando os limites estabelecidos pela especifica\u00e7\u00e3o.",
+      "success_evidence": [
+        "Uso de Filme[] com tamanho 100 para a lista principal e tamanho 10 para a HotList.",
+        "O mapeamento de posi\u00e7\u00f5es (1 a N para \u00edndices 0 a N-1) foi feito corretamente em todos os m\u00e9todos."
+      ],
+      "evidence_refs": [
+        "FilmNow.java (construtor e manipula\u00e7\u00e3o de \u00edndices)"
+      ],
+      "non_penalized_observations": [
+        "O retorno de arrays com posi\u00e7\u00f5es nulas no m\u00e9todo getFilmes \u00e9 uma abordagem v\u00e1lida e foi bem tratada pela interface ao iterar e imprimir apenas os n\u00e3o-nulos."
+      ],
+      "deductions": []
+    },
+    {
+      "criterion_id": "separation_of_concerns",
+      "criterion_name": "Separation of Concerns",
+      "score": 10,
+      "max_score": 10,
+      "justification": "As responsabilidades est\u00e3o bem divididas entre a interface de usu\u00e1rio, a classe de dom\u00ednio e a classe gerenciadora.",
+      "success_evidence": [
+        "MainFilmNow cuida exclusivamente da intera\u00e7\u00e3o com o usu\u00e1rio (I/O).",
+        "FilmNow concentra a l\u00f3gica de neg\u00f3cio, armazenamento e valida\u00e7\u00f5es.",
+        "Filme \u00e9 respons\u00e1vel por formatar seus pr\u00f3prios dados atrav\u00e9s do m\u00e9todo toString."
+      ],
+      "evidence_refs": [
+        "MainFilmNow.java",
+        "FilmNow.java",
+        "Filme.java"
+      ],
+      "non_penalized_observations": [],
+      "deductions": []
+    },
+    {
+      "criterion_id": "readability_and_documentation",
+      "criterion_name": "Readability and Documentation",
+      "score": 10,
+      "max_score": 10,
+      "justification": "O c\u00f3digo \u00e9 muito leg\u00edvel, bem organizado e a documenta\u00e7\u00e3o Javadoc est\u00e1 completa e clara.",
+      "success_evidence": [
+        "Nomes de vari\u00e1veis e m\u00e9todos s\u00e3o descritivos e seguem o padr\u00e3o Java.",
+        "Javadoc presente em todas as classes e m\u00e9todos p\u00fablicos, explicando par\u00e2metros e retornos de forma objetiva e clara."
+      ],
+      "evidence_refs": [
+        "Filme.java",
+        "FilmNow.java"
+      ],
+      "non_penalized_observations": [],
+      "deductions": []
+    }
+  ],
+  "total_score": 9.625,
+  "total_max_score": 10.0,
+  "feedback_items": [
+    {
+      "criterion_id": "class_design",
+      "criterion_name": "Class Design",
+      "problem": "O m\u00e9todo `equals` da classe `Filme` utiliza o operador `==` para comparar o atributo `anoDeLancamento` (que \u00e9 uma String).",
+      "consequence": "O operador `==` compara refer\u00eancias de mem\u00f3ria, n\u00e3o o conte\u00fado das strings. Isso far\u00e1 com que filmes com o mesmo ano inseridos dinamicamente pelo usu\u00e1rio (via Scanner) sejam considerados diferentes, falhando a verifica\u00e7\u00e3o de duplicidade na pr\u00e1tica.",
+      "how_to_fix": "Utilizar o m\u00e9todo `.equals()` ou `Objects.equals()` para comparar o `anoDeLancamento`, assim como foi feito corretamente com o atributo `nome`.",
+      "severity": "moderate",
+      "confidence": "high",
+      "evidence_refs": [
+        "Filme.java (m\u00e9todo equals, linha 82)",
+        "Filme.java",
+        "FilmNow.java"
+      ]
+    },
+    {
+      "criterion_id": "basic_functionality",
+      "criterion_name": "Basic Functionality",
+      "problem": "O m\u00e9todo `adicionaFilme` possui uma chamada extra a `scanner.nextLine()` logo ap\u00f3s ler o ano do filme.",
+      "consequence": "O programa fica aguardando um 'Enter' adicional do usu\u00e1rio sem exibir nenhum prompt, o que quebra a fluidez da interface e pode consumir a pr\u00f3xima entrada de forma incorreta.",
+      "how_to_fix": "Remover a linha `scanner.nextLine();` extra que est\u00e1 isolada ap\u00f3s a leitura da vari\u00e1vel `ano`.",
+      "severity": "minor",
+      "confidence": "high",
+      "evidence_refs": [
+        "MainFilmNow.java (m\u00e9todo adicionaFilme, linha 138)",
+        "FilmNow.java (m\u00e9todos cadastraFilme, getFilme, adicionaHot)",
+        "MainFilmNow.java (fluxo de menus)"
+      ]
+    }
+  ],
+  "student_feedback": "No geral, a solu\u00e7\u00e3o demonstra um excelente entendimento do laborat\u00f3rio, com destaque para a su\u00edte de testes exaustiva e a \u00f3tima separa\u00e7\u00e3o de responsabilidades entre as classes. O c\u00f3digo est\u00e1 muito leg\u00edvel e bem documentado.\n\nOs pontos que precisam de aten\u00e7\u00e3o agora s\u00e3o ajustes finos, mas importantes para consolidar seu aprendizado em Java:\n\n[Filme.java/equals] Problema: O m\u00e9todo utiliza o operador `==` para comparar o atributo `anoDeLancamento` (que \u00e9 uma String). Consequ\u00eancia: O operador `==` compara refer\u00eancias de mem\u00f3ria, n\u00e3o o texto em si. Filmes com o mesmo ano digitados pelo usu\u00e1rio ser\u00e3o considerados diferentes, falhando a verifica\u00e7\u00e3o de duplicidade. Como consertar: Utilize o m\u00e9todo `.equals()` ou `Objects.equals()` para comparar strings, assim como voc\u00ea fez corretamente com o atributo `nome`.\n\n[MainFilmNow.java/adicionaFilme] Problema: H\u00e1 uma chamada extra a `scanner.nextLine()` logo ap\u00f3s ler o ano do filme. Consequ\u00eancia: O programa fica aguardando um 'Enter' adicional do usu\u00e1rio sem exibir nenhum texto, quebrando a fluidez da interface. Como consertar: Remova a linha `scanner.nextLine();` isolada ap\u00f3s a leitura da vari\u00e1vel `ano`.\n\nO caminho est\u00e1 cert\u00edssimo, parab\u00e9ns pelo trabalho bem estruturado!",
+  "reviewer_audit": {
+    "requires_human_review": false,
+    "grading_basis": "A avalia\u00e7\u00e3o foi baseada na leitura est\u00e1tica do c\u00f3digo, an\u00e1lise da l\u00f3gica de neg\u00f3cio implementada e verifica\u00e7\u00e3o da su\u00edte de testes fornecida pelo aluno.",
+    "main_uncertainties": [],
+    "potential_false_positive_risks": [
+      "O erro de compara\u00e7\u00e3o de strings com '==' no m\u00e9todo equals da classe Filme n\u00e3o \u00e9 pego pelos testes do aluno porque os testes usam literais de string (que s\u00e3o internados). Um avaliador desatento poderia achar que o equals est\u00e1 100% correto apenas olhando o resultado dos testes."
+    ]
+  },
+  "feedback_reviewer_notes": {
+    "requires_human_review": false,
+    "synthesis_rationale": "Foram selecionados os dois \u00fanicos problemas apontados na Fase 1: o erro conceitual de compara\u00e7\u00e3o de Strings usando '==' e o pequeno bug de interface com o Scanner. O feedback refor\u00e7a os acertos (testes excelentes e bom design) antes de apontar as corre\u00e7\u00f5es, mantendo a proporcionalidade das notas altas.",
+    "omitted_stage1_deductions": [],
+    "low_confidence_items": []
+  },
+  "confidence": "high"
+}

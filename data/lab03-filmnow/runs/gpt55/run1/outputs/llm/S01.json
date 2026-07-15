@@ -1,0 +1,478 @@
+{
+  "submission_id": "S01",
+  "evaluator_type": "llm",
+  "criteria": [
+    {
+      "criterion_id": "basic_functionality",
+      "criterion_name": "Basic Functionality",
+      "score": 5,
+      "max_score": 10,
+      "justification": "A submissão implementa parte do fluxo principal: cadastra filmes em posições 1 a 100, substitui filmes em posições ocupadas, lista filmes cadastrados pela interface e possui operações básicas de HotList. Porém há falhas funcionais relevantes em validação, igualdade, detalhamento e HotList, especialmente em casos-limite exigidos pelo enunciado.",
+      "evidence_refs": [
+        "src/filmnow/FilmNow.java::cadastraFilme",
+        "src/filmnow/MainFilmNow.java::mostrarFilmes",
+        "src/filmnow/MainFilmNow.java::comando",
+        "src/filmnow/FilmNow.java::cadastraFilmeHotList",
+        "src/filmnow/FilmNow.java::removeHotList",
+        "src/filmnow/Filme.java::toString",
+        "src/filmnow/Filme.java::equals",
+        "src/filmnow/FilmNow.java::detalharFilme",
+        "src/filmnow/MainFilmNow.java::detalharFilme",
+        "src/filmnow/FilmNow.java::getFilme",
+        "src/filmnow/MainFilmNow.java::mostrarHotList",
+        "src/filmnow/Filme.java::setHot"
+      ],
+      "deductions": [
+        {
+          "problem": "O cadastro não rejeita nome vazio nem local vazio, apenas `null`. Além disso, a igualdade de filmes compara o ano com `==`, o que pode deixar passar duplicatas quando duas `String` têm o mesmo conteúdo, mas referências diferentes.",
+          "consequence": "Casos obrigatórios de filme inválido e filme já adicionado podem produzir resultado incorreto, afetando testes diretos da classe `FilmNow`.",
+          "how_to_fix": "Validar também `nome.isBlank()` e `local.isBlank()`, e implementar `equals` de `Filme` comparando `ano` por conteúdo com `Objects.equals` ou `String.equals`.",
+          "points_lost": 1.4,
+          "severity": "moderate",
+          "confidence": "high",
+          "rubric_anchor": "Adicionar Filme: validação de dados e rejeição de duplicatas por nome e ano",
+          "evidence_refs": [
+            "src/filmnow/FilmNow.java::cadastraFilme",
+            "src/filmnow/Filme.java::equals",
+            "src/filmnow/MainFilmNow.java::mostrarFilmes",
+            "src/filmnow/MainFilmNow.java::comando",
+            "src/filmnow/FilmNow.java::cadastraFilmeHotList",
+            "src/filmnow/FilmNow.java::removeHotList",
+            "src/filmnow/Filme.java::toString"
+          ]
+        },
+        {
+          "problem": "O método `detalharFilme(String nome)` ignora o parâmetro e usa o atributo interno `posicao`, que não é definido pelo fluxo normal; além disso, trata posição válida sem filme como inválida. A interface não usa esse método, chama `getFilme(posicao - 1)` diretamente sem validar limites ou posição vazia, podendo imprimir `null` ou lançar exceção. O detalhamento também não mostra o marcador de Hot.",
+          "consequence": "A funcionalidade de detalhar só funciona parcialmente para um filme existente e não cobre corretamente os casos-limite obrigatórios nem o detalhamento de filme na HotList.",
+          "how_to_fix": "Criar em `FilmNow` um método de detalhamento por posição, validando 1 a 100, retornando vazio quando não houver filme, e incluindo o marcador Hot quando aplicável; a interface deve apenas ler a entrada e imprimir o retorno.",
+          "points_lost": 2.0,
+          "severity": "major",
+          "confidence": "high",
+          "rubric_anchor": "Detalhar Filme: posição válida/vazia/inválida e indicação de Hot",
+          "evidence_refs": [
+            "src/filmnow/FilmNow.java::detalharFilme",
+            "src/filmnow/MainFilmNow.java::detalharFilme",
+            "src/filmnow/FilmNow.java::getFilme",
+            "src/filmnow/Filme.java::toString",
+            "src/filmnow/FilmNow.java::cadastraFilme",
+            "src/filmnow/MainFilmNow.java::mostrarFilmes",
+            "src/filmnow/MainFilmNow.java::comando",
+            "src/filmnow/FilmNow.java::cadastraFilmeHotList",
+            "src/filmnow/FilmNow.java::removeHotList",
+            "src/filmnow/Filme.java::equals"
+          ]
+        },
+        {
+          "problem": "A inclusão na HotList não verifica se há filme na posição principal antes de acessar `setHot`, o que pode causar `NullPointerException`. Ao sobrescrever uma posição da HotList ou remover um filme, o status Hot do filme anterior não é desmarcado. A exibição da HotList mostra apenas o nome, não a forma com nome e ano prevista no exemplo, e a mensagem de duplicata difere semanticamente do contrato esperado.",
+          "consequence": "A HotList funciona apenas em cenários simples de inclusão e remoção, mas quebra ou fica inconsistente em casos especificados, como posição sem filme, ex-filme Hot e exibição completa.",
+          "how_to_fix": "Validar que a posição principal contém filme, desmarcar o filme antigo ao substituir ou remover, padronizar a mensagem de duplicata e delegar a exibição ao filme ou ao gerenciador com nome e ano.",
+          "points_lost": 1.6,
+          "severity": "major",
+          "confidence": "high",
+          "rubric_anchor": "HotList: adicionar, exibir, remover e manter status Hot",
+          "evidence_refs": [
+            "src/filmnow/FilmNow.java::cadastraFilmeHotList",
+            "src/filmnow/FilmNow.java::removeHotList",
+            "src/filmnow/MainFilmNow.java::mostrarHotList",
+            "src/filmnow/Filme.java::setHot",
+            "src/filmnow/FilmNow.java::cadastraFilme",
+            "src/filmnow/MainFilmNow.java::mostrarFilmes",
+            "src/filmnow/MainFilmNow.java::comando",
+            "src/filmnow/Filme.java::toString",
+            "src/filmnow/Filme.java::equals"
+          ]
+        }
+      ]
+    },
+    {
+      "criterion_id": "unit_tests",
+      "criterion_name": "Unit Tests",
+      "score": 0,
+      "max_score": 10,
+      "justification": "Não há arquivos de teste submetidos. Assim, não há evidência de testes JUnit para `Filme` nem para `FilmNow`, apesar de o enunciado exigir testes para as classes com lógica testável.",
+      "evidence_refs": [
+        "Pacote submetido: contagem de arquivos de teste = 0",
+        "Árvore de arquivos informada contém apenas `src/filmnow/Filme.java`, `src/filmnow/FilmNow.java`, `src/filmnow/LeitorFilmNow.java` e `src/filmnow/MainFilmNow.java`"
+      ],
+      "deductions": [
+        {
+          "problem": "A submissão não apresenta testes unitários para os casos obrigatórios de `Filme` e `FilmNow`.",
+          "consequence": "Não há validação automatizada de construtor, exibição, igualdade, cadastro, listagem, detalhamento, posições-limite ou HotList.",
+          "how_to_fix": "Adicionar uma suíte JUnit para `Filme` e outra para `FilmNow`, cobrindo construtor, `toString`, `equals`, cadastro válido e inválido, duplicatas, sobrescrita, limites 0/1/100/101, detalhamento vazio/inválido e operações de HotList.",
+          "points_lost": 10.0,
+          "severity": "blocking",
+          "confidence": "high",
+          "rubric_anchor": "Testes JUnit para Filme e FilmNow",
+          "evidence_refs": [
+            "Pacote submetido: contagem de arquivos de teste = 0",
+            "Árvore de arquivos informada contém apenas `src/filmnow/Filme.java`, `src/filmnow/FilmNow.java`, `src/filmnow/LeitorFilmNow.java` e `src/filmnow/MainFilmNow.java`"
+          ]
+        }
+      ]
+    },
+    {
+      "criterion_id": "class_design",
+      "criterion_name": "Class Design",
+      "score": 8,
+      "max_score": 10,
+      "justification": "A solução demonstra a modelagem central esperada: existe uma classe `Filme`, uma classe `FilmNow` que compõe arrays de `Filme`, e uma classe de interface com `main` modularizado. As perdas vêm de inconsistências de modelagem em `Filme` e de atributos/métodos em `FilmNow` que não representam bem a responsabilidade do sistema.",
+      "evidence_refs": [
+        "src/filmnow/Filme.java",
+        "src/filmnow/FilmNow.java::filmes",
+        "src/filmnow/FilmNow.java::hotList",
+        "src/filmnow/FilmNow.java::FilmNow",
+        "src/filmnow/MainFilmNow.java::main",
+        "src/filmnow/MainFilmNow.java::comando",
+        "src/filmnow/Filme.java::equals",
+        "src/filmnow/Filme.java::hashCode",
+        "src/filmnow/Filme.java::setEhHot",
+        "src/filmnow/FilmNow.java::posicao",
+        "src/filmnow/FilmNow.java::nome",
+        "src/filmnow/FilmNow.java::ano",
+        "src/filmnow/FilmNow.java::local",
+        "src/filmnow/FilmNow.java::detalharFilme",
+        "src/filmnow/FilmNow.java::equals",
+        "src/filmnow/FilmNow.java::setFilmes",
+        "src/filmnow/FilmNow.java::setHotList"
+      ],
+      "deductions": [
+        {
+          "problem": "A classe `Filme` tem modelagem parcialmente inconsistente: `equals` usa comparação por referência para o ano, `hashCode` considera apenas o nome, e o método `setEhHot` tem nome de setter, mas atua como getter.",
+          "consequence": "A entidade central existe, mas sua semântica de igualdade e parte da API pública ficam incoerentes com o domínio do problema.",
+          "how_to_fix": "Implementar `equals` e `hashCode` com os mesmos campos relevantes, nome e ano, e renomear `setEhHot` para algo como `isHot` ou `ehHot`.",
+          "points_lost": 1.0,
+          "severity": "moderate",
+          "confidence": "high",
+          "rubric_anchor": "Classe Filme ou equivalente",
+          "evidence_refs": [
+            "src/filmnow/Filme.java::equals",
+            "src/filmnow/Filme.java::hashCode",
+            "src/filmnow/Filme.java::setEhHot",
+            "src/filmnow/Filme.java",
+            "src/filmnow/FilmNow.java::filmes",
+            "src/filmnow/FilmNow.java::hotList",
+            "src/filmnow/FilmNow.java::FilmNow",
+            "src/filmnow/MainFilmNow.java::main",
+            "src/filmnow/MainFilmNow.java::comando"
+          ]
+        },
+        {
+          "problem": "`FilmNow` contém atributos de estado soltos (`posicao`, `nome`, `ano`, `local`) e métodos como `equals`, `hashCode` e vários setters que não correspondem claramente ao papel de gerenciador do acervo. O método de detalhamento também tem assinatura e lógica pouco coerentes com a operação por posição.",
+          "consequence": "A classe ainda compõe e gerencia filmes, mas sua API fica poluída e menos alinhada ao modelo do sistema.",
+          "how_to_fix": "Remover estado transitório desnecessário de `FilmNow`, manter apenas estruturas e operações do sistema, e oferecer métodos coesos como cadastrar, listar, detalhar, adicionar/remover Hot por posição.",
+          "points_lost": 1.0,
+          "severity": "moderate",
+          "confidence": "high",
+          "rubric_anchor": "Classe FilmNow ou equivalente",
+          "evidence_refs": [
+            "src/filmnow/FilmNow.java::posicao",
+            "src/filmnow/FilmNow.java::nome",
+            "src/filmnow/FilmNow.java::ano",
+            "src/filmnow/FilmNow.java::local",
+            "src/filmnow/FilmNow.java::detalharFilme",
+            "src/filmnow/FilmNow.java::equals",
+            "src/filmnow/FilmNow.java::setFilmes",
+            "src/filmnow/FilmNow.java::setHotList",
+            "src/filmnow/Filme.java",
+            "src/filmnow/FilmNow.java::filmes",
+            "src/filmnow/FilmNow.java::hotList",
+            "src/filmnow/FilmNow.java::FilmNow",
+            "src/filmnow/MainFilmNow.java::main",
+            "src/filmnow/MainFilmNow.java::comando"
+          ]
+        }
+      ]
+    },
+    {
+      "criterion_id": "object_references",
+      "criterion_name": "Object References and Composition",
+      "score": 8.5,
+      "max_score": 10,
+      "justification": "A solução usa objetos de forma adequada no núcleo: `FilmNow` cria e armazena objetos `Filme`, e o uso de `static` fica essencialmente concentrado no `main`, métodos auxiliares da interface e constantes. Há, porém, fragilidades de encapsulamento e de manutenção das referências da HotList.",
+      "evidence_refs": [
+        "src/filmnow/FilmNow.java::private Filme[] filmes",
+        "src/filmnow/FilmNow.java::private Filme[] hotList",
+        "src/filmnow/FilmNow.java::cadastraFilme",
+        "src/filmnow/FilmNow.java::cadastraFilmeHotList",
+        "src/filmnow/MainFilmNow.java::main",
+        "src/filmnow/FilmNow.java::getHotList",
+        "src/filmnow/FilmNow.java::setFilmes",
+        "src/filmnow/FilmNow.java::setHotList",
+        "src/filmnow/FilmNow.java::removeHotList",
+        "src/filmnow/Filme.java::setHot"
+      ],
+      "deductions": [
+        {
+          "problem": "`getHotList` retorna diretamente o array interno, e `setFilmes`/`setHotList` permitem substituir completamente as estruturas internas a partir de fora da classe.",
+          "consequence": "Código externo pode modificar a composição do sistema sem passar pelas regras de negócio de `FilmNow`, quebrando invariantes como tamanho e consistência da HotList.",
+          "how_to_fix": "Retornar cópias defensivas quando necessário, evitar setters públicos para arrays internos e concentrar alterações nas operações de cadastro, listagem e HotList.",
+          "points_lost": 1.0,
+          "severity": "moderate",
+          "confidence": "high",
+          "rubric_anchor": "Composição e encapsulamento de referências",
+          "evidence_refs": [
+            "src/filmnow/FilmNow.java::getHotList",
+            "src/filmnow/FilmNow.java::setFilmes",
+            "src/filmnow/FilmNow.java::setHotList",
+            "src/filmnow/FilmNow.java::private Filme[] filmes",
+            "src/filmnow/FilmNow.java::private Filme[] hotList",
+            "src/filmnow/FilmNow.java::cadastraFilme",
+            "src/filmnow/FilmNow.java::cadastraFilmeHotList",
+            "src/filmnow/MainFilmNow.java::main"
+          ]
+        },
+        {
+          "problem": "Ao remover ou substituir uma referência na HotList, o objeto `Filme` anteriormente marcado não tem seu estado Hot atualizado para `false`.",
+          "consequence": "A referência compartilhada entre lista principal e HotList fica semanticamente inconsistente, pois o filme pode continuar marcado como Hot mesmo fora da HotList.",
+          "how_to_fix": "Antes de sobrescrever ou remover uma posição da HotList, guardar a referência antiga e chamar `setHot(false)` nela, quando não estiver presente em outra posição da HotList.",
+          "points_lost": 0.5,
+          "severity": "minor",
+          "confidence": "high",
+          "rubric_anchor": "Uso consistente de referências na HotList",
+          "evidence_refs": [
+            "src/filmnow/FilmNow.java::cadastraFilmeHotList",
+            "src/filmnow/FilmNow.java::removeHotList",
+            "src/filmnow/Filme.java::setHot",
+            "src/filmnow/FilmNow.java::private Filme[] filmes",
+            "src/filmnow/FilmNow.java::private Filme[] hotList",
+            "src/filmnow/FilmNow.java::cadastraFilme",
+            "src/filmnow/MainFilmNow.java::main"
+          ]
+        }
+      ]
+    },
+    {
+      "criterion_id": "collections_and_arrays",
+      "criterion_name": "Collections and Arrays",
+      "score": 8.5,
+      "max_score": 10,
+      "justification": "As estruturas de dados principais foram escolhidas de forma compatível com o enunciado: um array de 100 filmes e uma HotList de 10 posições. A implementação usa conversão de posição 1-based para índice 0-based em várias operações. As perdas são por acessos públicos inseguros e por permitir substituição externa das estruturas, o que pode quebrar as restrições de tamanho.",
+      "evidence_refs": [
+        "src/filmnow/FilmNow.java::TAMANHO",
+        "src/filmnow/FilmNow.java::TAMANHOHOTLIST",
+        "src/filmnow/FilmNow.java::FilmNow",
+        "src/filmnow/FilmNow.java::cadastraFilme",
+        "src/filmnow/FilmNow.java::cadastraFilmeHotList",
+        "src/filmnow/MainFilmNow.java::mostrarFilmes",
+        "src/filmnow/FilmNow.java::getFilme",
+        "src/filmnow/MainFilmNow.java::detalharFilme",
+        "src/filmnow/FilmNow.java::setFilmes",
+        "src/filmnow/FilmNow.java::setHotList"
+      ],
+      "deductions": [
+        {
+          "problem": "O método público `getFilme(int posicao)` acessa diretamente `filmes[posicao]` sem validação e usa índice interno, enquanto a maioria das operações do domínio usa posições de 1 a 100.",
+          "consequence": "Chamadas diretas podem gerar acesso fora dos limites ou confusão entre posição do usuário e índice do array, como ocorre na interface ao compensar manualmente com `posicao - 1`.",
+          "how_to_fix": "Definir uma API pública consistente por posição de usuário, validando 1 a 100 dentro de `FilmNow`, e manter o índice 0-based apenas como detalhe interno.",
+          "points_lost": 1.0,
+          "severity": "moderate",
+          "confidence": "high",
+          "rubric_anchor": "Uso seguro da estrutura de dados",
+          "evidence_refs": [
+            "src/filmnow/FilmNow.java::getFilme",
+            "src/filmnow/MainFilmNow.java::detalharFilme",
+            "src/filmnow/FilmNow.java::TAMANHO",
+            "src/filmnow/FilmNow.java::TAMANHOHOTLIST",
+            "src/filmnow/FilmNow.java::FilmNow",
+            "src/filmnow/FilmNow.java::cadastraFilme",
+            "src/filmnow/FilmNow.java::cadastraFilmeHotList",
+            "src/filmnow/MainFilmNow.java::mostrarFilmes"
+          ]
+        },
+        {
+          "problem": "Os setters públicos `setFilmes` e `setHotList` podem receber arrays de qualquer tamanho, contornando as restrições de 100 filmes e 10 posições de HotList.",
+          "consequence": "As invariantes de capacidade do sistema podem ser quebradas por código externo, embora o construtor inicialize corretamente os tamanhos esperados.",
+          "how_to_fix": "Remover esses setters ou validar rigorosamente o tamanho dos arrays recebidos; preferencialmente expor apenas operações controladas de alteração.",
+          "points_lost": 0.5,
+          "severity": "minor",
+          "confidence": "high",
+          "rubric_anchor": "Restrições de tamanho da coleção/array",
+          "evidence_refs": [
+            "src/filmnow/FilmNow.java::setFilmes",
+            "src/filmnow/FilmNow.java::setHotList",
+            "src/filmnow/FilmNow.java::TAMANHO",
+            "src/filmnow/FilmNow.java::TAMANHOHOTLIST",
+            "src/filmnow/FilmNow.java::FilmNow",
+            "src/filmnow/FilmNow.java::cadastraFilme",
+            "src/filmnow/FilmNow.java::cadastraFilmeHotList",
+            "src/filmnow/MainFilmNow.java::mostrarFilmes"
+          ]
+        }
+      ]
+    },
+    {
+      "criterion_id": "separation_of_concerns",
+      "criterion_name": "Separation of Concerns",
+      "score": 6.5,
+      "max_score": 10,
+      "justification": "Há uma separação inicial clara entre interface, gerenciador e entidade: `MainFilmNow` lê e imprime, `FilmNow` armazena filmes e `Filme` representa os dados. Porém a interface acessa estruturas e dados diretamente, `FilmNow` não oferece métodos coesos para listagem e detalhamento, e parte da formatação do domínio fica espalhada.",
+      "evidence_refs": [
+        "src/filmnow/MainFilmNow.java",
+        "src/filmnow/FilmNow.java::cadastraFilme",
+        "src/filmnow/FilmNow.java::cadastraFilmeHotList",
+        "src/filmnow/FilmNow.java::removeHotList",
+        "src/filmnow/Filme.java::toString",
+        "src/filmnow/LeitorFilmNow.java",
+        "src/filmnow/MainFilmNow.java::mostrarFilmes",
+        "src/filmnow/MainFilmNow.java::detalharFilme",
+        "src/filmnow/MainFilmNow.java::mostrarHotList",
+        "src/filmnow/FilmNow.java::getFilmes",
+        "src/filmnow/FilmNow.java::getHotList",
+        "src/filmnow/FilmNow.java::detalharFilme",
+        "src/filmnow/MainFilmNow.java::formataFilme"
+      ],
+      "deductions": [
+        {
+          "problem": "`MainFilmNow` acessa arrays e objetos diretamente para listar e detalhar filmes, usando `getFilmes`, `getHotList`, `getFilme` e getters de `Filme` para montar saídas.",
+          "consequence": "Parte da lógica de apresentação do domínio e de navegação nas estruturas fica na interface, dificultando testes de unidade em `FilmNow` e aumentando acoplamento.",
+          "how_to_fix": "Fazer `FilmNow` retornar strings ou dados já organizados para listar, detalhar e exibir HotList, deixando o `Main` apenas ler entradas e imprimir retornos.",
+          "points_lost": 1.5,
+          "severity": "moderate",
+          "confidence": "high",
+          "rubric_anchor": "Main responsável por entrada e saída, não por regras do sistema",
+          "evidence_refs": [
+            "src/filmnow/MainFilmNow.java::mostrarFilmes",
+            "src/filmnow/MainFilmNow.java::detalharFilme",
+            "src/filmnow/MainFilmNow.java::mostrarHotList",
+            "src/filmnow/FilmNow.java::getFilmes",
+            "src/filmnow/FilmNow.java::getHotList",
+            "src/filmnow/MainFilmNow.java",
+            "src/filmnow/FilmNow.java::cadastraFilme",
+            "src/filmnow/FilmNow.java::cadastraFilmeHotList",
+            "src/filmnow/FilmNow.java::removeHotList",
+            "src/filmnow/Filme.java::toString",
+            "src/filmnow/LeitorFilmNow.java"
+          ]
+        },
+        {
+          "problem": "`FilmNow` não oferece uma API funcional e coesa para listagem e detalhamento: `detalharFilme` tem parâmetro inadequado e depende de atributo interno, enquanto a listagem é feita fora da classe.",
+          "consequence": "A classe gerenciadora mantém os arrays, mas não encapsula suficientemente as operações principais do sistema, prejudicando a separação entre lógica e interface.",
+          "how_to_fix": "Implementar em `FilmNow` métodos como `listarFilmes()`, `detalharFilme(int posicao)` e `exibirHotList()`, todos com validações e regras do domínio.",
+          "points_lost": 1.2,
+          "severity": "moderate",
+          "confidence": "high",
+          "rubric_anchor": "FilmNow responsável por gerenciar os filmes",
+          "evidence_refs": [
+            "src/filmnow/FilmNow.java::detalharFilme",
+            "src/filmnow/MainFilmNow.java::mostrarFilmes",
+            "src/filmnow/MainFilmNow.java::mostrarHotList",
+            "src/filmnow/MainFilmNow.java",
+            "src/filmnow/FilmNow.java::cadastraFilme",
+            "src/filmnow/FilmNow.java::cadastraFilmeHotList",
+            "src/filmnow/FilmNow.java::removeHotList",
+            "src/filmnow/Filme.java::toString",
+            "src/filmnow/LeitorFilmNow.java"
+          ]
+        },
+        {
+          "problem": "`Filme` fornece apenas um `toString` de detalhes e não resolve bem variações exigidas, como ano vazio, representação resumida para listagem e indicação de Hot.",
+          "consequence": "A formatação fica parcialmente fora da entidade e alguns formatos obrigatórios precisam ser improvisados na interface.",
+          "how_to_fix": "Adicionar métodos de representação claros em `Filme`, por exemplo um resumo para listagem e um detalhe com tratamento de ano vazio e status Hot.",
+          "points_lost": 0.8,
+          "severity": "minor",
+          "confidence": "high",
+          "rubric_anchor": "Filme responsável por exibir detalhes e representação em lista",
+          "evidence_refs": [
+            "src/filmnow/Filme.java::toString",
+            "src/filmnow/MainFilmNow.java::formataFilme",
+            "src/filmnow/MainFilmNow.java",
+            "src/filmnow/FilmNow.java::cadastraFilme",
+            "src/filmnow/FilmNow.java::cadastraFilmeHotList",
+            "src/filmnow/FilmNow.java::removeHotList",
+            "src/filmnow/LeitorFilmNow.java"
+          ]
+        }
+      ]
+    },
+    {
+      "criterion_id": "readability_and_documentation",
+      "criterion_name": "Readability and Documentation",
+      "score": 7,
+      "max_score": 10,
+      "justification": "O código é em geral legível, usa nomes majoritariamente compreensíveis e contém Javadoc em várias classes e métodos. Entretanto há documentação imprecisa, um trecho claramente descuidado, métodos e atributos desnecessários e nomes que podem confundir o leitor.",
+      "evidence_refs": [
+        "src/filmnow/Filme.java",
+        "src/filmnow/FilmNow.java",
+        "src/filmnow/MainFilmNow.java",
+        "src/filmnow/LeitorFilmNow.java",
+        "src/filmnow/MainFilmNow.java::formataFilme",
+        "src/filmnow/Filme.java::getLocal",
+        "src/filmnow/Filme.java::Filme",
+        "src/filmnow/FilmNow.java::detalharFilme",
+        "src/filmnow/FilmNow.java::posicao",
+        "src/filmnow/FilmNow.java::nome",
+        "src/filmnow/FilmNow.java::ano",
+        "src/filmnow/FilmNow.java::local",
+        "src/filmnow/FilmNow.java::getPosicao",
+        "src/filmnow/FilmNow.java::setPosicao",
+        "src/filmnow/FilmNow.java::equals",
+        "src/filmnow/FilmNow.java::hashCode",
+        "src/filmnow/Filme.java::setEhHot",
+        "src/filmnow/LeitorFilmNow.java::carregaContatos"
+      ],
+      "deductions": [
+        {
+          "problem": "Parte da documentação é genérica ou imprecisa, e há um comentário de retorno com texto sem sentido em `formataFilme`. Também há descrições como localização física para o campo `local`, embora o domínio trate local de exibição.",
+          "consequence": "A documentação existe, mas nem sempre esclarece corretamente o comportamento ou o domínio, reduzindo sua utilidade para manutenção e revisão.",
+          "how_to_fix": "Revisar os Javadocs para descrever comportamento real, entradas válidas, retornos e casos especiais, removendo textos acidentais ou genéricos.",
+          "points_lost": 1.2,
+          "severity": "moderate",
+          "confidence": "high",
+          "rubric_anchor": "Javadoc claro e objetivo",
+          "evidence_refs": [
+            "src/filmnow/MainFilmNow.java::formataFilme",
+            "src/filmnow/Filme.java::getLocal",
+            "src/filmnow/Filme.java::Filme",
+            "src/filmnow/FilmNow.java::detalharFilme",
+            "src/filmnow/Filme.java",
+            "src/filmnow/FilmNow.java",
+            "src/filmnow/MainFilmNow.java",
+            "src/filmnow/LeitorFilmNow.java"
+          ]
+        },
+        {
+          "problem": "`FilmNow` contém vários atributos e métodos sem papel claro no sistema, como `posicao`, `nome`, `ano`, `local`, seus getters/setters e `equals`/`hashCode` baseados nesses dados soltos.",
+          "consequence": "A leitura do código fica mais difícil, pois não fica claro quais campos representam o estado real do sistema e quais são sobras ou estado transitório.",
+          "how_to_fix": "Remover atributos e métodos não usados ou não pertencentes ao modelo, mantendo a classe enxuta e centrada nas listas e operações de filmes.",
+          "points_lost": 1.0,
+          "severity": "moderate",
+          "confidence": "high",
+          "rubric_anchor": "Organização e simplicidade do código",
+          "evidence_refs": [
+            "src/filmnow/FilmNow.java::posicao",
+            "src/filmnow/FilmNow.java::nome",
+            "src/filmnow/FilmNow.java::ano",
+            "src/filmnow/FilmNow.java::local",
+            "src/filmnow/FilmNow.java::getPosicao",
+            "src/filmnow/FilmNow.java::setPosicao",
+            "src/filmnow/FilmNow.java::equals",
+            "src/filmnow/FilmNow.java::hashCode",
+            "src/filmnow/Filme.java",
+            "src/filmnow/FilmNow.java",
+            "src/filmnow/MainFilmNow.java",
+            "src/filmnow/LeitorFilmNow.java"
+          ]
+        },
+        {
+          "problem": "Alguns nomes são enganosos ou herdados de outro domínio, como `setEhHot` retornando booleano e `carregaContatos` em uma classe que carrega filmes.",
+          "consequence": "Esses nomes não impedem a compreensão geral, mas aumentam a chance de uso incorreto da API e sugerem baixa revisão final.",
+          "how_to_fix": "Renomear métodos para refletir exatamente sua ação, por exemplo `isHot`/`ehHot` para consulta e `carregaFilmes` para leitura de filmes.",
+          "points_lost": 0.8,
+          "severity": "minor",
+          "confidence": "high",
+          "rubric_anchor": "Nomes e API compreensíveis",
+          "evidence_refs": [
+            "src/filmnow/Filme.java::setEhHot",
+            "src/filmnow/LeitorFilmNow.java::carregaContatos",
+            "src/filmnow/Filme.java",
+            "src/filmnow/FilmNow.java",
+            "src/filmnow/MainFilmNow.java",
+            "src/filmnow/LeitorFilmNow.java"
+          ]
+        }
+      ]
+    }
+  ],
+  "total_score": 5.975,
+  "total_max_score": 10.0
+}

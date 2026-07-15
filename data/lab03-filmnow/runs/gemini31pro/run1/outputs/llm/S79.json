@@ -1,0 +1,240 @@
+{
+  "submission_id": "S79",
+  "evaluator_type": "llm",
+  "criteria": [
+    {
+      "criterion_id": "basic_functionality",
+      "criterion_name": "Basic Functionality",
+      "score": 3.0,
+      "max_score": 10,
+      "justification": "O fluxo principal de cadastro e listagem funciona parcialmente, mas há falhas críticas: a HotList não foi implementada como uma lista separada com limite de 10 posições, a verificação de duplicidade está incorreta (usa '==' para Strings e operador lógico 'OU'), e o uso da posição 100 causa erro de execução (ArrayIndexOutOfBoundsException).",
+      "evidence_refs": [
+        "MainFilmNow.java:adicionaFilme",
+        "MainFilmNow.java:mostrarFilmes",
+        "MainFilmNow.java:detalharFilme",
+        "FilmNow.java:adicionaHot",
+        "Filme.java:hot",
+        "FilmNow.java:verificaSeFilmeJaFoiInserido",
+        "FilmNow.java:cadastraFilme"
+      ],
+      "deductions": [
+        {
+          "problem": "A HotList não foi implementada como uma lista separada com limite de 10 posições. O estado 'hot' foi adicionado apenas como um atributo booleano no Filme.",
+          "consequence": "Não há limite de 10 filmes na HotList, e as regras de substituição e posições da HotList não são aplicadas.",
+          "how_to_fix": "Criar um array separado para a HotList na classe FilmNow, com tamanho 10, e gerenciar a inserção e remoção de referências de filmes nesse array.",
+          "points_lost": 3.0,
+          "severity": "major",
+          "confidence": "high",
+          "rubric_anchor": "HotList",
+          "evidence_refs": [
+            "FilmNow.java:adicionaHot",
+            "Filme.java:hot",
+            "MainFilmNow.java:adicionaFilme",
+            "MainFilmNow.java:mostrarFilmes",
+            "MainFilmNow.java:detalharFilme"
+          ]
+        },
+        {
+          "problem": "A verificação de duplicidade usa o operador '==' para comparar Strings (nome) e o operador lógico '||' (OU) em vez de '&&' (E).",
+          "consequence": "O sistema impede o cadastro de filmes diferentes que tenham o mesmo ano, e a comparação de nomes pode falhar por comparar referências de memória em vez do conteúdo.",
+          "how_to_fix": "Utilizar o método '.equals()' para comparar o nome do filme e o operador '&&' para garantir que a duplicidade seja apenas para mesmo nome E mesmo ano.",
+          "points_lost": 3.0,
+          "severity": "major",
+          "confidence": "high",
+          "rubric_anchor": "Impedir duplicidade",
+          "evidence_refs": [
+            "FilmNow.java:verificaSeFilmeJaFoiInserido",
+            "MainFilmNow.java:adicionaFilme",
+            "MainFilmNow.java:mostrarFilmes",
+            "MainFilmNow.java:detalharFilme"
+          ]
+        },
+        {
+          "problem": "O sistema aceita a posição 100, mas a utiliza diretamente como índice em um array de tamanho 100 (cujos índices vão de 0 a 99).",
+          "consequence": "Tentar cadastrar um filme na posição 100 causa um erro de execução (ArrayIndexOutOfBoundsException).",
+          "how_to_fix": "Subtrair 1 da posição informada pelo usuário ao acessar o array, ou criar o array com tamanho 101.",
+          "points_lost": 1.0,
+          "severity": "moderate",
+          "confidence": "high",
+          "rubric_anchor": "Adicionar filme em posição 1 a 100",
+          "evidence_refs": [
+            "MainFilmNow.java:adicionaFilme",
+            "FilmNow.java:cadastraFilme",
+            "MainFilmNow.java:mostrarFilmes",
+            "MainFilmNow.java:detalharFilme"
+          ]
+        }
+      ]
+    },
+    {
+      "criterion_id": "unit_tests",
+      "criterion_name": "Unit Tests",
+      "score": 8.0,
+      "max_score": 10,
+      "justification": "Os testes estão presentes e cobrem métodos importantes das classes Filme e FilmNow, demonstrando bom entendimento do uso do JUnit. Há pequenos descontos por falta de cobertura de alguns cenários e métodos principais.",
+      "evidence_refs": [
+        "test/FilmeTest.java",
+        "test/FilmNowTeste.java"
+      ],
+      "deductions": [
+        {
+          "problem": "Faltam testes para o método principal de cadastro (cadastraFilme) e para cenários limite (como tentar adicionar em posições extremas).",
+          "consequence": "A suíte de testes não garante o funcionamento completo do fluxo de cadastro.",
+          "how_to_fix": "Adicionar testes que verifiquem o estado do array após chamar cadastraFilme, incluindo testes para as posições 1 e 100.",
+          "points_lost": 2.0,
+          "severity": "minor",
+          "confidence": "high",
+          "rubric_anchor": "Cobertura de cenários",
+          "evidence_refs": [
+            "test/FilmNowTeste.java",
+            "test/FilmeTest.java"
+          ]
+        }
+      ]
+    },
+    {
+      "criterion_id": "class_design",
+      "criterion_name": "Class Design",
+      "score": 6.0,
+      "max_score": 10,
+      "justification": "As classes principais foram criadas e possuem responsabilidades claras. No entanto, a modelagem do método equals em Filme está incorreta segundo os requisitos, e a ausência de uma estrutura própria para a HotList prejudica o design.",
+      "evidence_refs": [
+        "Filme.java",
+        "FilmNow.java",
+        "Filme.java:equals",
+        "Filme.java:hashCode",
+        "Filme.java:hot"
+      ],
+      "deductions": [
+        {
+          "problem": "O método equals da classe Filme considera os atributos 'local' e 'posicao' na comparação.",
+          "consequence": "A igualdade não reflete a regra de negócio exigida, que define que dois filmes são iguais apenas se tiverem o mesmo nome e ano.",
+          "how_to_fix": "Remover 'local' e 'posicao' dos métodos equals e hashCode da classe Filme.",
+          "points_lost": 2.0,
+          "severity": "moderate",
+          "confidence": "high",
+          "rubric_anchor": "Igualdade entre filmes",
+          "evidence_refs": [
+            "Filme.java:equals",
+            "Filme.java:hashCode",
+            "Filme.java",
+            "FilmNow.java"
+          ]
+        },
+        {
+          "problem": "A HotList não foi modelada como uma entidade ou estrutura separada no sistema, sendo reduzida a um atributo booleano no Filme.",
+          "consequence": "O design não suporta as regras de negócio da HotList (limite de tamanho, posições independentes).",
+          "how_to_fix": "Remover o atributo 'hot' de Filme e criar uma estrutura de dados em FilmNow para gerenciar a HotList.",
+          "points_lost": 2.0,
+          "severity": "moderate",
+          "confidence": "high",
+          "rubric_anchor": "Modelagem da HotList",
+          "evidence_refs": [
+            "Filme.java:hot",
+            "FilmNow.java",
+            "Filme.java"
+          ]
+        }
+      ]
+    },
+    {
+      "criterion_id": "object_references",
+      "criterion_name": "Object References and Composition",
+      "score": 10.0,
+      "max_score": 10,
+      "justification": "O uso de referências e a composição entre FilmNow e Filme foram bem compreendidos e implementados corretamente.",
+      "evidence_refs": [
+        "FilmNow.java:filmes",
+        "FilmNow.java:cadastraFilme"
+      ],
+      "deductions": []
+    },
+    {
+      "criterion_id": "collections_and_arrays",
+      "criterion_name": "Collections and Arrays",
+      "score": 4.0,
+      "max_score": 10,
+      "justification": "O array principal foi declarado, mas há um erro de mapeamento de índices (off-by-one) e a estrutura de array para a HotList foi completamente omitida.",
+      "evidence_refs": [
+        "FilmNow.java:TAMANHO",
+        "FilmNow.java:FilmNow",
+        "FilmNow.java",
+        "FilmNow.java:cadastraFilme",
+        "FilmNow.java:getFilme"
+      ],
+      "deductions": [
+        {
+          "problem": "Não há um array ou coleção dedicada para armazenar a HotList com até 10 posições.",
+          "consequence": "Impossibilita o controle de posições e o limite de tamanho da HotList exigidos pelo laboratório.",
+          "how_to_fix": "Declarar um array 'Filme[] hotlist = new Filme[10]' na classe FilmNow.",
+          "points_lost": 4.0,
+          "severity": "major",
+          "confidence": "high",
+          "rubric_anchor": "HotList separada",
+          "evidence_refs": [
+            "FilmNow.java",
+            "FilmNow.java:TAMANHO",
+            "FilmNow.java:FilmNow"
+          ]
+        },
+        {
+          "problem": "O índice do array não é ajustado em relação à posição informada pelo usuário (1 a 100).",
+          "consequence": "O uso da posição 100 tenta acessar o índice 100 de um array de tamanho 100, causando erro. A posição 0 do array fica inutilizada.",
+          "how_to_fix": "Mapear a posição do usuário para o índice do array subtraindo 1 (ex: filmes[posicao - 1]).",
+          "points_lost": 2.0,
+          "severity": "moderate",
+          "confidence": "high",
+          "rubric_anchor": "Uso de array",
+          "evidence_refs": [
+            "FilmNow.java:cadastraFilme",
+            "FilmNow.java:getFilme",
+            "FilmNow.java:TAMANHO",
+            "FilmNow.java:FilmNow"
+          ]
+        }
+      ]
+    },
+    {
+      "criterion_id": "separation_of_concerns",
+      "criterion_name": "Separation of Concerns",
+      "score": 7.0,
+      "max_score": 10,
+      "justification": "Existe uma separação razoável entre a interface (MainFilmNow) e a lógica de negócio (FilmNow), mas a classe MainFilmNow ainda concentra validações que deveriam pertencer ao domínio.",
+      "evidence_refs": [
+        "FilmNow.java",
+        "MainFilmNow.java:adicionaFilme",
+        "MainFilmNow.java:verificaPosicaoEhValida"
+      ],
+      "deductions": [
+        {
+          "problem": "A classe MainFilmNow realiza validações de regras de negócio, como verificar se o nome ou local estão vazios e se a posição é válida.",
+          "consequence": "A lógica de domínio vaza para a interface de usuário, enfraquecendo o encapsulamento da classe FilmNow.",
+          "how_to_fix": "Mover as validações de posição e de dados em branco para dentro dos métodos da classe FilmNow, lançando exceções ou retornando booleanos/mensagens de erro.",
+          "points_lost": 3.0,
+          "severity": "moderate",
+          "confidence": "high",
+          "rubric_anchor": "Divisão de responsabilidades",
+          "evidence_refs": [
+            "MainFilmNow.java:adicionaFilme",
+            "MainFilmNow.java:verificaPosicaoEhValida",
+            "FilmNow.java"
+          ]
+        }
+      ]
+    },
+    {
+      "criterion_id": "readability_and_documentation",
+      "criterion_name": "Readability and Documentation",
+      "score": 10.0,
+      "max_score": 10,
+      "justification": "O código apresenta excelente legibilidade, com nomes de variáveis e métodos claros, além de Javadoc completo e bem estruturado.",
+      "evidence_refs": [
+        "Filme.java",
+        "FilmNow.java"
+      ],
+      "deductions": []
+    }
+  ],
+  "total_score": 6.2,
+  "total_max_score": 10.0
+}

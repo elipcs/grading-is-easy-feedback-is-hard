@@ -1,0 +1,154 @@
+{
+  "submission_id": "S02",
+  "evaluator_type": "llm",
+  "criteria": [
+    {
+      "criterion_id": "basic_functionality",
+      "criterion_name": "Basic Functionality",
+      "score": 10,
+      "max_score": 10,
+      "justification": "O sistema implementa corretamente todas as funcionalidades exigidas: adição, listagem, detalhamento e manipulação da HotList, lidando adequadamente com as regras de negócio e limites.",
+      "evidence_refs": [
+        "FilmNow.cadastraFilme",
+        "FilmNow.atribuirHot",
+        "FilmNow.detalhaFilme"
+      ],
+      "deductions": []
+    },
+    {
+      "criterion_id": "unit_tests",
+      "criterion_name": "Unit Tests",
+      "score": 10,
+      "max_score": 10,
+      "justification": "O conjunto de testes é excelente, cobrindo exaustivamente as classes Filme e FilmNow, incluindo casos normais, limites e situações de erro.",
+      "evidence_refs": [
+        "FilmNowTest.java",
+        "FilmeTest.java"
+      ],
+      "deductions": []
+    },
+    {
+      "criterion_id": "class_design",
+      "criterion_name": "Class Design",
+      "score": 7,
+      "max_score": 10,
+      "justification": "As classes principais foram criadas, mas a modelagem da composição falhou. A classe FilmNow armazena os filmes como Strings em vez de manter um array de objetos Filme, contrariando a especificação de design do laboratório.",
+      "evidence_refs": [
+        "Filme.java",
+        "MainFilmNow.java",
+        "FilmNow.java (linhas 14, 23, 68)"
+      ],
+      "deductions": [
+        {
+          "problem": "A classe FilmNow utiliza um array de String (String[] filmes) para armazenar os filmes, em vez de um array de objetos Filme (Filme[] filmes).",
+          "consequence": "O sistema perde os benefícios da orientação a objetos, revertendo para manipulação de strings (como o uso de split para recuperar dados) em vez de interagir com instâncias da classe Filme.",
+          "how_to_fix": "Alterar a declaração para 'private Filme[] filmes;' e armazenar as instâncias criadas diretamente no array.",
+          "points_lost": 3.0,
+          "severity": "major",
+          "confidence": "high",
+          "rubric_anchor": "Classe FilmNow ou equivalente: lembrar que FilmNow tem composição com Filme.",
+          "evidence_refs": [
+            "FilmNow.java (linhas 14, 23, 68)",
+            "Filme.java",
+            "MainFilmNow.java"
+          ]
+        }
+      ]
+    },
+    {
+      "criterion_id": "object_references",
+      "criterion_name": "Object References and Composition",
+      "score": 5,
+      "max_score": 10,
+      "justification": "O uso de referências a objetos foi prejudicado pela decisão de armazenar Strings. Objetos Filme são criados apenas para gerar uma String e descartados. Além disso, há uso indevido de métodos estáticos na classe Filme para regras de negócio.",
+      "evidence_refs": [
+        "MainFilmNow.java (linha 17)",
+        "FilmNow.cadastraFilme (linhas 67-68)",
+        "Filme.confereExistencia",
+        "Filme.entradasValidasNome"
+      ],
+      "deductions": [
+        {
+          "problem": "O objeto Filme é instanciado no método cadastraFilme apenas para invocar o método toString() e é imediatamente descartado, não sendo mantida a referência do objeto no sistema. O método equals implementado na classe Filme acaba não sendo utilizado pelo sistema para checar duplicatas.",
+          "consequence": "Descaracteriza a composição entre FilmNow e Filme, impedindo que o sistema opere sobre os objetos e seus comportamentos.",
+          "how_to_fix": "Armazenar a referência do objeto Filme recém-criado no array de filmes da classe FilmNow.",
+          "points_lost": 3.0,
+          "severity": "major",
+          "confidence": "high",
+          "rubric_anchor": "Cria objetos de forma adequada (FilmNow, Filme).",
+          "evidence_refs": [
+            "FilmNow.cadastraFilme (linhas 67-68)",
+            "MainFilmNow.java (linha 17)"
+          ]
+        },
+        {
+          "problem": "Uso de métodos estáticos na classe Filme (confereExistencia, entradasValidasNome, entradasValidasLocal) para realizar validações e buscas.",
+          "consequence": "Fere os princípios de orientação a objetos, criando dependências estáticas e dificultando a manutenção e testes isolados.",
+          "how_to_fix": "Remover o modificador static desses métodos ou mover a lógica de busca e validação para a classe gerenciadora (FilmNow).",
+          "points_lost": 2.0,
+          "severity": "moderate",
+          "confidence": "high",
+          "rubric_anchor": "Usou estático apenas no main ou em constantes.",
+          "evidence_refs": [
+            "Filme.confereExistencia",
+            "Filme.entradasValidasNome",
+            "MainFilmNow.java (linha 17)"
+          ]
+        }
+      ]
+    },
+    {
+      "criterion_id": "collections_and_arrays",
+      "criterion_name": "Collections and Arrays",
+      "score": 10,
+      "max_score": 10,
+      "justification": "O uso dos arrays para armazenar os dados e a HotList está correto, respeitando os limites estabelecidos e realizando o mapeamento adequado entre as posições informadas pelo usuário (1-based) e os índices do array (0-based).",
+      "evidence_refs": [
+        "FilmNow.java (linhas 23-24, 55, 68)"
+      ],
+      "deductions": []
+    },
+    {
+      "criterion_id": "separation_of_concerns",
+      "criterion_name": "Separation of Concerns",
+      "score": 8.5,
+      "max_score": 10,
+      "justification": "A separação entre interface (Main) e lógica (FilmNow) foi bem feita. No entanto, a classe Filme assumiu indevidamente a responsabilidade de verificar a existência de filmes no sistema.",
+      "evidence_refs": [
+        "MainFilmNow.java",
+        "Filme.java",
+        "Filme.confereExistencia (linhas 128-145)"
+      ],
+      "deductions": [
+        {
+          "problem": "O método confereExistencia foi colocado na classe Filme, recebendo a instância de FilmNow para iterar sobre o array do sistema e verificar duplicatas.",
+          "consequence": "Vazamento de responsabilidade. A entidade Filme não deveria conhecer ou iterar sobre a coleção do sistema que a gerencia.",
+          "how_to_fix": "Mover a lógica de verificação de existência (busca por duplicatas) para dentro da classe FilmNow.",
+          "points_lost": 1.5,
+          "severity": "moderate",
+          "confidence": "high",
+          "rubric_anchor": "FilmNow é responsável por criar, adicionar e gerenciar os filmes.",
+          "evidence_refs": [
+            "Filme.confereExistencia (linhas 128-145)",
+            "MainFilmNow.java",
+            "Filme.java"
+          ]
+        }
+      ]
+    },
+    {
+      "criterion_id": "readability_and_documentation",
+      "criterion_name": "Readability and Documentation",
+      "score": 10,
+      "max_score": 10,
+      "justification": "O código é muito legível, bem organizado e possui excelente documentação Javadoc em todas as classes e métodos públicos, explicando claramente o propósito e os parâmetros.",
+      "evidence_refs": [
+        "FilmNow.java",
+        "Filme.java"
+      ],
+      "deductions": []
+    }
+  ],
+  "total_score": 8.675,
+  "total_max_score": 10.0
+}

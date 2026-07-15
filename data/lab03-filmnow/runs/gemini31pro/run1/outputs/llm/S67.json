@@ -1,0 +1,147 @@
+{
+  "submission_id": "S67",
+  "evaluator_type": "llm",
+  "criteria": [
+    {
+      "criterion_id": "basic_functionality",
+      "criterion_name": "Basic Functionality",
+      "score": 6.5,
+      "max_score": 10,
+      "justification": "O fluxo principal de cadastro, listagem e detalhamento foi implementado, assim como a HotList. No entanto, há falhas importantes: o sistema lança NullPointerException ao comparar filmes com ano vazio (causando crash ao sobrescrever filmes na HotList), a substituição na HotList não remove o status 'hot' do filme anterior, e o detalhamento de posições vazias retorna mensagem de erro em vez de vazio.",
+      "evidence_refs": [
+        "FilmNow.java (métodos cadastraFilme, detalhaFilme, cadastraHot)",
+        "Filme.java (método equals)",
+        "FilmNow.java (método procuraPosicaoHot)",
+        "FilmNow.java (método cadastraHot)",
+        "FilmNow.java (método detalhaFilme)"
+      ],
+      "deductions": [
+        {
+          "problem": "NullPointerException no método equals da classe Filme quando o ano é nulo.",
+          "consequence": "O sistema quebra (crash) ao tentar sobrescrever um filme que possua ano vazio e esteja na HotList (pois procuraPosicaoHot compara o filme consigo mesmo, resultando em null.equals(null)). O erro também ocorre ao tentar cadastrar um filme com o mesmo nome de um filme já existente com ano vazio.",
+          "how_to_fix": "Utilizar Objects.equals(this.ano, oFilme.getAno()) no método equals ou verificar se this.ano é nulo antes de chamar .equals().",
+          "points_lost": 2.0,
+          "severity": "major",
+          "confidence": "high",
+          "rubric_anchor": "Funcionalidade Básica (cadastro e HotList)",
+          "evidence_refs": [
+            "Filme.java (método equals)",
+            "FilmNow.java (método procuraPosicaoHot)",
+            "FilmNow.java (métodos cadastraFilme, detalhaFilme, cadastraHot)"
+          ]
+        },
+        {
+          "problem": "Ao sobrescrever uma posição já ocupada na HotList, o filme anterior não perde o status de 'hot'.",
+          "consequence": "O filme antigo continua marcado como 'hot' (exibindo o emoji no detalhamento) mesmo não estando mais na HotList.",
+          "how_to_fix": "Antes de atribuir o novo filme à posição da HotList, verificar se a posição já contém um filme e, em caso afirmativo, alterar o status 'hot' desse filme para false.",
+          "points_lost": 1.0,
+          "severity": "moderate",
+          "confidence": "high",
+          "rubric_anchor": "Funcionalidade Básica (HotList)",
+          "evidence_refs": [
+            "FilmNow.java (método cadastraHot)",
+            "FilmNow.java (métodos cadastraFilme, detalhaFilme, cadastraHot)"
+          ]
+        },
+        {
+          "problem": "Detalhar uma posição válida, porém vazia, retorna 'POSIÇÃO INVÁLIDA!'.",
+          "consequence": "O comportamento diverge do esperado, que seria retornar vazio para posições válidas não ocupadas.",
+          "how_to_fix": "Ajustar a lógica no método detalhaFilme para retornar uma string vazia quando this.filmes[filmeIndex] == null, reservando a mensagem de erro apenas para índices fora do limite do array.",
+          "points_lost": 0.5,
+          "severity": "minor",
+          "confidence": "high",
+          "rubric_anchor": "Funcionalidade Básica (detalhar filme)",
+          "evidence_refs": [
+            "FilmNow.java (método detalhaFilme)",
+            "FilmNow.java (métodos cadastraFilme, detalhaFilme, cadastraHot)"
+          ]
+        }
+      ]
+    },
+    {
+      "criterion_id": "unit_tests",
+      "criterion_name": "Unit Tests",
+      "score": 9.0,
+      "max_score": 10,
+      "justification": "A suíte de testes é extensa e cobre a maioria dos cenários normais e limites. Houve apenas uma pequena lacuna ao não testar a simetria do método equals com valores nulos e a sobrescrita de filmes na HotList, o que permitiu que erros passassem despercebidos.",
+      "evidence_refs": [
+        "FilmeTest.java",
+        "FilmNowTest.java"
+      ],
+      "deductions": [
+        {
+          "problem": "Ausência de testes para o cenário de sobrescrita de um filme na HotList e teste de simetria no equals com ano nulo.",
+          "consequence": "A falta desses cenários específicos permitiu que o NullPointerException no método equals e a falha na remoção do status 'hot' não fossem detectados pela suíte de testes.",
+          "how_to_fix": "Adicionar testes que sobrescrevam posições ocupadas na HotList e testes que comparem filmes com ano nulo em ambas as direções (filmeSemAno.equals(filmeComAno) e vice-versa).",
+          "points_lost": 1.0,
+          "severity": "minor",
+          "confidence": "high",
+          "rubric_anchor": "Testes (cobertura de cenários)",
+          "evidence_refs": [
+            "FilmeTest.java",
+            "FilmNowTest.java"
+          ]
+        }
+      ]
+    },
+    {
+      "criterion_id": "class_design",
+      "criterion_name": "Class Design",
+      "score": 10.0,
+      "max_score": 10,
+      "justification": "As classes foram bem modeladas, com responsabilidades claras e atributos adequados para representar o domínio do problema.",
+      "evidence_refs": [
+        "Filme.java"
+      ],
+      "deductions": []
+    },
+    {
+      "criterion_id": "object_references",
+      "criterion_name": "Object References and Composition",
+      "score": 10.0,
+      "max_score": 10,
+      "justification": "O uso de referências e a composição entre FilmNow e Filme foram implementados corretamente.",
+      "evidence_refs": [
+        "FilmNow.java"
+      ],
+      "deductions": []
+    },
+    {
+      "criterion_id": "collections_and_arrays",
+      "criterion_name": "Collections and Arrays",
+      "score": 10.0,
+      "max_score": 10,
+      "justification": "Os arrays foram utilizados corretamente para armazenar o acervo principal e a HotList, respeitando os tamanhos estipulados.",
+      "evidence_refs": [
+        "FilmNow.java (construtor, getFilmes, getHotList)"
+      ],
+      "deductions": []
+    },
+    {
+      "criterion_id": "separation_of_concerns",
+      "criterion_name": "Separation of Concerns",
+      "score": 10.0,
+      "max_score": 10,
+      "justification": "A separação de responsabilidades está muito boa. A classe MainFilmNow lida com a interface de usuário, enquanto FilmNow concentra a lógica de negócio.",
+      "evidence_refs": [
+        "MainFilmNow.java",
+        "FilmNow.java"
+      ],
+      "deductions": []
+    },
+    {
+      "criterion_id": "readability_and_documentation",
+      "criterion_name": "Readability and Documentation",
+      "score": 10.0,
+      "max_score": 10,
+      "justification": "O código é muito legível, bem organizado e possui excelente documentação Javadoc.",
+      "evidence_refs": [
+        "Filme.java",
+        "FilmNow.java"
+      ],
+      "deductions": []
+    }
+  ],
+  "total_score": 8.975,
+  "total_max_score": 10.0
+}

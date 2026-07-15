@@ -1,0 +1,163 @@
+{
+  "submission_id": "S71",
+  "evaluator_type": "llm",
+  "criteria": [
+    {
+      "criterion_id": "basic_functionality",
+      "criterion_name": "Basic Functionality",
+      "score": 9.0,
+      "max_score": 10,
+      "justification": "O sistema implementa a maior parte das funcionalidades corretamente, incluindo cadastro, listagem e detalhamento. Há apenas pequenas falhas na validação de posições e duplicatas na HotList.",
+      "evidence_refs": [
+        "FilmNow.java: cadastraFilme",
+        "FilmNow.java: verificaFilme",
+        "FilmNow.java: detalhaFilme",
+        "FilmNow.java: cadastraFilmeHotList",
+        "FilmNow.java: removeHotList",
+        "MainFilmNow.java: atribuirHot"
+      ],
+      "deductions": [
+        {
+          "problem": "Ausência de validação de posição inválida nas operações da HotList.",
+          "consequence": "Informar uma posição fora dos limites (ex: 15) na HotList causará um erro de execução (ArrayIndexOutOfBoundsException).",
+          "how_to_fix": "Adicionar verificação de limites antes de acessar o array da HotList.",
+          "points_lost": 0.5,
+          "severity": "minor",
+          "confidence": "high",
+          "rubric_anchor": "Funcionalidade Básica",
+          "evidence_refs": [
+            "FilmNow.java: cadastraFilmeHotList",
+            "FilmNow.java: removeHotList",
+            "FilmNow.java: cadastraFilme",
+            "FilmNow.java: verificaFilme",
+            "FilmNow.java: detalhaFilme"
+          ]
+        },
+        {
+          "problem": "O sistema não exibe a mensagem 'FILME JA ADICIONADO' ao tentar inserir um filme já presente na HotList.",
+          "consequence": "O usuário não recebe o feedback adequado especificado no enunciado quando tenta duplicar um filme na HotList.",
+          "how_to_fix": "No MainFilmNow, adicionar um 'else' para imprimir a mensagem caso a verificação de duplicidade retorne falso.",
+          "points_lost": 0.5,
+          "severity": "minor",
+          "confidence": "high",
+          "rubric_anchor": "Funcionalidade Básica",
+          "evidence_refs": [
+            "MainFilmNow.java: atribuirHot",
+            "FilmNow.java: cadastraFilme",
+            "FilmNow.java: verificaFilme",
+            "FilmNow.java: detalhaFilme",
+            "FilmNow.java: cadastraFilmeHotList"
+          ]
+        }
+      ]
+    },
+    {
+      "criterion_id": "unit_tests",
+      "criterion_name": "Unit Tests",
+      "score": 10.0,
+      "max_score": 10,
+      "justification": "Excelente conjunto de testes, cobrindo a classe Filme e FilmNow com diversos cenários, incluindo limites e caminhos alternativos.",
+      "evidence_refs": [
+        "testes/FilmeTest.java",
+        "testes/FilmNowTest.java"
+      ],
+      "deductions": []
+    },
+    {
+      "criterion_id": "class_design",
+      "criterion_name": "Class Design",
+      "score": 10.0,
+      "max_score": 10,
+      "justification": "As classes foram muito bem modeladas, com responsabilidades claras e uso adequado de atributos e métodos.",
+      "evidence_refs": [
+        "Filme.java",
+        "FilmNow.java"
+      ],
+      "deductions": []
+    },
+    {
+      "criterion_id": "object_references",
+      "criterion_name": "Object References and Composition",
+      "score": 10.0,
+      "max_score": 10,
+      "justification": "Compreensão clara da composição entre FilmNow e Filme, manipulando os objetos corretamente.",
+      "evidence_refs": [
+        "FilmNow.java: getFilme",
+        "FilmNow.java: cadastraFilmeHotList"
+      ],
+      "deductions": []
+    },
+    {
+      "criterion_id": "collections_and_arrays",
+      "criterion_name": "Collections and Arrays",
+      "score": 8.5,
+      "max_score": 10,
+      "justification": "Uso adequado de arrays para armazenar os filmes e a HotList, mas com um erro conceitual de mapeamento de índices (off-by-one).",
+      "evidence_refs": [
+        "FilmNow.java: construtor",
+        "FilmNow.java: verificaFilme",
+        "FilmNow.java: cadastraFilme",
+        "FilmNow.java: getFilme"
+      ],
+      "deductions": [
+        {
+          "problem": "Inconsistência no mapeamento entre a posição informada pelo usuário (1 a 100) e os índices do array (0 a 99).",
+          "consequence": "O código usa a posição do usuário diretamente como índice do array sem ajuste, o que desperdiça o índice 0 e causa estouro de limite (ArrayIndexOutOfBoundsException) ao tentar cadastrar na posição 100.",
+          "how_to_fix": "Subtrair 1 da posição informada pelo usuário ao acessar o array, ou instanciar o array com tamanho 101.",
+          "points_lost": 1.5,
+          "severity": "moderate",
+          "confidence": "high",
+          "rubric_anchor": "Uso de array/coleções",
+          "evidence_refs": [
+            "FilmNow.java: cadastraFilme",
+            "FilmNow.java: getFilme",
+            "FilmNow.java: construtor",
+            "FilmNow.java: verificaFilme"
+          ]
+        }
+      ]
+    },
+    {
+      "criterion_id": "separation_of_concerns",
+      "criterion_name": "Separation of Concerns",
+      "score": 9.0,
+      "max_score": 10,
+      "justification": "Boa separação geral entre a interface com o usuário (MainFilmNow) e a lógica de negócio (FilmNow), com um pequeno desvio ao retornar mensagens de interface a partir do domínio.",
+      "evidence_refs": [
+        "MainFilmNow.java",
+        "FilmNow.java",
+        "FilmNow.java: verificaFilme"
+      ],
+      "deductions": [
+        {
+          "problem": "O método 'verificaFilme' na classe de domínio retorna strings literais de interface ('POSIÇÃO INVÁLIDA', 'FILME INVALIDO').",
+          "consequence": "Acopla a classe de domínio às mensagens exatas que devem ser exibidas para o usuário, dificultando a internacionalização ou mudança da interface.",
+          "how_to_fix": "Lançar exceções específicas (como IllegalArgumentException) ou retornar códigos/enums que a classe MainFilmNow possa interpretar e traduzir para mensagens.",
+          "points_lost": 1.0,
+          "severity": "minor",
+          "confidence": "high",
+          "rubric_anchor": "Divisão de funcionalidades",
+          "evidence_refs": [
+            "FilmNow.java: verificaFilme",
+            "MainFilmNow.java",
+            "FilmNow.java"
+          ]
+        }
+      ]
+    },
+    {
+      "criterion_id": "readability_and_documentation",
+      "criterion_name": "Readability and Documentation",
+      "score": 10.0,
+      "max_score": 10,
+      "justification": "Código muito bem organizado, legível e com excelente documentação Javadoc.",
+      "evidence_refs": [
+        "Filme.java",
+        "FilmNow.java"
+      ],
+      "deductions": []
+    }
+  ],
+  "total_score": 9.55,
+  "total_max_score": 10.0
+}
