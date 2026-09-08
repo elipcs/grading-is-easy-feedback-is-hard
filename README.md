@@ -128,5 +128,6 @@ Submission IDs are anonymous (`S01`--`S84`). Raw student repositories, identity 
 | Path | Contents |
 | --- | --- |
 | [`docs/PAPER_ASSETS.md`](docs/PAPER_ASSETS.md) | Figures and supplementary tables |
+| [`docs/presentation/`](docs/presentation/) | Artifacts Festival talk: ASCII slides and speaker script |
 | [`docs/figures/`](docs/figures/) | Figure assets |
 | [`docs/tables/`](docs/tables/) | Table assets |

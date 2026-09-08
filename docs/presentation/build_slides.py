@@ -1,0 +1,303 @@
+#!/usr/bin/env python3
+"""Render the ASCII slide deck with guaranteed column alignment."""
+
+from pathlib import Path
+
+OUT = Path(__file__).resolve().parent / "slides.txt"
+INNER = 76          # characters between the two border pipes
+FIELD = INNER - 4   # text field after "|  " and before "  |"
+TOTAL = 10
+
+
+def slide(num: int, title: str, timing: str, body: list[str]) -> str:
+    bar = "+" + "=" * INNER + "+"
+    thin = "+" + "-" * INNER + "+"
+    left = f"{num:02d} / {TOTAL}"
+    head = left + " " * (FIELD - len(left) - len(timing)) + timing
+    lines = [bar, f"|  {head}  |", f"|  {title.ljust(FIELD)}  |", thin]
+    for raw in body:
+        text = raw.rstrip()
+        if len(text) > FIELD:
+            raise SystemExit(f"slide {num}: line too long ({len(text)}>{FIELD}): {text!r}")
+        lines.append(f"|  {text.ljust(FIELD)}  |")
+    lines.append(bar)
+    return "\n".join(lines) + "\n"
+
+
+SLIDES: list[tuple[str, str, list[str]]] = []
+
+SLIDES.append((
+    "GRADING IS EASY, FEEDBACK IS HARD", "00:00 - 00:35",
+    [
+        "",
+        '     ___             _ _             _      ___',
+        '    / __|_ _ __ _ __| (_)_ _  __ _  (_)___ | __|__ _ ____  _',
+        "   | (_ | '_/ _` / _` | | ' \\/ _` | | (_-< | _|/ _` (_-< || |_",
+        '    \\___|_| \\__,_\\__,_|_|_||_\\__, | |_/__/ |___\\__,_/__/\\_, ( )',
+        '                             |___/                      |__/|/',
+        '    ___           _ _             _     _      _  _             _',
+        '   | __|__ ___ __| | |__  __ _ __| |__ (_)___ | || |__ _ _ _ __| |',
+        "   | _/ -_) -_) _` | '_ \\/ _` / _| / / | (_-< | __ / _` | '_/ _` |",
+        '   |_|\\___\\___\\__,_|_.__/\\__,_\\__|_\\_\\ |_/__/ |_||_\\__,_|_| \\__,_|',
+        "",
+        "   Evaluating LLMs for Design-Oriented OOP Assessment",
+        "",
+        "   Research artifact  .  SBES 2026 / CBSoft 2026  .  Artifacts Festival",
+        "",
+        "   Eli P. C. Silva  .  Eliane C. Araujo  .  Everton L. G. Alves",
+        "   Universidade Federal de Campina Grande, Brazil",
+        "",
+        "   github.com/elipcs/grading-is-easy-feedback-is-hard",
+        "   DOI 10.5281/zenodo.21385431        License CC BY 4.0",
+        "",
+    ],
+))
+
+SLIDES.append((
+    "WHY THIS ARTIFACT EXISTS", "00:35 - 01:20",
+    [
+        "",
+        "  In a design-oriented OOP assignment, correctness and design",
+        "  do not always agree:",
+        "",
+        "    submission A   every feature works   ->  one 400-line class,",
+        "                                              no domain objects",
+        "",
+        "    submission B   one off-by-one bug    ->  clean class modeling,",
+        "                                              responsibilities split",
+        "",
+        "  Unit tests and static analysis rank A above B.",
+        "  An instructor does not.",
+        "",
+        "  So this kind of assessment stays manual:",
+        "",
+        "    84 submissions  x  7 rubric criteria  x  written feedback",
+        "    graded by 28 teaching assistants, 1 to 6 submissions each",
+        "",
+        "  Can an LLM help here?  And how would we measure \"help\" at all?",
+        "",
+    ],
+))
+
+SLIDES.append((
+    "WHAT IS INSIDE THE ARTIFACT", "01:20 - 02:05",
+    [
+        "",
+        "  .",
+        "  |-- src/prompt/            8 files     the grading protocol itself",
+        "  |-- src/pipeline/         18 scripts   render, run, validate, analyse",
+        "  |-- src/workflows/         5 scripts   stage orchestration",
+        "  |-- src/reproduce.py       1 command   the whole paper, no API keys",
+        "  |-- data/lab03-filmnow/",
+        "  |   |-- runs/              6 runs      2 models x 3 repetitions",
+        "  |   |     inputs/          84 anonymized Java submissions + rubric",
+        "  |   |     prompts/         1008 rendered prompts, the exact bytes sent",
+        "  |   |     outputs/         504 LLM assessments + TA + expert reference",
+        "  |   |     analyses/        per-run metrics + semantic-match caches",
+        "  |   |-- results/           benchmark, stability, by_category",
+        "  |   `-- study/             three-run manifests",
+        "  `-- docs/                  paper PDF, 13 figures, 13 tables, 3 TikZ",
+        "",
+        "  ~10k lines of Python  .  132 MB of data  .  all of it regenerable",
+        "",
+    ],
+))
+
+SLIDES.append((
+    "THE PROMPT (1/2): TWO STAGES, ON PURPOSE", "02:05 - 03:20",
+    [
+        "",
+        "   assignment spec + official grading reference + starter scaffold",
+        "   + rubric.json + course principles + calibration examples",
+        "   + anonymized submission package",
+        "                          |",
+        "                          v",
+        "   +--------------------------------------+",
+        "   |  STAGE 1  -  SCORING                 |   \"analytical scoring",
+        "   |    per rubric criterion:             |    only, no student-",
+        "   |      score / max_score               |    facing prose here\"",
+        "   |      success_evidence[]              |",
+        "   |      non_penalized_observations[]    |",
+        "   |      deductions[]                    |",
+        "   |        points_lost, severity,        |",
+        "   |        confidence, rubric_anchor,    |",
+        "   |        problem, consequence,         |",
+        "   |        how_to_fix, evidence_refs     |",
+        "   |    reviewer_audit                    |",
+        "   +--------------------------------------+",
+        "                          |  validated JSON",
+        "                          v",
+        "   +--------------------------------------+",
+        "   |  STAGE 2  -  FEEDBACK                |   \"do not re-grade and",
+        "   |    at most 6 high-confidence items   |    do not look for new",
+        "   |    student_feedback + reviewer_notes |    defects\"",
+        "   +--------------------------------------+",
+        "",
+        "   prompt_version v13-two-stage  .  temperature 0  .  high reasoning",
+        "",
+    ],
+))
+
+SLIDES.append((
+    "THE PROMPT (2/2): THE GUARDRAILS ARE THE CONTRIBUTION", "03:20 - 04:20",
+    [
+        "",
+        "  src/prompt/",
+        "    template_stage1.md          mandatory 7-step scoring procedure",
+        "    template_stage2.md          feedback + reviewer-safety rules",
+        "    evaluation_principles.md    course-level grading philosophy",
+        "    abstract_calibration.md     worked decision examples",
+        "    feedback_style_guide.md     tone, structure, jargon rules",
+        "    ta_operational_baseline.md  how the human baseline was produced",
+        "    schema_stage1.json          149-line JSON contract",
+        "    schema_stage2.json           84-line JSON contract",
+        "",
+        "  Rules that exist because the model misbehaved without them:",
+        "",
+        "    \"Do not convert optional improvements into point loss\"",
+        "        ->  route them to non_penalized_observations[]",
+        "    \"Avoid double jeopardy: one root cause, one deduction\"",
+        "    \"Do not penalize naming, formatting, casing or punctuation\"",
+        "    \"minor .25-1.0 | moderate 1.0-2.5 | major 2.5-5 | blocking 5-10\"",
+        "    \"If confidence is low, omit it from student feedback and",
+        "     record the omission in reviewer_notes\"",
+        "",
+        "  Every template is placeholder-based: swap the rubric, swap the lab.",
+        "",
+    ],
+))
+
+SLIDES.append((
+    "HOW THE STUDY WAS RUN", "04:20 - 05:20",
+    [
+        "",
+        "  PHASE 1  -  INPUTS",
+        "    84 Java submissions, anonymized: author lines masked, repository",
+        "    names replaced, identifiers reduced to S01..S84",
+        "    official rubric: 7 criteria, 0-10, core 60% / supporting 40%",
+        "    assignment spec + official grading reference + starter scaffold",
+        "",
+        "  PHASE 2  -  EVALUATION",
+        "    TA grades .......... the operational human baseline, 28 TAs",
+        "    expert reference ... rubric scores + 361 annotated issues",
+        "                         over a 12-category taxonomy",
+        "    LLM assessments .... Gemini 3.1 Pro and GPT-5.5, stage 1 -> 2,",
+        "                         temperature 0, 3 runs each = 504 assessments",
+        "",
+        "  PHASE 3  -  ANALYSIS",
+        "    RQ1  grade concordance ... MAE, RMSE, bias, tolerance bands",
+        "    RQ2  problem alignment ... precision, recall, F1",
+        "    stability ................ ICC(2,1), run-pair MAE, exact agreement",
+        "",
+        "  Each run directory is self-contained: experiment_config.json, inputs,",
+        "  the rendered prompt, raw parse, normalized output, validation report.",
+        "",
+    ],
+))
+
+SLIDES.append((
+    "THE HARD MEASUREMENT: IS IT THE SAME PROBLEM?", "05:20 - 06:00",
+    [
+        "",
+        "  String equality fails. Taxonomy overlap is too generous.",
+        "",
+        "   expert  (S17, class_modeling)     model  (S17, class_modeling)",
+        "   \"Filme has no encapsulation,      \"attributes of Filme are public,",
+        "    attributes are public\"            information hiding is broken\"",
+        "                     \\                    /",
+        "                      v                  v",
+        "         +-----------------------------------------+",
+        "         |  adjudicator: Claude Sonnet 5           |  a third",
+        "         |  temperature 0, structured JSON out     |  provider",
+        "         |  scoped to submission_id | criterion    |  family, so",
+        "         |  subsumption + many-to-many allowed     |  no home-",
+        "         +-----------------------------------------+  team bias",
+        "                             |",
+        "     covered_expert = TP   uncovered_expert = FN   unmatched_llm = FP",
+        "",
+        "  The prompt, the model id and every cache entry ship in the artifact.",
+        "  Sensitivity check: reversing 10 decisions shifts P/R by under 0.04.",
+        "",
+    ],
+))
+
+SLIDES.append((
+    "WHAT THE NUMBERS SAY", "06:00 - 06:50",
+    [
+        "",
+        "  RQ1  grade concordance against the expert reference  (n = 84)",
+        "  +-------------------+-------+-------+-------+----------+",
+        "  | evaluator         | mean  | MAE   | bias  | +/- 1 pt |",
+        "  +-------------------+-------+-------+-------+----------+",
+        "  | TA (baseline)     | 8.85  | 0.45  | +0.13 |   91.7%  |",
+        "  | Gemini 3.1 Pro    | 8.85  | 0.44  | +0.14 |   92.5%  |",
+        "  | GPT-5.5           | 7.26  | 1.48  | -1.45 |   27.4%  |",
+        "  +-------------------+-------+-------+-------+----------+",
+        "",
+        "  RQ2  diagnostic alignment    same F1, opposite failure modes",
+        "  +-------------------+-------+-------+-------+",
+        "  | model             |  P    |  R    |  F1   |",
+        "  +-------------------+-------+-------+-------+",
+        "  | GPT-5.5           | 0.52  | 0.96  | 0.67  |   exhaustive, noisy",
+        "  | Gemini 3.1 Pro    | 0.69  | 0.62  | 0.65  |   clean, incomplete",
+        "  +-------------------+-------+-------+-------+",
+        "",
+        "  Stability: ICC 0.89 / 0.90, yet exact 3-run agreement 2.4% / 0.0%",
+        "",
+        "  Grading is easy. Feedback is hard.",
+        "",
+    ],
+))
+
+SLIDES.append((
+    "REPRODUCE IT", "06:50 - 07:40",
+    [
+        "",
+        "  $ python3 -m venv .venv && source .venv/bin/activate",
+        "  $ python3 -m pip install -r requirements.txt",
+        "  $ python3 src/reproduce.py",
+        "",
+        "  No API keys. No Docker. No GPU. macOS, Linux and Windows.",
+        "  Checked on a clean Ubuntu machine while preparing this talk:",
+        "  13 seconds end to end, every markdown table byte-identical,",
+        "  only floating-point last digits moved inside the p-values.",
+        "",
+        "  $ python3 src/reproduce.py --extra      + triangulation, by-category",
+        "  $ python3 src/reproduce.py --with-apis  re-run the LLMs (may differ)",
+        "  $ python3 src/reproduce.py --with-apis --limit 2    cheap smoke test",
+        "",
+        "  Reuse path for your own course:",
+        "    1. replace inputs/assignment/rubric.json and lab_specification.md",
+        "    2. drop your submissions into inputs/submissions/",
+        "    3. keep src/prompt/  -  that is the transferable part",
+        "",
+    ],
+))
+
+SLIDES.append((
+    "TAKEAWAY", "07:40 - 08:00",
+    [
+        "",
+        "  We are not shipping a grader.",
+        "  We are shipping a way to measure one.",
+        "",
+        "    . a two-stage prompt protocol with auditable JSON at every step",
+        "    . grade concordance and diagnostic alignment measured separately",
+        "    . 84 real submissions, an expert reference, 3 runs per model",
+        "    . one command, no keys, 13 seconds",
+        "",
+        "  github.com/elipcs/grading-is-easy-feedback-is-hard",
+        "  DOI 10.5281/zenodo.21385431            License CC BY 4.0",
+        "",
+        "  Thank you.  Questions?",
+        "",
+    ],
+))
+
+if len(SLIDES) != TOTAL:
+    raise SystemExit(f"expected {TOTAL} slides, got {len(SLIDES)}")
+
+rendered = [slide(i, t, k, b) for i, (t, k, b) in enumerate(SLIDES, start=1)]
+OUT.parent.mkdir(parents=True, exist_ok=True)
+OUT.write_text("\f\n".join(rendered), encoding="ascii")
+print(f"wrote {OUT} ({len(rendered)} slides)")
