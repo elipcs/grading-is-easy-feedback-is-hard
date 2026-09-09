@@ -17,6 +17,8 @@ the four generated files below always agree with each other.
 | [`slides.html`](slides.html) | Generated: self-contained deck with notes and timer |
 | [`slides.pptx`](slides.pptx) | Generated: 16:9 deck, script in the speaker notes |
 | [`speaker_script.md`](speaker_script.md) | Generated: timed script, cut list, Q&A |
+| [`prompt_card.html`](prompt_card.html) | Source: both prompt templates condensed onto one card |
+| [`prompt_card.png`](prompt_card.png) | Exported card, 2880x1620 |
 
 ## Theme
 
@@ -82,6 +84,23 @@ the kicker treatment, and the speaker script is in the notes pane of each slide.
 Its body is monospaced throughout, not just for the diagrams: PowerPoint has no
 equivalent of the HTML auto-fitter, so one predictable metric keeps every slide
 inside its margins. If you restyle it, keep the body monospaced.
+
+**The prompt card** is a backup for the question that always comes: *what does
+the prompt actually say?* It puts both templates, condensed, side by side on one
+16:9 card — the role, the placeholder slots and which ones are filled when, the
+scoring procedure, the guardrails and the output contract. Open
+`prompt_card.html` fullscreen to show it live, or drop `prompt_card.png` into
+any deck. It sizes its own text, so you can edit the panes without overflowing:
+
+```bash
+google-chrome --headless=new --window-size=1440,810 \
+  --force-device-scale-factor=2 --virtual-time-budget=3000 \
+  --screenshot=docs/presentation/prompt_card.png \
+  docs/presentation/prompt_card.html
+```
+
+It is a condensation, not the prompt itself. `src/prompt/` is the real thing,
+and the card cites the file names so nobody mistakes one for the other.
 
 **ASCII** is for presenting from a terminal. Slides are separated by form feeds:
 
