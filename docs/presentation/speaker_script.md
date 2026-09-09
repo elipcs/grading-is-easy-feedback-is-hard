@@ -5,19 +5,19 @@
 Companion to [`slides.txt`](slides.txt), [`slides.html`](slides.html) and
 [`slides.pptx`](slides.pptx) — the PPTX carries this script in its speaker
 notes. Target pace is 145 words per minute; the spoken text is
-1168 words over a 8-minute slot.
+1175 words over a 8-minute slot.
 
 | Slide | Window | Section | Words |
 | ---: | :--- | :--- | ---: |
-| 01 | 00:00 - 00:30 | Grading Is Easy, Feedback Is Hard | 70 |
-| 02 | 00:30 - 01:15 | Why This Artifact Exists | 106 |
-| 03 | 01:15 - 01:50 | What Is Inside The Artifact | 89 |
-| 04 | 01:50 - 02:55 | The Prompt (1/3): Two Stages, On Purpose | 153 |
-| 05 | 02:55 - 03:55 | The Prompt (2/3): Dynamic Injection | 156 |
-| 06 | 03:55 - 04:45 | The Prompt (3/3): The Guardrails | 125 |
-| 07 | 04:45 - 05:30 | How The Study Was Run | 110 |
-| 08 | 05:30 - 06:10 | The Hard Measurement: Is It The Same Problem? | 100 |
-| 09 | 06:10 - 07:00 | What The Numbers Say | 119 |
+| 01 | 00:00 - 00:30 | Grading Is Easy, Feedback Is Hard | 73 |
+| 02 | 00:30 - 01:20 | The Paper Behind The Artifact | 123 |
+| 03 | 01:20 - 02:05 | Why This Artifact Exists | 106 |
+| 04 | 02:05 - 02:40 | What Is Inside The Artifact | 89 |
+| 05 | 02:40 - 03:45 | The Prompt (1/3): Two Stages, On Purpose | 153 |
+| 06 | 03:45 - 04:45 | The Prompt (2/3): Dynamic Injection | 156 |
+| 07 | 04:45 - 05:35 | The Prompt (3/3): The Guardrails | 125 |
+| 08 | 05:35 - 06:20 | How The Study Was Run | 110 |
+| 09 | 06:20 - 07:00 | The Hard Measurement: Is It The Same Problem? | 100 |
 | 10 | 07:00 - 07:45 | Reproduce It | 102 |
 | 11 | 07:45 - 08:00 | Takeaway | 38 |
 
@@ -27,19 +27,46 @@ notes. Target pace is 145 words per minute; the spoken text is
 
 > Delivery: Say the title, then move on. Do not read the author list aloud.
 
-Good morning. Our paper is called Grading Is Easy, Feedback Is Hard, and the
-artifact I want to show you is the machinery behind that title.
+Good morning. Our paper is called Grading Is Easy, Feedback Is Hard, and what I
+am presenting today is the artifact behind it.
 
-It is a replication package for evaluating large language models as instructor-
-support tools on a design-oriented object-oriented programming assignment.
-Eighty-four real Java submissions, two models, a complete prompt protocol, and
-every intermediate file.
+It is a replication package: eighty-four real Java submissions from an object-
+oriented programming course, two models, a complete prompt protocol, and every
+intermediate file we produced, down to the exact bytes we sent to each
+provider.
 
-Everything I show runs on your laptop without an API key.
+Everything I show runs on your laptop, without an API key, in one command.
 
 ---
 
-## Slide 02 — Why This Artifact Exists · 00:30 - 01:15
+## Slide 02 — The Paper Behind The Artifact · 00:30 - 01:20
+
+> Delivery: This is the only paper slide. Do not drift into results.
+
+One slide on the paper this comes from, and then we stay on the artifact.
+
+The paper is an evaluation protocol for using language models to assess design-
+oriented object-oriented programming assignments. This artifact is that
+protocol, made runnable.
+
+Its central claim is that one aggregate score merges two capabilities that
+behave differently. Grade concordance asks whether the score matches the human
+baseline. Diagnostic alignment asks whether the model names the same problems
+an expert found.
+
+We measure them separately, against human references, on the same submissions,
+under one fixed prompt protocol, so that the two can never be blurred into a
+single number.
+
+The title gives away what we found. I am here for the machinery behind that
+sentence, not for the numbers.
+
+> Optional, only if ahead of the clock: "Both dimensions are measured per
+> submission and per rubric criterion, never as a single headline score."
+
+---
+
+## Slide 03 — Why This Artifact Exists · 01:20 - 02:05
 
 First, why we needed an artifact at all.
 
@@ -58,7 +85,7 @@ would measure "help" at all.
 
 ---
 
-## Slide 03 — What Is Inside The Artifact · 01:15 - 01:50
+## Slide 04 — What Is Inside The Artifact · 02:05 - 02:40
 
 Here is what you get.
 
@@ -74,7 +101,7 @@ the TA grades and the expert reference.
 
 ---
 
-## Slide 04 — The Prompt (1/3): Two Stages, On Purpose · 01:50 - 02:55
+## Slide 05 — The Prompt (1/3): Two Stages, On Purpose · 02:40 - 03:45
 
 Now the prompt, because that is what people usually want to see. We split
 grading into two calls, deliberately.
@@ -96,7 +123,7 @@ point at the deduction that caused it.
 
 ---
 
-## Slide 05 — The Prompt (2/3): Dynamic Injection · 02:55 - 03:55
+## Slide 06 — The Prompt (2/3): Dynamic Injection · 03:45 - 04:45
 
 This is the part I would actually reuse, so let me be concrete. Nothing in that
 prompt directory is a finished prompt - they are templates with double-brace
@@ -119,7 +146,7 @@ are a faithful audit trail.
 
 ---
 
-## Slide 06 — The Prompt (3/3): The Guardrails · 03:55 - 04:45
+## Slide 07 — The Prompt (3/3): The Guardrails · 04:45 - 05:35
 
 The templates are only half of it. The other half is the guardrails, and every
 one of them exists because the model got something wrong without it.
@@ -137,7 +164,7 @@ single response against them.
 
 ---
 
-## Slide 07 — How The Study Was Run · 04:45 - 05:30
+## Slide 08 — How The Study Was Run · 05:35 - 06:20
 
 How the study was actually run, in three phases.
 
@@ -158,7 +185,7 @@ The detail I would highlight for reuse: every run directory is self-contained.
 
 ---
 
-## Slide 08 — The Hard Measurement: Is It The Same Problem? · 05:30 - 06:10
+## Slide 09 — The Hard Measurement: Is It The Same Problem? · 06:20 - 07:00
 
 One measurement was genuinely hard.
 
@@ -177,27 +204,6 @@ the artifact.
 > Optional, only if ahead of the clock: "and there is a sensitivity check -
 > reversing ten adjudicated matches shifts precision and recall by under four
 > hundredths."
-
----
-
-## Slide 09 — What The Numbers Say · 06:10 - 07:00
-
-The results, briefly.
-
-On grades, Gemini essentially matches the human baseline: mean absolute error
-of 0.44 against the expert reference, where the TAs themselves sit at 0.45.
-GPT-5.5 systematically undergrades, with a bias of minus 1.45.
-
-On diagnosis, the F1 scores are almost identical - 0.67 and 0.65 - and that
-similarity hides completely opposite behaviour. GPT-5.5 finds nearly every
-expert-annotated issue, recall 0.96, but about half of what it reports has no
-expert equivalent. Gemini is much cleaner and misses over a third of the
-issues.
-
-And stability: both models rank submissions consistently, ICC around 0.9, yet
-exact agreement across three runs is two percent and zero.
-
-Same aggregate F1, a different assessment instrument. That is the title.
 
 ---
 
@@ -234,31 +240,31 @@ Thank you - happy to take questions.
 
 Cut in this order. Each cut is self-contained and costs no continuity.
 
-1. **Slide 02, the A/B example** (~20 s). Replace with: "correctness and design
+1. **Slide 03, the A/B example** (~20 s). Replace with: "correctness and design
    do not agree in this assignment, so grading stays manual."
-2. **Slide 06, the severity scale and the low-confidence rule** (~15 s). Keep
+2. **Slide 07, the severity scale and the low-confidence rule** (~15 s). Keep
    double jeopardy and the optional-improvements rule; those land best.
-3. **Slide 07, phase one** (~15 s). The anonymization detail moves to Q&A.
-4. **Slide 03, the byte counts** (~10 s). The directory tree is on the slide
+3. **Slide 08, phase one** (~15 s). The anonymization detail moves to Q&A.
+4. **Slide 04, the byte counts** (~10 s). The directory tree is on the slide
    anyway.
 
-Do not cut slides 04, 05 or 10. The prompt structure, the injection mechanism and the one-command reproduction are what the audience came for.
+Do not cut slides 05, 06 or 10. The prompt structure, the injection mechanism and the one-command reproduction are what the audience came for.
 
 ## If you are running short
 
-Expand slide 06 with a concrete miss: GPT-5.5 kept reporting Javadoc phrasing
+Expand slide 07 with a concrete miss: GPT-5.5 kept reporting Javadoc phrasing
 and naming inherited from the starter code as penalizable deductions, even
 though the prompt routes optional improvements elsewhere. That is exactly why
 the guardrail text ships in the artifact and not just in the paper.
 
-Slide 05 has room for the failure mode the gate prevents: an unfinished rubric
+Slide 06 has room for the failure mode the gate prevents: an unfinished rubric
 silently rendering into 84 prompts. `ensure_rubric_ready` turns that into a
 hard stop before a single API call is made.
 
-Slide 09 also has room for submission S02: the expert deducted 3.5 points for
-an off-by-one error on array access, Gemini caught it, and GPT-5.5 missed it
-despite its higher aggregate recall. Aggregate profiles are tendencies, not
-guarantees.
+Slide 02 has room for why the two dimensions are kept apart in the first place:
+a single aggregate score lets a model look competent on grades while producing
+feedback an instructor cannot hand to a student. Splitting the measurement is
+the design decision the whole artifact is built around.
 
 ## Question prep
 
