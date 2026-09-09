@@ -13,6 +13,15 @@ Body blocks come in three flavours:
 ``Para``      prose. Wrapped for ASCII, flowed as a paragraph elsewhere.
 ``Bullets``   list items. Rendered as ``.`` markers in ASCII.
 
+Blocks may carry a ``role`` that changes how each target treats them:
+
+``"banner"``  ASCII art shown only in the terminal deck; HTML and PPTX use
+              real typography for the same thing instead.
+``"title"``   the opposite: a display line for HTML and PPTX only.
+``"kicker"``  tracked-out uppercase line under a title.
+``"credit"``  small print, such as authors and DOIs.
+``"punch"``   an emphasised closing line.
+
 ``Slide.script`` holds the spoken text. It is budgeted against the slide's own
 time window at ``WORDS_PER_MINUTE``, and ``render.py`` fails the build if a
 slide drifts more than ``WORD_TOLERANCE`` words away from its budget.
@@ -20,7 +29,7 @@ slide drifts more than ``WORD_TOLERANCE`` words away from its budget.
 
 from __future__ import annotations
 
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 
 TEXT_WIDTH = 72          # usable columns inside the ASCII slide frame
 WORDS_PER_MINUTE = 145
@@ -30,19 +39,27 @@ WORD_TOLERANCE = 12
 @dataclass(frozen=True)
 class Pre:
     lines: list[str]
+    role: str = ""
 
 
 @dataclass(frozen=True)
 class Para:
     text: str
+    role: str = ""
 
 
 @dataclass(frozen=True)
 class Bullets:
     items: list[str]
+    role: str = ""
 
 
 Block = Pre | Para | Bullets
+
+# The ASCII banner already spells the title out, so the display line is dropped.
+ASCII_SKIP = frozenset({"title"})
+# Roles the HTML and PPTX decks drop, because they set real type instead.
+RICH_SKIP = frozenset({"banner"})
 
 
 @dataclass(frozen=True)
@@ -98,13 +115,16 @@ SLIDES: list[Slide] = [
                 r" | __|__ ___ __| | |__  __ _ __| |__ (_)___ | || |__ _ _ _ __| |",
                 r" | _/ -_) -_) _` | '_ \/ _` / _| / / | (_-< | __ / _` | '_/ _` |",
                 r" |_|\___\___\__,_|_.__/\__,_\__|_\_\ |_/__/ |_||_\__,_|_| \__,_|",
-            ]),
-            Para("Evaluating LLMs for Design-Oriented OOP Assessment"),
-            Para("Research artifact  .  SBES 2026 / CBSoft 2026  .  Artifacts Festival"),
-            Para("Eli P. C. Silva  .  Eliane C. Araujo  .  Everton L. G. Alves"),
-            Para("Universidade Federal de Campina Grande, Brazil"),
-            Para("github.com/elipcs/grading-is-easy-feedback-is-hard"),
-            Para("DOI 10.5281/zenodo.21385431        License CC BY 4.0"),
+            ], role="banner"),
+            Para("Grading Is Easy, Feedback Is Hard", role="title"),
+            Para("Evaluating LLMs for Design-Oriented OOP Assessment", role="kicker"),
+            Para("Research artifact  .  SBES 2026 / CBSoft 2026  .  Artifacts Festival",
+                 role="credit"),
+            Para("Eli P. C. Silva  .  Eliane C. Araujo  .  Everton L. G. Alves",
+                 role="credit"),
+            Para("Universidade Federal de Campina Grande, Brazil", role="credit"),
+            Para("github.com/elipcs/grading-is-easy-feedback-is-hard", role="credit"),
+            Para("DOI 10.5281/zenodo.21385431  .  License CC BY 4.0", role="credit"),
         ],
         delivery="Say the title, then move on. Do not read the author list aloud.",
         script=[
@@ -482,7 +502,7 @@ SLIDES: list[Slide] = [
                 "  +-------------------+-------+-------+-------+",
             ]),
             Para("Stability: ICC 0.89 / 0.90, yet exact 3-run agreement 2.4% / 0.0%"),
-            Para("Grading is easy. Feedback is hard."),
+            Para("Grading is easy. Feedback is hard.", role="punch"),
         ],
         script=[
             "The results, briefly.",
@@ -563,9 +583,9 @@ SLIDES: list[Slide] = [
                 "84 real submissions, an expert reference, 3 runs per model",
                 "one command, no keys, 13 seconds",
             ]),
-            Para("github.com/elipcs/grading-is-easy-feedback-is-hard"),
-            Para("DOI 10.5281/zenodo.21385431            License CC BY 4.0"),
-            Para("Thank you.  Questions?"),
+            Para("Thank you.  Questions?", role="kicker"),
+            Para("github.com/elipcs/grading-is-easy-feedback-is-hard", role="credit"),
+            Para("DOI 10.5281/zenodo.21385431  .  License CC BY 4.0", role="credit"),
         ],
         script=[
             "To close: we are not shipping a grader. We are shipping a way to measure "
