@@ -1,0 +1,572 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Grading Is Easy, Feedback Is Hard &mdash; Artifacts Festival</title>
+<style>
+/* Palette, type and metrics lifted from the CBSoft'26 talk template:
+   #efeee7 paper, #2b2c30 ink, Playfair Display over Public Sans, a hairline
+   under a tracked-out kicker, and the slide number alone in the corner. */
+:root {
+  --bg: #efeee7;
+  --ink: #2b2c30;
+  --dim: rgba(43, 44, 48, 0.55);
+  --rule: rgba(43, 44, 48, 0.32);
+  --hair: rgba(43, 44, 48, 0.16);
+  --panel: rgba(43, 44, 48, 0.045);
+  --paper: #f6f5f0;
+  --warn: #9a6a10;
+  --late: #a3352b;
+  --serif: "Playfair Display", "Playfair Display Variable", "Iowan Old Style",
+           Georgia, "Liberation Serif", "Times New Roman", serif;
+  --sans: "Public Sans", "Helvetica Neue", Helvetica, Arial, system-ui,
+          sans-serif;
+  --mono: ui-monospace, "SF Mono", "Cascadia Mono", Menlo, Consolas,
+          "DejaVu Sans Mono", "Liberation Mono", monospace;
+  /* 81/1440 of the template's slide width. */
+  --margin: 5.6vw;
+}
+* { box-sizing: border-box; }
+html, body {
+  margin: 0; height: 100%; background: var(--bg); color: var(--ink);
+  font-family: var(--serif); overflow: hidden;
+  -webkit-font-smoothing: antialiased;
+}
+#deck { height: 100%; }
+.slide {
+  display: none; height: 100%;
+  padding: 5vh var(--margin) 11vh; flex-direction: column;
+  font-size: 2vh;   /* replaced per slide by the auto-fitter in JS */
+}
+.slide.active { display: flex; }
+/* Laid out but invisible, so the fitter can measure an inactive slide. */
+.slide.measuring {
+  display: flex; visibility: hidden;
+  position: absolute; inset: 0; pointer-events: none;
+}
+
+/* Kicker plus hairline, as on every content slide of the template. */
+.slide-head { flex: none; margin-bottom: 1.3em; }
+.slide-title {
+  font-family: var(--sans); font-size: 1.15em; font-weight: 700;
+  letter-spacing: 0.2em; text-transform: uppercase; line-height: 1.25;
+  padding-bottom: 0.55em; border-bottom: 0.75px solid var(--rule);
+}
+.slide-body { flex: 1 1 auto; min-height: 0; }
+.slide-body > * { margin: 0 0 1.1em; }
+.slide-body > *:last-child { margin-bottom: 0; }
+
+/* Diagrams and tables stay monospace so their columns keep lining up. */
+pre {
+  font-family: var(--mono); font-size: 0.94em; line-height: 1.3;
+  margin: 0 0 1.1em; padding: 0.75em 1em; white-space: pre; overflow: visible;
+  background: var(--panel); border: 0.75px solid var(--hair);
+  /* Hug the art rather than stretch, like the boxed figures in the template. */
+  width: fit-content; max-width: 100%;
+}
+p { line-height: 1.4; max-width: 46em; }
+ul { margin: 0 0 1.1em; padding-left: 1.5em; list-style: none; }
+li { line-height: 1.4; margin-bottom: 0.4em; max-width: 44em; position: relative; }
+/* The template marks list items with a small filled square. */
+li::before {
+  content: ""; position: absolute; left: -1.1em; top: 0.5em;
+  width: 0.3em; height: 0.3em; background: var(--ink);
+}
+strong { font-weight: 700; }
+
+/* Roles set on blocks in deck.py */
+/* Display type is sized off the viewport, not the slide's auto-fit scale, so
+   it keeps the template's proportions. Wraps after the comma at 20ch. */
+p.title {
+  font-size: min(8.4vw, 14.6vh); line-height: 1.04; max-width: 20ch;
+  letter-spacing: -0.005em; margin-bottom: 0.45em;
+}
+p.kicker {
+  font-family: var(--sans); font-size: 1.15em; font-weight: 700;
+  letter-spacing: 0.2em; text-transform: uppercase; line-height: 1.35;
+  max-width: none; padding-top: 0.7em; border-top: 0.75px solid var(--rule);
+}
+p.credit {
+  font-family: var(--sans); font-size: 0.82em; font-weight: 400;
+  line-height: 1.5; color: var(--dim); max-width: none; margin-bottom: 0.3em;
+}
+p.punch { font-size: 1.5em; font-style: italic; line-height: 1.2; }
+
+/* Title slide: display type flush left, credits pinned to the foot. */
+.slide.title { justify-content: flex-start; padding-top: 8vh; font-size: 2.6vh; }
+.slide.title .slide-head { display: none; }
+.slide.title .slide-body { display: flex; flex-direction: column; }
+.slide.title p.kicker { margin-bottom: auto; }
+.slide.title p.credit:first-of-type { margin-top: 1.4em; }
+
+/* Slide number, bottom right, Playfair, nothing else around it. */
+#page-num {
+  position: fixed; right: var(--margin); bottom: 3.4vh;
+  font-family: var(--serif); font-size: 3.4vh; line-height: 1;
+}
+#page-num.hidden { visibility: hidden; }
+
+/* Presenter strip: deliberately quiet, toggled off with h. */
+#hud {
+  position: fixed; left: var(--margin); right: 22vw; bottom: 3.6vh;
+  display: flex; align-items: baseline; gap: 1.6em;
+  font-family: var(--sans); font-size: 0.72rem; letter-spacing: 0.02em;
+  color: var(--dim);
+}
+#hud.hidden { display: none; }
+#hud b { color: var(--ink); font-weight: 600; }
+#clock.behind { color: var(--warn); }
+#clock.late { color: var(--late); }
+#bar {
+  position: fixed; left: 0; bottom: 0; height: 2px;
+  background: var(--ink); opacity: 0.4; transition: width 0.18s ease;
+}
+
+/* Speaker notes */
+#notes {
+  position: fixed; right: 0; top: 0; bottom: 0; width: min(34rem, 42vw);
+  padding: 1.6em 1.8em; overflow-y: auto;
+  font-family: var(--sans); font-size: 0.82rem; line-height: 1.6;
+  background: var(--paper); border-left: 0.75px solid var(--rule);
+  transform: translateX(101%); transition: transform 0.2s ease;
+}
+#notes.open { transform: translateX(0); }
+#notes h3 {
+  margin: 0 0 1em; font-size: 0.78rem; font-weight: 700; letter-spacing: 0.2em;
+  text-transform: uppercase; padding-bottom: 0.6em;
+  border-bottom: 0.75px solid var(--rule);
+}
+#notes p { max-width: none; margin: 0 0 0.9em; line-height: 1.6; }
+#notes .cue {
+  color: var(--warn); border-left: 2px solid var(--warn);
+  padding-left: 0.8em; margin-bottom: 0.9em;
+}
+#notes .opt {
+  color: var(--dim); border-left: 2px solid var(--hair);
+  padding-left: 0.8em;
+}
+
+@media print {
+  html, body { overflow: visible; height: auto; }
+  #hud, #notes, #bar { display: none; }
+  .slide {
+    display: flex !important; height: 100vh; page-break-after: always;
+    /* Beats the auto-fitter's inline size, which is sized for the screen. */
+    font-size: 11pt !important;
+  }
+  .slide.measuring { position: static; visibility: visible; }
+}
+</style>
+</head>
+<body data-total="480">
+<div id="deck">
+<section class="slide title" data-window="00:00 - 00:30" data-end="30">
+  <div class="slide-head">
+    <div class="slide-title">GRADING IS EASY, FEEDBACK IS HARD</div>
+  </div>
+  <div class="slide-body">
+<p class="title">Grading Is Easy, Feedback Is Hard</p>
+<p class="kicker">Evaluating LLMs for Design-Oriented OOP Assessment</p>
+<p class="credit">Research artifact  .  SBES 2026 / CBSoft 2026  .  Artifacts Festival</p>
+<p class="credit">Eli P. C. Silva  .  Eliane C. Araujo  .  Everton L. G. Alves</p>
+<p class="credit">Universidade Federal de Campina Grande, Brazil</p>
+<p class="credit">github.com/elipcs/grading-is-easy-feedback-is-hard</p>
+<p class="credit">DOI 10.5281/zenodo.21385431  .  License CC BY 4.0</p>
+  </div>
+  <template><h3>Slide 01 &middot; 00:00 - 00:30</h3>
+<p class="cue">Say the title, then move on. Do not read the author list aloud.</p>
+<p>Good morning. Our paper is called Grading Is Easy, Feedback Is Hard, and what I am presenting today is the artifact behind it.</p>
+<p>It is a replication package: eighty-four real Java submissions from an object-oriented programming course, two models, a complete prompt protocol, and every intermediate file we produced, down to the exact bytes we sent to each provider.</p>
+<p>Everything I show runs on your laptop, without an API key, in one command.</p>
+<p class="opt">73 words for a 30s window (budget 72).</p></template>
+</section>
+<section class="slide" data-window="00:30 - 01:20" data-end="80">
+  <div class="slide-head">
+    <div class="slide-title">THE PAPER BEHIND THE ARTIFACT</div>
+  </div>
+  <div class="slide-body">
+<p>The paper is an evaluation protocol for LLM-assisted assessment of design-oriented OOP assignments. The artifact is that protocol, made runnable.</p>
+<pre>  a single score merges two capabilities the paper keeps apart:
+
+  +-------------------------------+  +-------------------------------+
+  |  GRADE CONCORDANCE            |  |  DIAGNOSTIC ALIGNMENT         |
+  |                               |  |                               |
+  |  does the score match the     |  |  does it name the same        |
+  |  human baseline?              |  |  problems an expert found?    |
+  +-------------------------------+  +-------------------------------+
+
+     measured separately, against human references, on the same
+     submissions, under one fixed prompt protocol</pre>
+<p>Same assignment, same rubric, same prompt structure, same output schema, for every model and every repetition.</p>
+<p class="punch">Grading is easy. Feedback is hard.</p>
+  </div>
+  <template><h3>Slide 02 &middot; 00:30 - 01:20</h3>
+<p class="cue">This is the only paper slide. Do not drift into results.</p>
+<p>One slide on the paper this comes from, and then we stay on the artifact.</p>
+<p>The paper is an evaluation protocol for using language models to assess design-oriented object-oriented programming assignments. This artifact is that protocol, made runnable.</p>
+<p>Its central claim is that one aggregate score merges two capabilities that behave differently. Grade concordance asks whether the score matches the human baseline. Diagnostic alignment asks whether the model names the same problems an expert found.</p>
+<p>We measure them separately, against human references, on the same submissions, under one fixed prompt protocol, so that the two can never be blurred into a single number.</p>
+<p>The title gives away what we found. I am here for the machinery behind that sentence, not for the numbers.</p>
+<p class="opt">Only if ahead of the clock: &ldquo;Both dimensions are measured per submission and per rubric criterion, never as a single headline score.&rdquo;</p>
+<p class="opt">123 words for a 50s window (budget 121).</p></template>
+</section>
+<section class="slide" data-window="01:20 - 02:05" data-end="125">
+  <div class="slide-head">
+    <div class="slide-title">WHY THIS ARTIFACT EXISTS</div>
+  </div>
+  <div class="slide-body">
+<p>In a design-oriented OOP assignment, correctness and design do not always agree:</p>
+<pre>  submission A   every feature works   -&gt;  one 400-line class,
+                                            no domain objects
+
+  submission B   one off-by-one bug    -&gt;  clean class modeling,
+                                            responsibilities split</pre>
+<p>Unit tests and static analysis rank A above B. An instructor does not.</p>
+<p>So this kind of assessment stays manual:</p>
+<pre>  84 submissions  x  7 rubric criteria  x  written feedback
+  graded by 28 teaching assistants, 1 to 6 submissions each</pre>
+<p>Can an LLM help here?  And how would we measure &quot;help&quot; at all?</p>
+  </div>
+  <template><h3>Slide 03 &middot; 01:20 - 02:05</h3>
+<p>First, why we needed an artifact at all.</p>
+<p>In our OOP course students refactor a deliberately weak codebase, so correctness and design pull apart. Submission A can pass every feature check while being one four-hundred-line class with no domain objects. Submission B can have a single off-by-one bug on top of a clean class model.</p>
+<p>Unit tests and static analysis rank A above B. An instructor does not.</p>
+<p>So this assessment stays manual: eighty-four submissions, seven rubric criteria each, plus written feedback, across twenty-eight teaching assistants.</p>
+<p>The obvious question is whether an LLM can help. The harder one is how you would measure &quot;help&quot; at all.</p>
+<p class="opt">106 words for a 45s window (budget 109).</p></template>
+</section>
+<section class="slide" data-window="02:05 - 02:40" data-end="160">
+  <div class="slide-head">
+    <div class="slide-title">WHAT IS INSIDE THE ARTIFACT</div>
+  </div>
+  <div class="slide-body">
+<pre>.
+|-- src/prompt/            8 files     the grading protocol itself
+|-- src/pipeline/         18 scripts   render, run, validate, analyse
+|-- src/workflows/         5 scripts   stage orchestration
+|-- src/reproduce.py       1 command   the whole paper, no API keys
+|-- data/lab03-filmnow/
+|   |-- runs/              6 runs      2 models x 3 repetitions
+|   |     inputs/          84 anonymized Java submissions + rubric
+|   |     prompts/         1008 rendered prompts, the exact bytes sent
+|   |     outputs/         504 LLM assessments + TA + expert reference
+|   |     analyses/        per-run metrics + semantic-match caches
+|   |-- results/           benchmark, stability, by_category
+|   `-- study/             three-run manifests
+`-- docs/                  paper PDF, 13 figures, 13 tables, 3 TikZ</pre>
+<p>~10k lines of Python  .  132 MB of data  .  all of it regenerable</p>
+  </div>
+  <template><h3>Slide 04 &middot; 02:05 - 02:40</h3>
+<p>Here is what you get.</p>
+<p>src/prompt is the grading protocol - eight files, and I would argue that is the real contribution. src/pipeline and src/workflows are twenty-three scripts: render prompts, call providers, validate outputs, compute statistics. And reproduce.py rebuilds the entire paper in one command.</p>
+<p>Then the data: six run directories, two models times three repetitions. Each holds the anonymized submissions, the rubric, one thousand and eight rendered prompts - the exact bytes we sent - five hundred and four model assessments, the TA grades and the expert reference.</p>
+<p class="opt">89 words for a 35s window (budget 85).</p></template>
+</section>
+<section class="slide" data-window="02:40 - 03:45" data-end="225">
+  <div class="slide-head">
+    <div class="slide-title">THE PROMPT (1/3): TWO STAGES, ON PURPOSE</div>
+  </div>
+  <div class="slide-body">
+<pre>  assignment spec + official grading reference + starter scaffold
+  + rubric.json + course principles + calibration examples
+  + anonymized submission package
+                         |
+                         v
+  +--------------------------------------+
+  |  STAGE 1  -  SCORING                 |   &quot;analytical scoring
+  |    per rubric criterion:             |    only, no student-
+  |      score / max_score               |    facing prose here&quot;
+  |      success_evidence[]              |
+  |      non_penalized_observations[]    |
+  |      deductions[]                    |
+  |        points_lost, severity,        |
+  |        confidence, rubric_anchor,    |
+  |        problem, consequence,         |
+  |        how_to_fix, evidence_refs     |
+  |    reviewer_audit                    |
+  +--------------------------------------+
+                         |  validated JSON
+                         v
+  +--------------------------------------+
+  |  STAGE 2  -  FEEDBACK                |   &quot;do not re-grade and
+  |    at most 6 high-confidence items   |    do not look for new
+  |    student_feedback + reviewer_notes |    defects&quot;
+  +--------------------------------------+</pre>
+<p>prompt_version v13-two-stage  .  temperature 0  .  high reasoning effort</p>
+  </div>
+  <template><h3>Slide 05 &middot; 02:40 - 03:45</h3>
+<p>Now the prompt, because that is what people usually want to see. We split grading into two calls, deliberately.</p>
+<p>Stage one is scoring only - the prompt forbids student-facing prose here. For every rubric criterion the model must return a score, positive evidence of learning, observations that should not cost points, and a list of deductions. Every deduction is structured: points lost, severity, confidence, which rubric requirement it anchors to, the problem, the consequence, how to fix it, and references into the code. Plus a reviewer-audit block flagging what a human should double-check.</p>
+<p>Only then does stage two turn that validated JSON into feedback. It is told not to re-grade and not to look for new defects. It selects at most six high-confidence items and writes them for a first-year student.</p>
+<p>The split makes the two failure modes separable: when a grade is wrong, you can point at the deduction that caused it.</p>
+<p class="opt">153 words for a 65s window (budget 157).</p></template>
+</section>
+<section class="slide" data-window="03:45 - 04:45" data-end="285">
+  <div class="slide-head">
+    <div class="slide-title">THE PROMPT (2/3): DYNAMIC INJECTION</div>
+  </div>
+  <div class="slide-body">
+<p>Nothing in src/prompt/ is a finished prompt. Every file is a template with {{PLACEHOLDER}} slots, filled at two distinct moments.</p>
+<pre>BUILD TIME  --  src/pipeline/02_render_prompts.py
+  {{EXPERIMENT_METADATA}}       per-submission JSON: id, role,
+                                provider, model, temperature,
+                                reasoning_effort, prompt_version
+  {{LAB_SPEC_TEXT}}             &lt;- assignment/lab_specification.md
+  {{GRADING_SHEET_TEXT}}        &lt;- assignment/grading_reference.md
+  {{STARTER_SCAFFOLD_TEXT}}     &lt;- assignment/starter_scaffold.md
+  {{RUBRIC_JSON}}               &lt;- rubric.json, gated rubric_ready
+  {{CORE_EVALUATION_TEXT}}      &lt;- evaluation_principles.md
+  {{ABSTRACT_CALIBRATION_TEXT}} &lt;- abstract_calibration.md
+  {{COMMENT_STYLE_TEXT}}        &lt;- feedback_style_guide.md  (st.2)
+  {{SUBMISSION_PACKAGE}}        &lt;- submissions/S17.md
+  {{OUTPUT_SCHEMA_JSON}}        &lt;- schema_stage{1,2}.json
+
+RUN TIME  --  src/pipeline/utils/llm_execution.py
+  {{STAGE1_JSON}}   left UNRESOLVED on disk on purpose, then swapped
+                    at call time for the parsed, re-serialized
+                    stage 1 response</pre>
+<pre>  stage 1:  9 slots resolved   136-line template  -&gt;  1753 lines
+  stage 2:  1 slot left open   grep the shipped file, it is there</pre>
+<p>So stage 2 never sees raw model prose, only re-parsed JSON - and the 1008 rendered files are the audit trail of what we actually sent.</p>
+  </div>
+  <template><h3>Slide 06 &middot; 03:45 - 04:45</h3>
+<p>This is the part I would actually reuse, so let me be concrete. Nothing in that prompt directory is a finished prompt - they are templates with double-brace placeholders, filled at two distinct moments.</p>
+<p>At build time, the render script resolves nine slots for stage one: the specification, the grading reference, the starter scaffold, and the rubric - which is gated, so the script refuses to render if the rubric is not marked ready. Plus the course principles, the calibration examples and the schema. A hundred and thirty-six lines of template become a seventeen-hundred-line prompt.</p>
+<p>Stage two is the interesting one. One placeholder is deliberately left unresolved on disk; at call time the runner parses the stage one response, re-serializes it, and only then injects it.</p>
+<p>Two consequences. Stage two never sees raw model prose, only validated JSON. And since that substitution is the only non-static step, the prompts we ship are a faithful audit trail.</p>
+<p class="opt">156 words for a 60s window (budget 145).</p></template>
+</section>
+<section class="slide" data-window="04:45 - 05:35" data-end="335">
+  <div class="slide-head">
+    <div class="slide-title">THE PROMPT (3/3): THE GUARDRAILS</div>
+  </div>
+  <div class="slide-body">
+<pre>src/prompt/
+  template_stage1.md          mandatory 7-step scoring procedure
+  template_stage2.md          feedback + reviewer-safety rules
+  evaluation_principles.md    course-level grading philosophy
+  abstract_calibration.md     worked decision examples
+  feedback_style_guide.md     tone, structure, jargon rules
+  ta_operational_baseline.md  how the human baseline was produced
+  schema_stage1.json          149-line JSON contract
+  schema_stage2.json           84-line JSON contract</pre>
+<p>Rules that exist because the model misbehaved without them:</p>
+<pre>  &quot;Do not convert optional improvements into point loss&quot;
+      -&gt;  route them to non_penalized_observations[]
+  &quot;Avoid double jeopardy: one root cause, one deduction&quot;
+  &quot;Do not penalize naming, formatting, casing or punctuation&quot;
+  &quot;minor .25-1.0 | moderate 1.0-2.5 | major 2.5-5 | blocking 5-10&quot;
+  &quot;If confidence is low, omit it from student feedback and
+   record the omission in reviewer_notes&quot;</pre>
+  </div>
+  <template><h3>Slide 07 &middot; 04:45 - 05:35</h3>
+<p>The templates are only half of it. The other half is the guardrails, and every one of them exists because the model got something wrong without it.</p>
+<p>We had to write, literally: do not convert optional improvements into point loss - route them to a separate non-penalized observations list. Avoid double jeopardy: if one root cause produces five symptoms, deduct once, on the criterion it most affects. Do not penalize naming, formatting, casing or punctuation. Here is the severity scale in actual points, because moderate means nothing on its own. And if confidence is low, keep it out of the student&#x27;s feedback and log the omission for the reviewer.</p>
+<p>The two JSON schemas are hard contracts, and the pipeline validates every single response against them.</p>
+<p class="opt">125 words for a 50s window (budget 121).</p></template>
+</section>
+<section class="slide" data-window="05:35 - 06:20" data-end="380">
+  <div class="slide-head">
+    <div class="slide-title">HOW THE STUDY WAS RUN</div>
+  </div>
+  <div class="slide-body">
+<pre>PHASE 1  -  INPUTS
+  84 Java submissions, anonymized: author lines masked, repository
+  names replaced, identifiers reduced to S01..S84
+  official rubric: 7 criteria, 0-10, core 60% / supporting 40%
+
+PHASE 2  -  EVALUATION
+  TA grades .......... the operational human baseline, 28 TAs
+  expert reference ... rubric scores + 361 annotated issues
+                       over a 12-category taxonomy
+  LLM assessments .... Gemini 3.1 Pro and GPT-5.5, stage 1 -&gt; 2,
+                       temperature 0, 3 runs each = 504 assessments
+
+PHASE 3  -  ANALYSIS
+  RQ1  grade concordance ... MAE, RMSE, bias, tolerance bands
+  RQ2  problem alignment ... precision, recall, F1
+  stability ................ ICC(2,1), run-pair MAE, exact agreement</pre>
+<p>Each run directory is self-contained: experiment_config.json, inputs, the rendered prompt, raw parse, normalized output, validation report.</p>
+  </div>
+  <template><h3>Slide 08 &middot; 05:35 - 06:20</h3>
+<p>How the study was actually run, in three phases.</p>
+<p>Phase one, inputs. Submissions are anonymized: author lines masked, repository names replaced, identifiers reduced to S01 through S84. No raw student repositories and no identity mapping ship in the artifact.</p>
+<p>Phase two, evaluation. Three sources of judgement: the TA grades, which are the authentic operational baseline; an expert reference, meaning rubric scores plus three hundred sixty-one annotated issues over a twelve-category taxonomy; and the LLM assessments - both models, three runs each, five hundred and four assessments.</p>
+<p>Phase three, the analyses for our two research questions, plus run-to-run stability.</p>
+<p>The detail I would highlight for reuse: every run directory is self-contained.</p>
+<p class="opt">110 words for a 45s window (budget 109).</p></template>
+</section>
+<section class="slide" data-window="06:20 - 07:00" data-end="420">
+  <div class="slide-head">
+    <div class="slide-title">THE HARD MEASUREMENT: IS IT THE SAME PROBLEM?</div>
+  </div>
+  <div class="slide-body">
+<p>String equality fails. Taxonomy overlap is too generous.</p>
+<pre>  expert  (S17, class_modeling)     model  (S17, class_modeling)
+  &quot;Filme has no encapsulation,      &quot;attributes of Filme are public,
+   attributes are public&quot;            information hiding is broken&quot;
+                    \                    /
+                     v                  v
+        +-----------------------------------------+
+        |  adjudicator: Claude Sonnet 5           |  a third
+        |  temperature 0, structured JSON out     |  provider
+        |  scoped to submission_id | criterion    |  family, so
+        |  subsumption + many-to-many allowed     |  no home-
+        +-----------------------------------------+  team bias
+                            |
+    covered_expert = TP   uncovered_expert = FN   unmatched_llm = FP</pre>
+<p>The prompt, the model id and every cache entry ship in the artifact. Sensitivity check: reversing 10 decisions shifts P/R by under 0.04.</p>
+  </div>
+  <template><h3>Slide 09 &middot; 06:20 - 07:00</h3>
+<p>One measurement was genuinely hard.</p>
+<p>To ask whether the model found the same problem as the expert, string equality is useless and taxonomy overlap is far too generous. Two evaluators describe one encapsulation defect in completely different words.</p>
+<p>So we used a third model, Claude Sonnet 5, as adjudicator - from a provider family we were not evaluating, so neither model gets a home advantage. Matching is scoped to one submission and one criterion.</p>
+<p>That is model-assisted labelling, so we call it operational matching, not ground truth. The prompt, the model identifier and every cache entry ship in the artifact.</p>
+<p class="opt">Only if ahead of the clock: &ldquo;and there is a sensitivity check - reversing ten adjudicated matches shifts precision and recall by under four hundredths.&rdquo;</p>
+<p class="opt">100 words for a 40s window (budget 97).</p></template>
+</section>
+<section class="slide" data-window="07:00 - 07:45" data-end="465">
+  <div class="slide-head">
+    <div class="slide-title">REPRODUCE IT</div>
+  </div>
+  <div class="slide-body">
+<pre>  $ python3 -m venv .venv &amp;&amp; source .venv/bin/activate
+  $ python3 -m pip install -r requirements.txt
+  $ python3 src/reproduce.py</pre>
+<p>No API keys. No Docker. No GPU. Checked on a clean Ubuntu machine while preparing this talk: 13 seconds end to end, every markdown table byte-identical, only floating-point last digits moved inside the p-values.</p>
+<pre>  --extra                   + triangulation, by-category
+  --with-apis               re-run the LLMs (may differ)
+  --with-apis --limit 2     cheap smoke test</pre>
+<p>Reuse path for your own course:</p>
+<pre>  1. replace assignment/rubric.json and lab_specification.md
+  2. drop your submissions into inputs/submissions/
+  3. keep src/prompt/  -  that is the transferable part</pre>
+  </div>
+  <template><h3>Slide 10 &middot; 07:00 - 07:45</h3>
+<p>So, reproducing it. Three commands: virtual environment, install requirements, run reproduce.</p>
+<p>No API keys, no Docker, no GPU. I re-checked on a clean Ubuntu machine while preparing this talk: thirteen seconds end to end, and every markdown table came back byte-identical to the paper.</p>
+<p>There are flags for the triangulation analyses, and one to re-run the models themselves - and we warn you there, because provider models drift, so those numbers may not match ours.</p>
+<p>To reuse it for your own course: replace the rubric and the specification, drop your submissions in, and keep the prompt directory. That is the transferable part.</p>
+<p class="opt">102 words for a 45s window (budget 109).</p></template>
+</section>
+<section class="slide" data-window="07:45 - 08:00" data-end="480">
+  <div class="slide-head">
+    <div class="slide-title">TAKEAWAY</div>
+  </div>
+  <div class="slide-body">
+<p>We are not shipping a grader. We are shipping a way to measure one.</p>
+<ul><li>a two-stage prompt protocol with auditable JSON at every step</li><li>placeholder templates: swap the rubric, swap the assignment</li><li>grade concordance and diagnostic alignment measured separately</li><li>84 real submissions, an expert reference, 3 runs per model</li><li>one command, no keys, 13 seconds</li></ul>
+<p class="kicker">Thank you.  Questions?</p>
+<p class="credit">github.com/elipcs/grading-is-easy-feedback-is-hard</p>
+<p class="credit">DOI 10.5281/zenodo.21385431  .  License CC BY 4.0</p>
+  </div>
+  <template><h3>Slide 11 &middot; 07:45 - 08:00</h3>
+<p>To close: we are not shipping a grader. We are shipping a way to measure one - separately for grade calibration and for diagnostic coverage, on authentic submissions, in one command.</p>
+<p>Thank you - happy to take questions.</p>
+<p class="opt">38 words for a 15s window (budget 36).</p></template>
+</section>
+</div>
+<div id="bar"></div>
+<div id="page-num"></div>
+<div id="hud">
+  <span><b id="counter">01 / 11</b> &nbsp; target <b id="target"></b></span>
+  <span>elapsed <b id="clock">--:--</b> / 08:00</span>
+  <span><b>s</b> notes &middot; <b>t</b> timer &middot; <b>h</b> hide</span>
+</div>
+<aside id="notes"></aside>
+<script>
+const slides = Array.from(document.querySelectorAll('.slide'));
+const notes = document.getElementById('notes');
+const bar = document.getElementById('bar');
+const hud = document.getElementById('hud');
+const counter = document.getElementById('counter');
+const target = document.getElementById('target');
+const clock = document.getElementById('clock');
+const pageNum = document.getElementById('page-num');
+const TOTAL = Number(document.body.dataset.total);
+let index = 0;
+let started = null;
+
+/* Binary-search the largest font size at which a slide's body neither
+   overflows its box nor pushes the 72-column monospace art past the margin.
+   Doing it here rather than with a CSS heuristic means every slide fills the
+   projector, whatever its aspect ratio. */
+function fit(slide) {
+  if (slide.classList.contains('title')) return;
+  const body = slide.querySelector('.slide-body');
+  const offstage = !slide.classList.contains('active');
+  if (offstage) slide.classList.add('measuring');
+  let lo = 6, hi = 34;
+  for (let step = 0; step < 16; step++) {
+    const mid = (lo + hi) / 2;
+    slide.style.fontSize = mid + 'px';
+    const fits = body.scrollHeight <= body.clientHeight + 1 &&
+                 body.scrollWidth <= body.clientWidth + 1;
+    if (fits) lo = mid; else hi = mid;
+  }
+  slide.style.fontSize = lo.toFixed(2) + 'px';
+  if (offstage) slide.classList.remove('measuring');
+}
+
+function fitAll() { slides.forEach(fit); }
+
+function show(next) {
+  index = Math.max(0, Math.min(slides.length - 1, next));
+  slides.forEach((s, i) => s.classList.toggle('active', i === index));
+  const slide = slides[index];
+  counter.textContent = `${String(index + 1).padStart(2, '0')} / ${slides.length}`;
+  target.textContent = slide.dataset.window;
+  bar.style.width = `${((index + 1) / slides.length) * 100}%`;
+  // The template leaves the title slide unnumbered.
+  pageNum.textContent = index;
+  pageNum.classList.toggle('hidden', slide.classList.contains('title'));
+  notes.innerHTML = slide.querySelector('template').innerHTML;
+  location.hash = index + 1;
+}
+
+function tick() {
+  if (started === null) { clock.textContent = '--:-- idle'; return; }
+  const elapsed = Math.floor((Date.now() - started) / 1000);
+  const mm = String(Math.floor(elapsed / 60)).padStart(2, '0');
+  const ss = String(elapsed % 60).padStart(2, '0');
+  clock.textContent = `${mm}:${ss}`;
+  // Compare against where this slide should have ended.
+  const due = Number(slides[index].dataset.end);
+  clock.className = elapsed > TOTAL ? 'late' : (elapsed > due ? 'behind' : '');
+}
+
+document.addEventListener('keydown', (event) => {
+  const key = event.key;
+  if (['ArrowRight', 'ArrowDown', 'PageDown', ' ', 'Enter'].includes(key)) {
+    if (started === null) started = Date.now();
+    show(index + 1); event.preventDefault();
+  } else if (['ArrowLeft', 'ArrowUp', 'PageUp'].includes(key)) {
+    show(index - 1); event.preventDefault();
+  } else if (key === 'Home') { show(0); }
+  else if (key === 'End') { show(slides.length - 1); }
+  else if (key === 's' || key === 'S') { notes.classList.toggle('open'); }
+  else if (key === 'h' || key === 'H') { hud.classList.toggle('hidden'); }
+  else if (key === 'f' || key === 'F') {
+    if (document.fullscreenElement) document.exitFullscreen();
+    else document.documentElement.requestFullscreen();
+  } else if (key === 't' || key === 'T') {
+    started = started === null ? Date.now() : null;
+  } else if (key === 'r' || key === 'R') { started = Date.now(); }
+});
+
+document.addEventListener('click', (event) => {
+  if (event.target.closest('#notes') || event.target.closest('#hud')) return;
+  if (started === null) started = Date.now();
+  show(index + 1);
+});
+
+show(Number(location.hash.slice(1)) - 1 || 0);
+fitAll();
+addEventListener('resize', fitAll);
+if (document.fonts) document.fonts.ready.then(fitAll);
+setInterval(tick, 250);
+tick();
+</script>
+</body>
+</html>

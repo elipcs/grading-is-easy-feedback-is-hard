@@ -1,0 +1,180 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>The grading protocol, condensed &mdash; Artifacts Festival</title>
+<style>
+/* Same palette and type as slides.html, which render.py builds from deck.py. */
+:root {
+  --bg: #efeee7;
+  --ink: #2b2c30;
+  --dim: rgba(43, 44, 48, 0.55);
+  --rule: rgba(43, 44, 48, 0.32);
+  --hair: rgba(43, 44, 48, 0.16);
+  --panel: rgba(43, 44, 48, 0.045);
+  --serif: "Playfair Display", "Playfair Display Variable", "Iowan Old Style",
+           Georgia, "Liberation Serif", "Times New Roman", serif;
+  --sans: "Public Sans", "Helvetica Neue", Helvetica, Arial, system-ui,
+          sans-serif;
+  --mono: ui-monospace, "SF Mono", "Cascadia Mono", Menlo, Consolas,
+          "DejaVu Sans Mono", "Liberation Mono", monospace;
+  --margin: 5.6vw;
+}
+* { box-sizing: border-box; }
+html, body {
+  margin: 0; height: 100%; background: var(--bg); color: var(--ink);
+  font-family: var(--serif); overflow: hidden;
+  -webkit-font-smoothing: antialiased;
+}
+.card {
+  height: 100%; display: flex; flex-direction: column;
+  padding: 4.4vh var(--margin) 4vh;
+}
+.kicker {
+  font-family: var(--sans); font-size: 2.1vh; font-weight: 700;
+  letter-spacing: 0.2em; text-transform: uppercase;
+  padding-bottom: 0.55em; border-bottom: 0.75px solid var(--rule);
+  flex: none;
+}
+.lede {
+  font-size: 2vh; line-height: 1.4; margin: 0.9em 0 1em; max-width: 104ch;
+  flex: none;
+}
+.lede em { font-style: italic; }
+.columns { flex: 1 1 auto; min-height: 0; display: flex; gap: 2.6vw; }
+.column { flex: 1 1 0; display: flex; flex-direction: column; min-width: 0; }
+.column h2 {
+  font-family: var(--sans); font-size: 1.6vh; font-weight: 700;
+  letter-spacing: 0.18em; text-transform: uppercase;
+  margin: 0 0 0.7em; color: var(--dim);
+}
+pre {
+  font-family: var(--mono); font-size: 14px; line-height: 1.34;
+  margin: 0; padding: 0.9em 1.05em; white-space: pre; flex: 1 1 auto;
+  overflow: hidden;
+  background: var(--panel); border: 0.75px solid var(--hair);
+}
+.foot {
+  flex: none; margin-top: 0.9em; font-family: var(--sans); font-size: 1.45vh;
+  color: var(--dim); display: flex; justify-content: space-between; gap: 2em;
+}
+</style>
+</head>
+<body>
+<div class="card">
+  <div class="kicker">The grading protocol, condensed</div>
+
+  <p class="lede">Both files are templates. The <em>{{SLOTS}}</em> are filled by
+  <code>src/pipeline/02_render_prompts.py</code> before the run &mdash; except
+  one, which stays open on disk and is injected at call time.</p>
+
+  <div class="columns">
+    <div class="column">
+      <h2>src/prompt/template_stage1.md &mdash; scoring</h2>
+      <pre>ROLE
+  You are an evaluator for an introductory OOP
+  laboratory. Grade the anonymous submission against
+  the assignment contract and the official rubric,
+  producing a reviewer-auditable JSON artifact.
+  This stage is analytical scoring only: do not write
+  student-facing prose here.
+
+FILLED AT BUILD TIME                        9 slots
+  {{EXPERIMENT_METADATA}}   {{LAB_SPEC_TEXT}}
+  {{CORE_EVALUATION_TEXT}}  {{GRADING_SHEET_TEXT}}
+  {{ABSTRACT_CALIBRATION_TEXT}}  {{RUBRIC_JSON}}
+  {{STARTER_SCAFFOLD_TEXT}} {{SUBMISSION_PACKAGE}}
+  {{OUTPUT_SCHEMA_JSON}}
+
+PROCEDURE, for each rubric criterion
+  1  what the criterion measures under the contract
+  2  record positive evidence of learning
+  3  find failures backed by concrete code evidence
+  4  separate penalizable from non-penalized
+  5  assign severity and confidence per deduction
+  6  score from severity, scope and rubric weight
+  7  recheck duplicate symptoms of one root cause
+
+GUARDRAILS                                  excerpt
+  optional improvements never become point loss
+  ambiguous evidence -> do not invent a defect
+  no penalty for naming, formatting, casing, accents
+  starter code is not student work
+  one root cause -> one consolidated deduction
+
+SEVERITY, in actual points
+  minor .25-1   moderate 1-2.5   major 2.5-5
+  blocking 5-10   sum(points_lost) = max - score
+
+Respond exclusively with valid JSON matching the
+schema. Never include Markdown outside JSON.</pre>
+    </div>
+
+    <div class="column">
+      <h2>src/prompt/template_stage2.md &mdash; feedback</h2>
+      <pre>ROLE
+  You are converting validated Stage 1 deductions into
+  concise pedagogical feedback for a first-year OOP
+  student.
+
+  Your job is not to re-grade the submission and not
+  to search for new defects.
+
+FILLED AT BUILD TIME                        5 slots
+  {{EXPERIMENT_METADATA}}   {{RUBRIC_JSON}}
+  {{COMMENT_STYLE_TEXT}}    {{SUBMISSION_PACKAGE}}
+  {{OUTPUT_SCHEMA_JSON}}
+
+FILLED AT CALL TIME                          1 slot
+  {{STAGE1_JSON}}  parsed and re-serialized from the
+                   Stage 1 response, so this stage
+                   never sees raw model prose
+
+FEEDBACK RULES                              excerpt
+  1  use only what is in STAGE1_JSON
+  2  add no new defects, penalties, interpretations
+  3  select at most 6 feedback items
+  4  prioritize high-impact, high-confidence items
+  5  omit low-confidence ones from student feedback
+  6  preserve proportionality
+  8  consolidate repeated symptoms into one item
+ 10  [file/class/method] Problema: ...
+     Consequencia: ...  Como consertar: ...
+
+REVIEWER SAFETY
+  confidence = low   -> omit, log in reviewer_notes
+  possible false positive -> record the risk
+  never sound more certain than the evidence does
+
+Respond exclusively with valid JSON matching the
+schema. Never include Markdown outside JSON.</pre>
+    </div>
+  </div>
+
+  <div class="foot">
+    <span>136 template lines &rarr; a 1753-line prompt &middot; the 1008
+    rendered prompts ship under data/&hellip;/prompts/</span>
+    <span>prompt_version v13-two-stage &middot; temperature 0</span>
+  </div>
+</div>
+<script>
+/* Same trick as slides.html: binary-search the largest font at which both
+   columns still fit, so editing the text above never overflows the card. */
+const panes = Array.from(document.querySelectorAll('pre'));
+function fit() {
+  let lo = 6, hi = 24;
+  for (let step = 0; step < 16; step++) {
+    const mid = (lo + hi) / 2;
+    panes.forEach(p => p.style.fontSize = mid + 'px');
+    const fits = panes.every(p => p.scrollHeight <= p.clientHeight + 1 &&
+                                  p.scrollWidth <= p.clientWidth + 1);
+    if (fits) lo = mid; else hi = mid;
+  }
+  panes.forEach(p => p.style.fontSize = lo.toFixed(2) + 'px');
+}
+fit();
+addEventListener('resize', fit);
+if (document.fonts) document.fonts.ready.then(fit);
+</script>
+</body>
+</html>
