@@ -18,6 +18,20 @@ the four generated files below always agree with each other.
 | [`slides.pptx`](slides.pptx) | Generated: 16:9 deck, script in the speaker notes |
 | [`speaker_script.md`](speaker_script.md) | Generated: timed script, cut list, Q&A |
 
+## Theme
+
+The HTML and PPTX decks reuse the CBSoft'26 talk template: `#efeee7` paper,
+`#2b2c30` ink, [Playfair Display](https://fonts.google.com/specimen/Playfair+Display)
+for prose and display type, [Public Sans](https://fonts.google.com/specimen/Public+Sans)
+for the tracked-out kickers and small print, a hairline under each kicker, and
+the slide number alone in the bottom-right corner — unnumbered on the title
+slide, so the count starts at 1 on the slide after it.
+
+Neither font is embedded, so install both locally for an exact match; without
+them the deck falls back to Georgia and Helvetica and keeps its proportions.
+Diagrams and tables stay monospaced in every target, because their columns are
+aligned by hand and reflow destroys them.
+
 ## Rendering
 
 ```bash
@@ -49,18 +63,25 @@ needs no server and no network.
 | `s` | toggle speaker notes |
 | `t` | start or pause the talk timer |
 | `r` | reset the timer |
+| `h` | hide the presenter strip |
 | `f` | fullscreen |
 
-The footer shows the current slide, its target window, and elapsed time. The
+The presenter strip at the foot shows the current slide, its target window and
+elapsed time; `h` hides it if you are mirroring rather than presenting. The
 clock turns amber once you pass the current slide's end time and red past eight
 minutes. Slide numbers are in the URL fragment, so `slides.html#5` opens slide
 five directly. Printing gives one slide per page, so browser print-to-PDF is a
 working PDF export.
 
-**PPTX** is for when the venue insists on PowerPoint. The speaker script is in
-the notes pane of each slide. Body text is Courier New because the slides
-contain ASCII tables and diagrams that break in a proportional font — if you
-restyle the deck, keep the body monospaced.
+Each slide sizes its own body text: a script measures the content and picks the
+largest font that fits both the height and the 72-column monospace width, so the
+deck fills whatever projector it lands on instead of assuming 16:9.
+
+**PPTX** is for when the venue insists on PowerPoint. It shares the palette and
+the kicker treatment, and the speaker script is in the notes pane of each slide.
+Its body is monospaced throughout, not just for the diagrams: PowerPoint has no
+equivalent of the HTML auto-fitter, so one predictable metric keeps every slide
+inside its margins. If you restyle it, keep the body monospaced.
 
 **ASCII** is for presenting from a terminal. Slides are separated by form feeds:
 
@@ -79,6 +100,12 @@ verbatim monospace (diagrams, trees, tables, kept within 72 columns), `Para`
 for prose, and `Bullets` for lists. Each slide also carries its `script`,
 an optional presenter-only `delivery` cue, and an optional line to add only
 when you are ahead of the clock.
+
+A block can also carry a `role`, which is how the same source feeds a terminal
+and a themed deck. `banner` marks ASCII art the HTML and PPTX skip in favour of
+real type; `title` is the reverse, a display line the ASCII deck skips because
+the banner already spells it out. `kicker`, `credit` and `punch` pick out the
+tracked-out uppercase lines, the small print and an emphasised closing line.
 
 Changing a slide's `start`/`end` re-budgets its script automatically, but the
 windows must stay contiguous and still add up to 480 seconds.
