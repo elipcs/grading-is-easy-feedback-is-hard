@@ -129,21 +129,72 @@ SLIDES: list[Slide] = [
         delivery="Say the title, then move on. Do not read the author list aloud.",
         script=[
             "Good morning. Our paper is called Grading Is Easy, Feedback Is Hard, "
-            "and the artifact I want to show you is the machinery behind that title.",
+            "and what I am presenting today is the artifact behind it.",
 
-            "It is a replication package for evaluating large language models as "
-            "instructor-support tools on a design-oriented object-oriented "
-            "programming assignment. Eighty-four real Java submissions, two models, "
-            "a complete prompt protocol, and every intermediate file.",
+            "It is a replication package: eighty-four real Java submissions from an "
+            "object-oriented programming course, two models, a complete prompt "
+            "protocol, and every intermediate file we produced, down to the exact "
+            "bytes we sent to each provider.",
 
-            "Everything I show runs on your laptop without an API key.",
+            "Everything I show runs on your laptop, without an API key, in one "
+            "command.",
         ],
     ),
 
     Slide(
-        title="WHY THIS ARTIFACT EXISTS",
+        title="THE PAPER BEHIND THE ARTIFACT",
         start=30,
-        end=75,
+        end=80,
+        blocks=[
+            Para("The paper is an evaluation protocol for LLM-assisted assessment of "
+                 "design-oriented OOP assignments. The artifact is that protocol, "
+                 "made runnable."),
+            Pre([
+                "  a single score merges two capabilities the paper keeps apart:",
+                "",
+                "  +-------------------------------+  +-------------------------------+",
+                "  |  GRADE CONCORDANCE            |  |  DIAGNOSTIC ALIGNMENT         |",
+                "  |                               |  |                               |",
+                "  |  does the score match the     |  |  does it name the same        |",
+                "  |  human baseline?              |  |  problems an expert found?    |",
+                "  +-------------------------------+  +-------------------------------+",
+                "",
+                "     measured separately, against human references, on the same",
+                "     submissions, under one fixed prompt protocol",
+            ]),
+            Para("Same assignment, same rubric, same prompt structure, same output "
+                 "schema, for every model and every repetition."),
+            Para("Grading is easy. Feedback is hard.", role="punch"),
+        ],
+        delivery="This is the only paper slide. Do not drift into results.",
+        script=[
+            "One slide on the paper this comes from, and then we stay on the "
+            "artifact.",
+
+            "The paper is an evaluation protocol for using language models to assess "
+            "design-oriented object-oriented programming assignments. This artifact "
+            "is that protocol, made runnable.",
+
+            "Its central claim is that one aggregate score merges two capabilities "
+            "that behave differently. Grade concordance asks whether the score "
+            "matches the human baseline. Diagnostic alignment asks whether the model "
+            "names the same problems an expert found.",
+
+            "We measure them separately, against human references, on the same "
+            "submissions, under one fixed prompt protocol, so that the two can never "
+            "be blurred into a single number.",
+
+            "The title gives away what we found. I am here for the machinery behind "
+            "that sentence, not for the numbers.",
+        ],
+        optional="Both dimensions are measured per submission and per rubric "
+                 "criterion, never as a single headline score.",
+    ),
+
+    Slide(
+        title="WHY THIS ARTIFACT EXISTS",
+        start=80,
+        end=125,
         blocks=[
             Para("In a design-oriented OOP assignment, correctness and design do not always agree:"),
             Pre([
@@ -183,8 +234,8 @@ SLIDES: list[Slide] = [
 
     Slide(
         title="WHAT IS INSIDE THE ARTIFACT",
-        start=75,
-        end=110,
+        start=125,
+        end=160,
         blocks=[
             Pre([
                 ".",
@@ -222,8 +273,8 @@ SLIDES: list[Slide] = [
 
     Slide(
         title="THE PROMPT (1/3): TWO STAGES, ON PURPOSE",
-        start=110,
-        end=175,
+        start=160,
+        end=225,
         blocks=[
             Pre([
                 "  assignment spec + official grading reference + starter scaffold",
@@ -277,8 +328,8 @@ SLIDES: list[Slide] = [
 
     Slide(
         title="THE PROMPT (2/3): DYNAMIC INJECTION",
-        start=175,
-        end=235,
+        start=225,
+        end=285,
         blocks=[
             Para(
                 "Nothing in src/prompt/ is a finished prompt. Every file is a "
@@ -337,8 +388,8 @@ SLIDES: list[Slide] = [
 
     Slide(
         title="THE PROMPT (3/3): THE GUARDRAILS",
-        start=235,
-        end=285,
+        start=285,
+        end=335,
         blocks=[
             Pre([
                 "src/prompt/",
@@ -383,8 +434,8 @@ SLIDES: list[Slide] = [
 
     Slide(
         title="HOW THE STUDY WAS RUN",
-        start=285,
-        end=330,
+        start=335,
+        end=380,
         blocks=[
             Pre([
                 "PHASE 1  -  INPUTS",
@@ -433,8 +484,8 @@ SLIDES: list[Slide] = [
 
     Slide(
         title="THE HARD MEASUREMENT: IS IT THE SAME PROBLEM?",
-        start=330,
-        end=370,
+        start=380,
+        end=420,
         blocks=[
             Para("String equality fails. Taxonomy overlap is too generous."),
             Pre([
@@ -474,53 +525,6 @@ SLIDES: list[Slide] = [
             "That is model-assisted labelling, so we call it operational matching, "
             "not ground truth. The prompt, the model identifier and every cache entry "
             "ship in the artifact.",
-        ],
-    ),
-
-    Slide(
-        title="WHAT THE NUMBERS SAY",
-        start=370,
-        end=420,
-        blocks=[
-            Para("RQ1  grade concordance against the expert reference  (n = 84)"),
-            Pre([
-                "  +-------------------+-------+-------+-------+----------+",
-                "  | evaluator         | mean  | MAE   | bias  | +/- 1 pt |",
-                "  +-------------------+-------+-------+-------+----------+",
-                "  | TA (baseline)     | 8.85  | 0.45  | +0.13 |   91.7%  |",
-                "  | Gemini 3.1 Pro    | 8.85  | 0.44  | +0.14 |   92.5%  |",
-                "  | GPT-5.5           | 7.26  | 1.48  | -1.45 |   27.4%  |",
-                "  +-------------------+-------+-------+-------+----------+",
-            ]),
-            Para("RQ2  diagnostic alignment - same F1, opposite failure modes"),
-            Pre([
-                "  +-------------------+-------+-------+-------+",
-                "  | model             |  P    |  R    |  F1   |",
-                "  +-------------------+-------+-------+-------+",
-                "  | GPT-5.5           | 0.52  | 0.96  | 0.67  |   exhaustive, noisy",
-                "  | Gemini 3.1 Pro    | 0.69  | 0.62  | 0.65  |   clean, incomplete",
-                "  +-------------------+-------+-------+-------+",
-            ]),
-            Para("Stability: ICC 0.89 / 0.90, yet exact 3-run agreement 2.4% / 0.0%"),
-            Para("Grading is easy. Feedback is hard.", role="punch"),
-        ],
-        script=[
-            "The results, briefly.",
-
-            "On grades, Gemini essentially matches the human baseline: mean absolute "
-            "error of 0.44 against the expert reference, where the TAs themselves sit "
-            "at 0.45. GPT-5.5 systematically undergrades, with a bias of minus 1.45.",
-
-            "On diagnosis, the F1 scores are almost identical - 0.67 and 0.65 - and "
-            "that similarity hides completely opposite behaviour. GPT-5.5 finds "
-            "nearly every expert-annotated issue, recall 0.96, but about half of what "
-            "it reports has no expert equivalent. Gemini is much cleaner and misses "
-            "over a third of the issues.",
-
-            "And stability: both models rank submissions consistently, ICC around "
-            "0.9, yet exact agreement across three runs is two percent and zero.",
-
-            "Same aggregate F1, a different assessment instrument. That is the title.",
         ],
     ),
 
@@ -603,33 +607,33 @@ SLIDES: list[Slide] = [
 # --------------------------------------------------------------------------
 
 RUNNING_LONG = [
-    "**Slide 02, the A/B example** (~20 s). Replace with: \"correctness and "
+    "**Slide 03, the A/B example** (~20 s). Replace with: \"correctness and "
     "design do not agree in this assignment, so grading stays manual.\"",
 
-    "**Slide 06, the severity scale and the low-confidence rule** (~15 s). Keep "
+    "**Slide 07, the severity scale and the low-confidence rule** (~15 s). Keep "
     "double jeopardy and the optional-improvements rule; those land best.",
 
-    "**Slide 07, phase one** (~15 s). The anonymization detail moves to Q&A.",
+    "**Slide 08, phase one** (~15 s). The anonymization detail moves to Q&A.",
 
-    "**Slide 03, the byte counts** (~10 s). The directory tree is on the slide "
+    "**Slide 04, the byte counts** (~10 s). The directory tree is on the slide "
     "anyway.",
 ]
 
 RUNNING_SHORT = [
-    "Expand slide 06 with a concrete miss: GPT-5.5 kept reporting Javadoc "
+    "Expand slide 07 with a concrete miss: GPT-5.5 kept reporting Javadoc "
     "phrasing and naming inherited from the starter code as penalizable "
     "deductions, even though the prompt routes optional improvements elsewhere. "
     "That is exactly why the guardrail text ships in the artifact and not just "
     "in the paper.",
 
-    "Slide 05 has room for the failure mode the gate prevents: an unfinished "
+    "Slide 06 has room for the failure mode the gate prevents: an unfinished "
     "rubric silently rendering into 84 prompts. `ensure_rubric_ready` turns that "
     "into a hard stop before a single API call is made.",
 
-    "Slide 09 also has room for submission S02: the expert deducted 3.5 points "
-    "for an off-by-one error on array access, Gemini caught it, and GPT-5.5 "
-    "missed it despite its higher aggregate recall. Aggregate profiles are "
-    "tendencies, not guarantees.",
+    "Slide 02 has room for why the two dimensions are kept apart in the first "
+    "place: a single aggregate score lets a model look competent on grades while "
+    "producing feedback an instructor cannot hand to a student. Splitting the "
+    "measurement is the design decision the whole artifact is built around.",
 ]
 
 QUESTIONS = [

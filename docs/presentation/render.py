@@ -720,7 +720,7 @@ def render_script() -> str:
         )
     out += [
         "",
-        "Do not cut slides 04, 05 or 10. The prompt structure, the injection "
+        "Do not cut slides 05, 06 or 10. The prompt structure, the injection "
         "mechanism and the one-command reproduction are what the audience came for.",
         "",
         "## If you are running short",
